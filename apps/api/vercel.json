@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@churchflow/api",
+  "devCommand": "pnpm run dev",
+  "installCommand": "cd ../.. && pnpm install",
+  "framework": "nextjs",
+  "regions": [
+    "fra1"
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
