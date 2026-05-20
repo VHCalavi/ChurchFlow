@@ -1,0 +1,111 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@churchflow/database";
+import { z } from "zod";
+
+const createGroupSchema = z.object({
+  name: z.string().min(1, "Le nom du groupe est requis"),
+  description: z.string().optional().nullable(),
+  type: z.enum(["DEPARTEMENT", "TRIBU", "GEM"]),
+  parentId: z.string().optional().nullable(),
+  churchId: z.string().min(1, "L'identifiant de l'église (churchId) est requis")
+});
+
+export async function GET(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const churchId = searchParams.get("churchId");
+    
+    if (!churchId) {
+      return NextResponse.json(
+        { success: false, error: "L'identifiant de l'église (churchId) est requis" },
+        { status: 400 }
+      );
+    }
+
+    const groups = await prisma.group.findMany({
+      where: { churchId },
+      include: {
+        parent: {
+          select: { id: true, name: true, type: true }
+        },
+        children: {
+          select: { id: true, name: true, type: true }
+        },
+        _count: {
+          select: { members: true }
+        }
+      },
+      orderBy: { name: "asc" }
+    });
+
+    return NextResponse.json({ success: true, data: groups });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erreur inconnue";
+    return NextResponse.json(
+      { success: false, error: "Erreur lors de la récupération des groupes: " + message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const result = createGroupSchema.safeParse(body);
+
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, error: result.error.errors.map(e => e.message).join(", ") },
+        { status: 400 }
+      );
+    }
+
+    const { type, parentId } = result.data;
+
+    // Logique hiérarchique : Un GEM doit avoir un groupe parent (Département ou Tribu)
+    if (type === "GEM" && !parentId) {
+      return NextResponse.json(
+        { success: false, error: "Un GEM (famille d'impact) doit obligatoirement avoir un Département ou une Tribu comme parent" },
+        { status: 400 }
+      );
+    }
+
+    if (parentId) {
+      const parentGroup = await prisma.group.findUnique({
+        where: { id: parentId }
+      });
+
+      if (!parentGroup) {
+        return NextResponse.json(
+          { success: false, error: "Le groupe parent spécifié n'existe pas" },
+          { status: 400 }
+        );
+      }
+
+      if (parentGroup.type === "GEM") {
+        return NextResponse.json(
+          { success: false, error: "Un GEM ne peut pas avoir un autre GEM comme parent" },
+          { status: 400 }
+        );
+      }
+    }
+
+    const group = await prisma.group.create({
+      data: {
+        name: result.data.name,
+        description: result.data.description,
+        type: result.data.type,
+        parentId: result.data.parentId || null,
+        churchId: result.data.churchId
+      }
+    });
+
+    return NextResponse.json({ success: true, data: group }, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Erreur inconnue";
+    return NextResponse.json(
+      { success: false, error: "Erreur lors de la création du groupe: " + message },
+      { status: 500 }
+    );
+  }
+}
