@@ -43,6 +43,7 @@ export default function MeetingsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [activeTab, setActiveTab] = useState<"stats" | "manage">("stats");
 
   // Form states
   const [title, setTitle] = useState("");
@@ -275,8 +276,41 @@ export default function MeetingsPage() {
         </div>
       )}
 
+
+
+      {/* Navigation Onglets */}
+      <div className="flex space-x-1.5 p-1 bg-slate-100 rounded-xl max-w-md mb-8 border border-slate-200/50">
+        <button
+          onClick={() => setActiveTab("stats")}
+          className={`flex-1 flex items-center justify-center space-x-2 py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all duration-200 ${
+            activeTab === "stats"
+              ? "bg-white text-primary shadow-premium"
+              : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+          }`}
+        >
+          <span>Statistiques d&apos;Assiduité</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("manage")}
+          className={`flex-1 flex items-center justify-center space-x-2 py-2.5 text-xs sm:text-sm font-bold rounded-lg transition-all duration-200 ${
+            activeTab === "manage"
+              ? "bg-white text-primary shadow-premium"
+              : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
+          }`}
+        >
+          <span>Gestion des Réunions</span>
+        </button>
+      </div>
+
+      {activeTab === "stats" ? (
+        <div className="animate-fade-in">
+          <MeetingsAttendanceChart />
+        </div>
+      ) : (
+        <div className="animate-fade-in">
+
       {/* Control bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 mb-8 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 my-8 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-700" />
           <input
@@ -387,9 +421,8 @@ export default function MeetingsPage() {
           ))}
         </div>
       )}
-
-      {/* Graphique d'assiduité */}
-      <MeetingsAttendanceChart />
+        </div>
+      )}
 
       {/* Modal plan meeting */}
       {isModalOpen && (
