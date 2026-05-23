@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
+import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
 
 const createMeetingSchema = z.object({
   title: z.string().min(1, "Le titre de la réunion est requis"),
@@ -9,30 +10,44 @@ const createMeetingSchema = z.object({
   date: z.string().min(1, "La date et l'heure sont requises"),
   location: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  churchId: z.string().min(1, "L'identifiant de l'église (churchId) est requis")
+  churchId: z.string().optional()
 });
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const churchId = searchParams.get("churchId");
-    
-    if (!churchId) {
-      return NextResponse.json(
-        { success: false, error: "L'identifiant de l'église (churchId) est requis" },
-        { status: 400 }
-      );
-    }
+export async function GET() {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
 
-    const meetings = await prisma.meeting.findMany({
-      where: { churchId },
+  try {
+    const rawMeetings = await prisma.meeting.findMany({
+      where: { churchId: user.churchId },
       include: {
         _count: {
           select: { attendees: true }
+        },
+        attendees: {
+          where: { isPresent: true },
+          select: { memberId: true }
         }
       },
       orderBy: { date: "desc" }
     });
+
+    // Shape the response: add presentCount alongside _count.attendees
+    const meetings = rawMeetings.map(m => ({
+      id: m.id,
+      title: m.title,
+      description: m.description,
+      type: m.type,
+      date: m.date,
+      endDate: m.endDate,
+      location: m.location,
+      notes: m.notes,
+      isRecurrent: m.isRecurrent,
+      churchId: m.churchId,
+      _count: { attendees: m._count.attendees },
+      presentCount: m.attendees.length,
+    }));
 
     return NextResponse.json({ success: true, data: meetings });
   } catch (error) {
@@ -45,6 +60,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const body = await request.json();
     const result = createMeetingSchema.safeParse(body);
@@ -64,7 +83,7 @@ export async function POST(request: Request) {
         date: new Date(result.data.date),
         location: result.data.location,
         notes: result.data.notes,
-        churchId: result.data.churchId
+        churchId: user.churchId
       }
     });
 

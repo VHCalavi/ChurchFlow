@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
 import { 
   Plus, 
@@ -8,7 +9,8 @@ import {
   Network,
   Users,
   Layers,
-  X
+  X,
+  ArrowRight
 } from "lucide-react";
 
 interface Group {
@@ -252,14 +254,21 @@ export default function GroupsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {departments.map(dept => (
-                  <div key={dept.id} className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:shadow-premium transition-all">
-                    <h4 className="text-base font-bold text-slate-900">{dept.name}</h4>
+                  <Link
+                    href={`/dashboard/groups/${dept.id}`}
+                    key={dept.id}
+                    className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:shadow-premium hover:border-primary/20 hover:scale-[1.01] transition-all duration-200 cursor-pointer block group"
+                  >
+                    <div className="flex items-start justify-between">
+                      <h4 className="text-base font-bold text-slate-900 group-hover:text-primary transition-colors pr-2">{dept.name}</h4>
+                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-primary transition-all group-hover:translate-x-0.5 shrink-0 mt-0.5" />
+                    </div>
                     <p className="text-xs text-slate-500 mt-2 line-clamp-2 h-8">{dept.description || "Aucune description."}</p>
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
                       <span className="text-xs font-semibold text-slate-600">{dept._count?.members || 0} membres rattachés</span>
                       <span className="text-[10px] font-bold tracking-wider px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 rounded-lg">DEPT</span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -276,14 +285,21 @@ export default function GroupsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tribus.map(tribu => (
-                  <div key={tribu.id} className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:shadow-premium transition-all">
-                    <h4 className="text-base font-bold text-slate-900">{tribu.name}</h4>
+                  <Link
+                    href={`/dashboard/groups/${tribu.id}`}
+                    key={tribu.id}
+                    className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:shadow-premium hover:border-secondary/20 hover:scale-[1.01] transition-all duration-200 cursor-pointer block group"
+                  >
+                    <div className="flex items-start justify-between">
+                      <h4 className="text-base font-bold text-slate-900 group-hover:text-secondary transition-colors pr-2">{tribu.name}</h4>
+                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-secondary transition-all group-hover:translate-x-0.5 shrink-0 mt-0.5" />
+                    </div>
                     <p className="text-xs text-slate-500 mt-2 line-clamp-2 h-8">{tribu.description || "Aucune description."}</p>
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
                       <span className="text-xs font-semibold text-slate-600">{tribu._count?.members || 0} membres rattachés</span>
                       <span className="text-[10px] font-bold tracking-wider px-2.5 py-1 bg-secondary/10 text-secondary border border-secondary/20 rounded-lg">TRIBU</span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
@@ -300,8 +316,15 @@ export default function GroupsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {gems.map(gem => (
-                  <div key={gem.id} className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:shadow-premium transition-all">
-                    <h4 className="text-base font-bold text-slate-900">{gem.name}</h4>
+                  <Link
+                    href={`/dashboard/groups/${gem.id}`}
+                    key={gem.id}
+                    className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:shadow-premium hover:border-slate-300/40 hover:scale-[1.01] transition-all duration-200 cursor-pointer block group"
+                  >
+                    <div className="flex items-start justify-between">
+                      <h4 className="text-base font-bold text-slate-900 group-hover:text-primary transition-colors pr-2">{gem.name}</h4>
+                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-primary transition-all group-hover:translate-x-0.5 shrink-0 mt-0.5" />
+                    </div>
                     <p className="text-xs text-slate-500 mt-2 line-clamp-2 h-8">{gem.description || "Aucune description."}</p>
                     
                     <div className="flex items-center mt-4 space-x-2">
@@ -315,7 +338,7 @@ export default function GroupsPage() {
                       <span className="text-xs font-semibold text-slate-600">{gem._count?.members || 0} membres</span>
                       <span className="text-[10px] font-bold tracking-wider px-2.5 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg">GEM</span>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}

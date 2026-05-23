@@ -1,7 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
+import { Edit3, Trash2, ClipboardList } from "lucide-react";
 import { 
   Plus, 
   Search, 
@@ -25,6 +27,15 @@ interface Meeting {
 }
 
 export default function MeetingsPage() {
+  // Edit states
+  const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editType, setEditType] = useState<"CULTE" | "TEMPS_DE_PRIERE" | "REPETITION" | "AGAPE" | "AUTRE">("CULTE");
+  const [editDate, setEditDate] = useState("");
+  const [editLocation, setEditLocation] = useState("");
+  const [editNotes, setEditNotes] = useState("");
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -148,6 +159,68 @@ export default function MeetingsPage() {
     }
   };
 
+  const openEditMeetingModal = (meeting: Meeting) => {
+    setEditingMeeting(meeting);
+    setEditTitle(meeting.title);
+    setEditDescription(meeting.description || "");
+    setEditType(meeting.type);
+    const d = new Date(meeting.date);
+    const offset = d.getTimezoneOffset();
+    const localTime = new Date(d.getTime() - offset * 60 * 1000);
+    setEditDate(localTime.toISOString().substring(0, 16));
+    setEditLocation(meeting.location || "");
+    setEditNotes(meeting.notes || "");
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditMeeting = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMeeting) return;
+    try {
+      setSubmitting(true);
+      const res = await fetch(`/api/v1/meetings/${editingMeeting.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editTitle,
+          description: editDescription || null,
+          type: editType,
+          date: new Date(editDate).toISOString(),
+          location: editLocation || null,
+          notes: editNotes || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMeetings((prev) => prev.map((m) => m.id === editingMeeting.id ? data.data : m));
+        showNotification("Réunion mise à jour avec succès !", "success");
+      } else {
+        showNotification(data.error || "Erreur lors de la mise à jour", "error");
+      }
+    } catch {
+      showNotification("Erreur de connexion", "error");
+    } finally {
+      setSubmitting(false);
+      setIsEditModalOpen(false);
+    }
+  };
+
+  const handleDeleteMeeting = async (meetingId: string) => {
+    if (!confirm("Annuler cette réunion ? Cette action est irréversible.")) return;
+    try {
+      const res = await fetch(`/api/v1/meetings/${meetingId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setMeetings((prev) => prev.filter((m) => m.id !== meetingId));
+        showNotification("Réunion annulée avec succès.", "success");
+      } else {
+        showNotification(data.error || "Erreur lors de l'annulation", "error");
+      }
+    } catch {
+      showNotification("Erreur de connexion", "error");
+    }
+  };
+
   const filteredMeetings = meetings.filter(m =>
     m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (m.description && m.description.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -238,6 +311,28 @@ export default function MeetingsPage() {
                       <span className="truncate max-w-[200px]">{meeting.notes}</span>
                     </div>
                   )}
+
+                  <div className="flex items-center space-x-2 pt-2 sm:pt-0 sm:pl-4 border-t sm:border-t-0 sm:border-l border-slate-100">
+                    <Link
+                      href={`/dashboard/meetings/${meeting.id}/attendance`}
+                      className="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium"
+                    >
+                      <ClipboardList className="w-3.5 h-3.5" />
+                      <span>Émargement</span>
+                    </Link>
+                    <button
+                      onClick={() => openEditMeetingModal(meeting)}
+                      className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-secondary transition-all"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMeeting(meeting.id)}
+                      className="p-2 rounded-lg border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-600 hover:text-red-600 transition-all"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -345,6 +440,112 @@ export default function MeetingsPage() {
                   className="px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium disabled:opacity-50"
                 >
                   {submitting ? "Planification..." : "Enregistrer"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Edit Modal */}
+      {isEditModalOpen && editingMeeting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg p-6 bg-white rounded-xl border border-slate-100 shadow-premium">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+              <h3 className="text-base font-bold text-slate-900">Modifier la Réunion</h3>
+              <button 
+                onClick={() => setIsEditModalOpen(false)}
+                className="p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleEditMeeting} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Titre de la Réunion *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Grand Culte Dominical, Réunion des Bergers..."
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Description</label>
+                <textarea
+                  placeholder="Ordre du jour ou thématiques..."
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all h-20"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Type *</label>
+                  <select
+                    value={editType}
+                    onChange={(e) => setEditType(e.target.value as "CULTE" | "TEMPS_DE_PRIERE" | "REPETITION" | "AGAPE" | "AUTRE")}
+                    className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                  >
+                    <option value="CULTE">Culte de Célébration</option>
+                    <option value="TEMPS_DE_PRIERE">Temps de Prière / Intercession</option>
+                    <option value="REPETITION">Répétition Générale</option>
+                    <option value="AGAPE">Agape / Repas Fraternel</option>
+                    <option value="AUTRE">Autre Rencontre</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Date et Heure *</label>
+                  <input
+                    type="datetime-local"
+                    required
+                    value={editDate}
+                    onChange={(e) => setEditDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Lieu / Plateforme</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Temple principal, Salle Polyvalente, Zoom..."
+                  value={editLocation}
+                  onChange={(e) => setEditLocation(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Notes internes</label>
+                <input
+                  type="text"
+                  placeholder="Ex: Prédicateur externe, apportez des plats..."
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                />
+              </div>
+
+              <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium disabled:opacity-50"
+                >
+                  {submitting ? "Sauvegarde..." : "Enregistrer"}
                 </button>
               </div>
             </form>

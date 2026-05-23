@@ -1,29 +1,24 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
+import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
 
 const createGroupSchema = z.object({
   name: z.string().min(1, "Le nom du groupe est requis"),
   description: z.string().optional().nullable(),
   type: z.enum(["DEPARTEMENT", "TRIBU", "GEM"]),
   parentId: z.string().optional().nullable(),
-  churchId: z.string().min(1, "L'identifiant de l'église (churchId) est requis")
+  churchId: z.string().optional()
 });
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const churchId = searchParams.get("churchId");
-    
-    if (!churchId) {
-      return NextResponse.json(
-        { success: false, error: "L'identifiant de l'église (churchId) est requis" },
-        { status: 400 }
-      );
-    }
+export async function GET() {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
 
+  try {
     const groups = await prisma.group.findMany({
-      where: { churchId },
+      where: { churchId: user.churchId },
       include: {
         parent: {
           select: { id: true, name: true, type: true }
@@ -49,6 +44,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const body = await request.json();
     const result = createGroupSchema.safeParse(body);
@@ -82,6 +81,13 @@ export async function POST(request: Request) {
         );
       }
 
+      if (parentGroup.churchId !== user.churchId) {
+        return NextResponse.json(
+          { success: false, error: "Le groupe parent n'appartient pas à votre église" },
+          { status: 403 }
+        );
+      }
+
       if (parentGroup.type === "GEM") {
         return NextResponse.json(
           { success: false, error: "Un GEM ne peut pas avoir un autre GEM comme parent" },
@@ -96,7 +102,7 @@ export async function POST(request: Request) {
         description: result.data.description,
         type: result.data.type,
         parentId: result.data.parentId || null,
-        churchId: result.data.churchId
+        churchId: user.churchId
       }
     });
 

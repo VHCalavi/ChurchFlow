@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
+import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
 
 const createMemberSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis"),
   lastName: z.string().min(1, "Le nom est requis"),
-  gender: z.enum(["HOMME", "FEMME"]),
+  gender: z.enum(["HOMME", "FEMME"]).default("HOMME"),
   birthDate: z.string().optional().nullable(),
   phone: z.string().optional().nullable(),
   email: z.string().email("Email invalide").optional().nullable(),
@@ -27,25 +28,19 @@ const createMemberSchema = z.object({
     "GA_C50",
     "GA_C100"
   ]).optional().nullable(),
-  churchId: z.string().min(1, "Le ID de l'église est requis"),
+  churchId: z.string().optional(),
   supervisorId: z.string().optional().nullable(),
   notes: z.string().optional().nullable()
 });
 
-export async function GET(request: Request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const churchId = searchParams.get("churchId");
-    
-    if (!churchId) {
-      return NextResponse.json(
-        { success: false, error: "L'identifiant de l'église (churchId) est requis" },
-        { status: 400 }
-      );
-    }
+export async function GET() {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
 
+  try {
     const members = await prisma.member.findMany({
-      where: { churchId },
+      where: { churchId: user.churchId },
       include: {
         supervisor: {
           select: { id: true, firstName: true, lastName: true }
@@ -65,6 +60,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const body = await request.json();
     const result = createMemberSchema.safeParse(body);
@@ -105,7 +104,7 @@ export async function POST(request: Request) {
         status: result.data.status,
         grade: result.data.grade || null,
         echelon: result.data.echelon || null,
-        churchId: result.data.churchId,
+        churchId: user.churchId,
         supervisorId: result.data.supervisorId || null,
         notes: result.data.notes
       }

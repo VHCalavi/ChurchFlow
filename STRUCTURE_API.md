@@ -13,6 +13,10 @@ apps/api/
 │   │   └── v1/                   ← TOUTES les routes sont sous /api/v1/
 │   │       ├── health/
 │   │       │   └── route.ts      → GET /api/v1/health
+│   │       ├── churches/
+│   │       │   ├── route.ts      → GET /api/v1/churches  |  POST /api/v1/churches
+│   │       │   └── [id]/
+│   │       │       └── route.ts  → GET /api/v1/churches/:id
 │   │       ├── members/
 │   │       │   ├── route.ts      → GET /api/v1/members  |  POST /api/v1/members
 │   │       │   └── [id]/
@@ -128,6 +132,15 @@ Ces interfaces sont définies dans `packages/types/src/index.ts` : `ApiResponse<
 
 ### `GET /api/v1/health`
 Vérification que l'API est en ligne.
+
+### `GET /api/v1/churches`
+Retourne la liste de toutes les églises enregistrées (ordre alphabétique).
+
+### `POST /api/v1/churches`
+Crée une nouvelle église (système multi-tenant).
+
+### `GET /api/v1/churches/[id]`
+Retourne les détails d'une église par son ID (inclut les statistiques globales de ses membres, groupes, réunions...).
 
 ### `GET /api/v1/members?churchId=`
 Retourne tous les membres d'une église avec leur superviseur (select partiel).

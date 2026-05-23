@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
+import { auth, getAuthUser, unauthorized, forbidden } from "../../../../../lib/auth";
 
 const updateMemberSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis").optional(),
@@ -36,6 +37,10 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const member = await prisma.member.findUnique({
       where: { id: params.id },
@@ -62,6 +67,10 @@ export async function GET(
       );
     }
 
+    if (member.churchId !== user.churchId) {
+      return forbidden();
+    }
+
     return NextResponse.json({ success: true, data: member });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur inconnue";
@@ -76,6 +85,10 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const body = await request.json();
     const result = updateMemberSchema.safeParse(body);
@@ -96,6 +109,10 @@ export async function PUT(
         { success: false, error: "Membre non trouvé" },
         { status: 404 }
       );
+    }
+
+    if (currentMember.churchId !== user.churchId) {
+      return forbidden();
     }
 
     const status = result.data.status ?? currentMember.status;
@@ -150,6 +167,10 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const member = await prisma.member.findUnique({
       where: { id: params.id }
@@ -162,11 +183,16 @@ export async function DELETE(
       );
     }
 
-    await prisma.member.delete({
-      where: { id: params.id }
+    if (member.churchId !== user.churchId) {
+      return forbidden();
+    }
+
+    await prisma.member.update({
+      where: { id: params.id },
+      data: { isActive: false }
     });
 
-    return NextResponse.json({ success: true, message: "Membre supprimé avec succès" });
+    return NextResponse.json({ success: true, message: "Membre archivé avec succès" });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur inconnue";
     return NextResponse.json(

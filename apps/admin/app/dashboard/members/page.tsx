@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { MemberDetailsDrawer } from "../../../components/members/MemberDetailsDrawer";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
 import { 
   Plus, 
@@ -33,6 +34,10 @@ export default function MembersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [gradeFilter, setGradeFilter] = useState("ALL");
+  const [echelonFilter, setEchelonFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 20;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -45,6 +50,18 @@ export default function MembersPage() {
   const [grade, setGrade] = useState("");
   const [echelon, setEchelon] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [viewingMemberId, setViewingMemberId] = useState<string | null>(null);
+
+  // Edit modal states
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<Member | null>(null);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editStatus, setEditStatus] = useState<"SYMPATHISANT" | "MEMBRE" | "RESPONSABLE">("MEMBRE");
+  const [editGrade, setEditGrade] = useState("");
+  const [editEchelon, setEditEchelon] = useState("");
 
   // Load mock & database members
   useEffect(() => {
@@ -157,6 +174,67 @@ export default function MembersPage() {
     }
   };
 
+  const openEditModal = (member: Member) => {
+    setEditingMember(member);
+    setEditFirstName(member.firstName);
+    setEditLastName(member.lastName);
+    setEditEmail(member.email || "");
+    setEditPhone(member.phone || "");
+    setEditStatus(member.status);
+    setEditGrade(member.grade || "");
+    setEditEchelon(member.echelon || "");
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMember) return;
+    try {
+      setSubmitting(true);
+      const res = await fetch(`/api/v1/members/${editingMember.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: editFirstName,
+          lastName: editLastName,
+          email: editEmail || null,
+          phone: editPhone || null,
+          status: editStatus,
+          grade: editStatus === "RESPONSABLE" ? editGrade || null : null,
+          echelon: editStatus === "RESPONSABLE" ? editEchelon || null : null,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setMembers((prev) => prev.map((m) => m.id === editingMember.id ? data.data : m));
+        showNotification("Membre mis à jour avec succès !", "success");
+      } else {
+        showNotification(data.error || "Erreur lors de la mise à jour", "error");
+      }
+    } catch {
+      showNotification("Erreur de connexion", "error");
+    } finally {
+      setSubmitting(false);
+      setIsEditModalOpen(false);
+    }
+  };
+
+  const handleArchiveMember = async (member: Member) => {
+    if (!confirm(`Archiver ${member.firstName} ${member.lastName} ? Cette action est réversible.`)) return;
+    try {
+      const res = await fetch(`/api/v1/members/${member.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        setMembers((prev) => prev.filter((m) => m.id !== member.id));
+        showNotification("Membre archivé avec succès.", "success");
+      } else {
+        showNotification(data.error || "Erreur lors de l'archivage", "error");
+      }
+    } catch {
+      showNotification("Erreur de connexion", "error");
+    }
+  };
+
   const showNotification = (message: string, type: "success" | "error") => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 4000);
@@ -167,11 +245,14 @@ export default function MembersPage() {
       `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (member.email && member.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (member.phone && member.phone.includes(searchTerm));
-    
     const matchesStatus = statusFilter === "ALL" || member.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
+    const matchesGrade = gradeFilter === "ALL" || member.grade === gradeFilter;
+    const matchesEchelon = echelonFilter === "ALL" || member.echelon === echelonFilter;
+    return matchesSearch && matchesStatus && matchesGrade && matchesEchelon;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredMembers.length / PAGE_SIZE));
+  const paginatedMembers = filteredMembers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <DashboardLayout title="Gestion des Membres">
@@ -244,7 +325,13 @@ export default function MembersPage() {
             <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                if (e.target.value !== "RESPONSABLE") {
+                  setGradeFilter("ALL");
+                  setEchelonFilter("ALL");
+                }
+              }}
               className="pl-9 pr-8 py-2.5 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all"
             >
               <option value="ALL">Tous les Statuts</option>
@@ -253,6 +340,42 @@ export default function MembersPage() {
               <option value="SYMPATHISANT">Sympathisants</option>
             </select>
           </div>
+
+          {statusFilter === "RESPONSABLE" && (
+            <>
+              <div className="relative">
+                <select
+                  value={gradeFilter}
+                  onChange={(e) => setGradeFilter(e.target.value)}
+                  className="px-3 py-2.5 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all"
+                >
+                  <option value="ALL">Tous les Grades</option>
+                  <option value="ASPIRANT">Aspirant</option>
+                  <option value="SERVITEUR">Serviteur</option>
+                  <option value="GAGNEUR_AMES">Gagneur d&apos;âmes</option>
+                  <option value="ASSISTANT_PASTEUR">Assistant Pasteur</option>
+                  <option value="PASTEUR_ASSISTANT">Pasteur Assistant</option>
+                  <option value="PASTEUR_TITULAIRE">Pasteur Titulaire</option>
+                </select>
+              </div>
+
+              <div className="relative">
+                <select
+                  value={echelonFilter}
+                  onChange={(e) => setEchelonFilter(e.target.value)}
+                  className="px-3 py-2.5 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all"
+                >
+                  <option value="ALL">Tous les Échelons</option>
+                  <option value="C2">C2</option>
+                  <option value="C5">C5</option>
+                  <option value="C10">C10</option>
+                  <option value="C20">C20</option>
+                  <option value="GA_C50">GA C50</option>
+                  <option value="GA_C100">GA C100</option>
+                </select>
+              </div>
+            </>
+          )}
 
           <button
             onClick={() => setIsModalOpen(true)}
@@ -278,79 +401,112 @@ export default function MembersPage() {
             <p className="text-sm text-slate-500 mt-1">Essayez d&apos;ajuster vos critères de recherche ou de filtres.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-600 text-xs font-bold uppercase tracking-wider">
-                  <th className="py-4 px-6">Nom Complet</th>
-                  <th className="py-4 px-6">Statut</th>
-                  <th className="py-4 px-6">Hiérarchie</th>
-                  <th className="py-4 px-6">Contact</th>
-                  <th className="py-4 px-6">Date d&apos;inscription</th>
-                  <th className="py-4 px-6 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
-                {filteredMembers.map((member) => (
-                  <tr key={member.id} className="hover:bg-slate-50/30 transition-colors">
-                    <td className="py-4 px-6">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center font-bold text-primary border border-primary/10">
-                          {member.firstName[0]}{member.lastName[0]}
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">{member.firstName} {member.lastName}</p>
-                          <p className="text-xs text-slate-500">{member.email || "Pas d'email"}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold tracking-wider ${
-                        member.status === "RESPONSABLE"
-                          ? "bg-primary/10 text-primary border border-primary/20"
-                          : member.status === "MEMBRE"
-                          ? "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20"
-                          : "bg-slate-100 text-slate-700 border border-slate-200"
-                      }`}>
-                        {member.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      {member.status === "RESPONSABLE" && member.grade ? (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-[11px] px-2 py-0.5 bg-slate-100 rounded font-semibold text-primary border border-slate-200">
-                            {member.grade}
-                          </span>
-                          <span className="text-[11px] px-2 py-0.5 bg-slate-100 rounded font-semibold text-secondary border border-slate-200">
-                            {member.echelon}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-slate-400 text-xs">-</span>
-                      )}
-                    </td>
-                    <td className="py-4 px-6 text-slate-800 text-xs font-semibold">{member.phone || "Non renseigné"}</td>
-                    <td className="py-4 px-6 text-slate-500 text-xs">
-                      {new Date(member.createdAt).toLocaleDateString("fr-FR")}
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center justify-center space-x-2">
-                        <button className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary transition-all">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-secondary transition-all">
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                        <button className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-red-650 transition-all">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                    <th className="py-4 px-6">Nom Complet</th>
+                    <th className="py-4 px-6">Statut</th>
+                    <th className="py-4 px-6">Hiérarchie</th>
+                    <th className="py-4 px-6">Contact</th>
+                    <th className="py-4 px-6">Date d&apos;inscription</th>
+                    <th className="py-4 px-6 text-center">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                  {paginatedMembers.map((member) => (
+                    <tr key={member.id} className="hover:bg-slate-50/30 transition-colors">
+                      <td className="py-4 px-6">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center font-bold text-primary border border-primary/10">
+                            {member.firstName[0]}{member.lastName[0]}
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-slate-900">{member.firstName} {member.lastName}</p>
+                            <p className="text-xs text-slate-500">{member.email || "Pas d'email"}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold tracking-wider ${
+                          member.status === "RESPONSABLE"
+                            ? "bg-primary/10 text-primary border border-primary/20"
+                            : member.status === "MEMBRE"
+                            ? "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20"
+                            : "bg-slate-100 text-slate-700 border border-slate-200"
+                        }`}>
+                          {member.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6">
+                        {member.status === "RESPONSABLE" && member.grade ? (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-[11px] px-2 py-0.5 bg-slate-100 rounded font-semibold text-primary border border-slate-200">
+                              {member.grade}
+                            </span>
+                            <span className="text-[11px] px-2 py-0.5 bg-slate-100 rounded font-semibold text-secondary border border-slate-200">
+                              {member.echelon}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs">-</span>
+                        )}
+                      </td>
+                      <td className="py-4 px-6 text-slate-800 text-xs font-semibold">{member.phone || "Non renseigné"}</td>
+                      <td className="py-4 px-6 text-slate-500 text-xs">
+                        {new Date(member.createdAt).toLocaleDateString("fr-FR")}
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center justify-center space-x-2">
+                          <button onClick={() => setViewingMemberId(member.id)} className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary transition-all">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => openEditModal(member)}
+                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-secondary transition-all"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleArchiveMember(member)}
+                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-red-600 transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+                <span className="text-xs font-semibold text-slate-500">
+                  Page {currentPage} sur {totalPages} ({filteredMembers.length} membres)
+                </span>
+                <div className="flex items-center space-x-2">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-50 transition-all cursor-pointer"
+                  >
+                    Précédent
+                  </button>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-50 transition-all cursor-pointer"
+                  >
+                    Suivant
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -486,6 +642,82 @@ export default function MembersPage() {
           </div>
         </div>
       )}
+      {/* Edit Modal */}
+      {isEditModalOpen && editingMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg p-6 bg-white rounded-xl border border-slate-100 shadow-premium">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+              <h3 className="text-base font-bold text-slate-900">Modifier — {editingMember.firstName} {editingMember.lastName}</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleEditMember} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Prénom *</label>
+                  <input type="text" required value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Nom *</label>
+                  <input type="text" required value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Email</label>
+                  <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Téléphone</label>
+                  <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Statut *</label>
+                <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as "SYMPATHISANT" | "MEMBRE" | "RESPONSABLE")} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                  <option value="SYMPATHISANT">Sympathisant</option>
+                  <option value="MEMBRE">Membre</option>
+                  <option value="RESPONSABLE">Responsable</option>
+                </select>
+              </div>
+              {editStatus === "RESPONSABLE" && (
+                <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-primary/5 border border-primary/10">
+                  <div>
+                    <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1.5">Grade *</label>
+                    <select value={editGrade} onChange={(e) => setEditGrade(e.target.value)} required className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                      <option value="">Sélectionner...</option>
+                      <option value="ASPIRANT">Aspirant</option>
+                      <option value="SERVITEUR">Serviteur</option>
+                      <option value="GAGNEUR_AMES">Gagneur d&apos;âmes</option>
+                      <option value="ASSISTANT_PASTEUR">Assistant Pasteur</option>
+                      <option value="PASTEUR_ASSISTANT">Pasteur Assistant</option>
+                      <option value="PASTEUR_TITULAIRE">Pasteur Titulaire</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1.5">Échelon *</label>
+                    <select value={editEchelon} onChange={(e) => setEditEchelon(e.target.value)} required className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                      <option value="">Sélectionner...</option>
+                      <option value="C2">C2</option>
+                      <option value="C5">C5</option>
+                      <option value="C10">C10</option>
+                      <option value="C20">C20</option>
+                      <option value="GA_C50">GA C50</option>
+                      <option value="GA_C100">GA C100</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+              <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all">Annuler</button>
+                <button type="submit" disabled={submitting} className="px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium disabled:opacity-50">{submitting ? "Sauvegarde..." : "Enregistrer"}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      <MemberDetailsDrawer memberId={viewingMemberId} onClose={() => setViewingMemberId(null)} />
     </DashboardLayout>
   );
 }

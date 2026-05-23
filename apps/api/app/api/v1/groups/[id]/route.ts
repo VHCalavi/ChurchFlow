@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
+import { auth, getAuthUser, unauthorized, forbidden } from "../../../../../lib/auth";
 
 const updateGroupSchema = z.object({
   name: z.string().min(1, "Le nom du groupe est requis").optional(),
@@ -14,6 +15,10 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const group = await prisma.group.findUnique({
       where: { id: params.id },
@@ -41,6 +46,10 @@ export async function GET(
       );
     }
 
+    if (group.churchId !== user.churchId) {
+      return forbidden();
+    }
+
     return NextResponse.json({ success: true, data: group });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur inconnue";
@@ -55,6 +64,10 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const body = await request.json();
     const result = updateGroupSchema.safeParse(body);
@@ -75,6 +88,10 @@ export async function PUT(
         { success: false, error: "Groupe non trouvé" },
         { status: 404 }
       );
+    }
+
+    if (currentGroup.churchId !== user.churchId) {
+      return forbidden();
     }
 
     const type = result.data.type ?? currentGroup.type;
@@ -98,6 +115,10 @@ export async function PUT(
           { success: false, error: "Le groupe parent spécifié n'existe pas" },
           { status: 400 }
         );
+      }
+
+      if (parentGroup.churchId !== user.churchId) {
+        return forbidden();
       }
 
       if (parentGroup.type === "GEM") {
@@ -133,6 +154,10 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const group = await prisma.group.findUnique({
       where: { id: params.id }
@@ -143,6 +168,10 @@ export async function DELETE(
         { success: false, error: "Groupe non trouvé" },
         { status: 404 }
       );
+    }
+
+    if (group.churchId !== user.churchId) {
+      return forbidden();
     }
 
     // Avant de supprimer, nous devons vérifier s'il a des sous-groupes (children)
