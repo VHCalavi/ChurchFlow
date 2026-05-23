@@ -266,7 +266,18 @@ export default function GroupDetailPage() {
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                {group.members.map(mg => (
+                {[...group.members]
+                  .sort((a, b) => {
+                    const roleA = a.role || "membre";
+                    const roleB = b.role || "membre";
+                    const indexA = ROLES.indexOf(roleA);
+                    const indexB = ROLES.indexOf(roleB);
+                    const pA = indexA === -1 ? ROLES.length : indexA;
+                    const pB = indexB === -1 ? ROLES.length : indexB;
+                    if (pA !== pB) return pA - pB;
+                    return `${a.member.lastName} ${a.member.firstName}`.localeCompare(`${b.member.lastName} ${b.member.firstName}`);
+                  })
+                  .map(mg => (
                   <div key={mg.memberId} className="flex items-center justify-between px-6 py-3 hover:bg-slate-50/50 transition-colors">
                     <div className="flex items-center space-x-3">
                       <div className="w-9 h-9 rounded-lg bg-primary/5 text-primary flex items-center justify-center font-bold text-sm border border-primary/10">

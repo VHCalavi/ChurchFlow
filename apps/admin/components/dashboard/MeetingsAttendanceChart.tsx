@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Users, Loader2, AlertCircle, Tag, X } from "lucide-react";
+import { Users, Loader2, AlertCircle, Tag, X, Check } from "lucide-react";
 import { MeetingType } from "@churchflow/types";
 
 interface DataPoint {
@@ -276,7 +276,7 @@ export function MeetingsAttendanceChart() {
       {/* Header */}
       <div className="mb-6">
         <h3 className="text-base font-bold text-slate-900 tracking-tight mb-2">
-          Graphique d&apos;Assiduité Multi-Courbes
+          Présences
         </h3>
         <p className="text-xs font-medium text-slate-500">
           Filtrer par type de réunion, groupe et tags pour analyser l&apos;assiduité
@@ -293,9 +293,9 @@ export function MeetingsAttendanceChart() {
               <button
                 key={type}
                 onClick={() => toggleType(type as MeetingType)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
                   filteredTypes.includes(type as MeetingType)
-                    ? "text-white"
+                    ? "text-white shadow-sm"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
                 style={{
@@ -304,7 +304,10 @@ export function MeetingsAttendanceChart() {
                     : undefined,
                 }}
               >
-                {label}
+                {filteredTypes.includes(type as MeetingType) && (
+                  <Check className="w-3.5 h-3.5 animate-[scale-in_0.15s_ease-out]" strokeWidth={3} />
+                )}
+                <span>{label}</span>
               </button>
             ))}
           </div>

@@ -288,7 +288,7 @@ export default function MeetingsPage() {
               : "text-slate-600 hover:text-slate-900 hover:bg-white/50"
           }`}
         >
-          <span>Statistiques d&apos;Assiduité</span>
+          <span>Statistiques de présence</span>
         </button>
         <button
           onClick={() => setActiveTab("manage")}
