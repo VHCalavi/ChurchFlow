@@ -116,6 +116,7 @@ export interface Meeting {
   location?: string;
   notes?: string;
   isRecurrent: boolean;
+  tags: string[];
   churchId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -151,6 +152,15 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
     pageSize: number;
     hasMore: boolean;
   };
+}
+
+// --- Group Members ---
+export interface MemberGroup {
+  memberId: string;
+  groupId: string;
+  role?: string;
+  joinedAt: Date;
+  member: { id: string; firstName: string; lastName: string; status: string };
 }
 
 // --- Auth ---

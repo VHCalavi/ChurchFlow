@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "../../../../components/layout/dashboard-layout";
-import { ArrowLeft, Users, UserPlus, Trash2, Search, Shield, X, Edit3 } from "lucide-react";
+import { ArrowLeft, Users, UserPlus, Trash2, Search, X, Edit3 } from "lucide-react";
 
 interface GroupMember {
   memberId: string;
@@ -19,7 +19,7 @@ interface GroupDetail {
 }
 interface SearchableMember { id: string; firstName: string; lastName: string; status: string; }
 
-const ROLES = ["Berger", "Co-Berger", "Assistant Berger", "Chantre", "Hôtesse", "Membre"];
+const ROLES = ["responsable", "co-responsable", "assistant responsable", "membre"];
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -115,6 +115,25 @@ export default function GroupDetailPage() {
     const data = await res.json();
     if (data.success) { notify(`${name} retiré du groupe.`, "success"); loadGroup(); }
     else notify(data.error || "Erreur", "error");
+  }
+
+  async function handleRoleChange(memberId: string, newRole: string) {
+    try {
+      const res = await fetch(`/api/v1/groups/${groupId}/members`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memberId, role: newRole }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        notify("Rôle mis à jour avec succès !", "success");
+        loadGroup();
+      } else {
+        notify(data.error || "Erreur", "error");
+        // Reset to previous role if update failed
+        loadGroup();
+      }
+    } catch { notify("Erreur de connexion", "error"); }
   }
 
   async function handleUpdateGroup(e: React.FormEvent) {
@@ -259,11 +278,21 @@ export default function GroupDetailPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      {mg.role && (
-                        <span className="flex items-center space-x-1 px-2.5 py-1 bg-primary/5 border border-primary/10 rounded-lg text-xs font-bold text-primary">
-                          <Shield className="w-3 h-3" /><span>{mg.role}</span>
-                        </span>
-                      )}
+                      <select
+                        value={mg.role || "membre"}
+                        onChange={(e) => {
+                          // Auto-save when role changes
+                          const newRole = e.target.value;
+                          handleRoleChange(mg.memberId, newRole);
+                        }}
+                        className="px-2.5 py-1 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary"
+                      >
+                        {ROLES.map(role => (
+                          <option key={role} value={role}>{role}</option>
+                        ))}
+                      </select>
+
+
                       <button onClick={() => handleRemoveMember(mg.memberId, `${mg.member.firstName} ${mg.member.lastName}`)}
                         className="p-1.5 rounded-lg border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-500 transition-all">
                         <Trash2 className="w-3.5 h-3.5" />

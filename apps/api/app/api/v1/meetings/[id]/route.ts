@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
+import { auth, getAuthUser, unauthorized } from "../../../../../lib/auth";
 
 const updateMeetingSchema = z.object({
   title: z.string().min(1, "Le titre de la réunion est requis").optional(),
@@ -8,7 +9,8 @@ const updateMeetingSchema = z.object({
   type: z.enum(["CULTE", "TEMPS_DE_PRIERE", "REPETITION", "AGAPE", "AUTRE"]).optional(),
   date: z.string().optional(),
   location: z.string().optional().nullable(),
-  notes: z.string().optional().nullable()
+  notes: z.string().optional().nullable(),
+  tags: z.array(z.string()).optional()
 });
 
 // GET /api/v1/meetings/[id]
@@ -16,9 +18,16 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
-    const meeting = await prisma.meeting.findUnique({
-      where: { id: params.id },
+    const meeting = await prisma.meeting.findFirst({
+      where: {
+        id: params.id,
+        churchId: user.churchId
+      },
       include: {
         _count: {
           select: { attendees: true }
@@ -28,7 +37,7 @@ export async function GET(
 
     if (!meeting) {
       return NextResponse.json(
-        { success: false, error: "Réunion non trouvée" },
+        { success: false, error: "Réunion non trouvée ou accès non autorisé" },
         { status: 404 }
       );
     }
@@ -48,6 +57,10 @@ export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
     const body = await request.json();
     const result = updateMeetingSchema.safeParse(body);
@@ -59,13 +72,16 @@ export async function PUT(
       );
     }
 
-    const meeting = await prisma.meeting.findUnique({
-      where: { id: params.id }
+    const meeting = await prisma.meeting.findFirst({
+      where: {
+        id: params.id,
+        churchId: user.churchId
+      }
     });
 
     if (!meeting) {
       return NextResponse.json(
-        { success: false, error: "Réunion non trouvée" },
+        { success: false, error: "Réunion non trouvée ou accès non autorisé" },
         { status: 404 }
       );
     }
@@ -78,7 +94,8 @@ export async function PUT(
         type: result.data.type,
         date: result.data.date ? new Date(result.data.date) : undefined,
         location: result.data.location,
-        notes: result.data.notes
+        notes: result.data.notes,
+        tags: result.data.tags
       }
     });
 
@@ -97,14 +114,21 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
-    const meeting = await prisma.meeting.findUnique({
-      where: { id: params.id }
+    const meeting = await prisma.meeting.findFirst({
+      where: {
+        id: params.id,
+        churchId: user.churchId
+      }
     });
 
     if (!meeting) {
       return NextResponse.json(
-        { success: false, error: "Réunion non trouvée" },
+        { success: false, error: "Réunion non trouvée ou accès non autorisé" },
         { status: 404 }
       );
     }

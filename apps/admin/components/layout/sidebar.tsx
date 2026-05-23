@@ -87,40 +87,12 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       href: "/dashboard/groups",
       color: "#EC8001" // Lively Orange
     },
-    // {
-    //   title: "Formations",
-    //   icon: <GraduationCap className="w-5.5 h-5.5" />,
-    //   href: "/dashboard/formations",
-    //   color: "#CEAD1E", // Official Sand Gold
-    //   isDisabled: true
-    // },
     {
       title: "Réunions & Agenda",
       icon: <CalendarDays className="w-5.5 h-5.5" />,
       href: "/dashboard/meetings",
       color: "#8B5CF6" // Lively Violet
     }
-    // {
-    //   title: "Patrimoine & Logistique",
-    //   icon: <Package className="w-5.5 h-5.5" />,
-    //   href: "/dashboard/administration",
-    //   color: "#B1C431", // Lively Lime
-    //   isDisabled: true
-    // },
-    // {
-    //   title: "Comptabilité & Finances",
-    //   icon: <Wallet className="w-5.5 h-5.5" />,
-    //   href: "/dashboard/finances",
-    //   color: "#10B981", // Lively Emerald
-    //   isDisabled: true
-    // },
-    // {
-    //   title: "Permissions (RBAC)",
-    //   icon: <ShieldCheck className="w-5.5 h-5.5" />,
-    //   href: "/dashboard/permissions",
-    //   color: "#EF4444", // Lively Red
-    //   isDisabled: true
-    // }
   ];
 
   interface SessionUser { roles?: string[] }

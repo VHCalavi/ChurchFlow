@@ -193,6 +193,7 @@ async function main() {
       date: nextSunday,
       location: "Temple Principal",
       description: "Culte dominical de célébration générale",
+      tags: ["culte-dominical", "celebration", "louange"],
     },
     {
       title: "Répétition de la Chorale",
@@ -200,6 +201,7 @@ async function main() {
       date: nextSaturday,
       location: "Salle Polyvalente",
       description: "Préparation des cantiques pour le culte",
+      tags: ["preparation", "musique", "chorale"],
     },
     {
       title: "Temps de Prière (Gethsémané)",
@@ -207,6 +209,7 @@ async function main() {
       date: nextFriday,
       location: "En Ligne",
       description: "Prière d'intercession communautaire en ligne",
+      tags: ["priere", "intercession", "ligne"],
     },
   ];
 
