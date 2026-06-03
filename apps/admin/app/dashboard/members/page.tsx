@@ -27,6 +27,9 @@ interface Member {
   echelon: string | null;
   isActive: boolean;
   createdAt: string;
+  metadata?: {
+    systemRole?: string;
+  } | null;
 }
 
 export default function MembersPage() {
@@ -49,6 +52,7 @@ export default function MembersPage() {
   const [status, setStatus] = useState<"SYMPATHISANT" | "MEMBRE" | "RESPONSABLE">("MEMBRE");
   const [grade, setGrade] = useState("");
   const [echelon, setEchelon] = useState("");
+  const [systemRole, setSystemRole] = useState("MEMBRE");
   const [submitting, setSubmitting] = useState(false);
   const [viewingMemberId, setViewingMemberId] = useState<string | null>(null);
 
@@ -62,6 +66,7 @@ export default function MembersPage() {
   const [editStatus, setEditStatus] = useState<"SYMPATHISANT" | "MEMBRE" | "RESPONSABLE">("MEMBRE");
   const [editGrade, setEditGrade] = useState("");
   const [editEchelon, setEditEchelon] = useState("");
+  const [editSystemRole, setEditSystemRole] = useState("MEMBRE");
 
   // Load mock & database members
   useEffect(() => {
@@ -114,7 +119,8 @@ export default function MembersPage() {
         status,
         grade: status === "RESPONSABLE" ? grade || null : null,
         echelon: status === "RESPONSABLE" ? echelon || null : null,
-        churchId: "default-church-id"
+        churchId: "default-church-id",
+        systemRole
       };
 
       const res = await fetch("/api/v1/members", {
@@ -134,6 +140,7 @@ export default function MembersPage() {
         setStatus("MEMBRE");
         setGrade("");
         setEchelon("");
+        setSystemRole("MEMBRE");
         setIsModalOpen(false);
       } else {
         const mockNewMember: Member = {
@@ -183,6 +190,7 @@ export default function MembersPage() {
     setEditStatus(member.status);
     setEditGrade(member.grade || "");
     setEditEchelon(member.echelon || "");
+    setEditSystemRole(member.metadata?.systemRole || "MEMBRE");
     setIsEditModalOpen(true);
   };
 
@@ -202,6 +210,7 @@ export default function MembersPage() {
           status: editStatus,
           grade: editStatus === "RESPONSABLE" ? editGrade || null : null,
           echelon: editStatus === "RESPONSABLE" ? editEchelon || null : null,
+          systemRole: editSystemRole
         }),
       });
       const data = await res.json();
@@ -621,6 +630,20 @@ export default function MembersPage() {
                   </div>
                 </div>
               )}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Rôle Système *</label>
+                <select
+                  value={systemRole}
+                  onChange={(e) => setSystemRole(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                >
+                  <option value="MEMBRE">Membre (Fidèle)</option>
+                  <option value="RESPONSABLE_GEM">Responsable de GEM</option>
+                  <option value="TRESORIER">Trésorier</option>
+                  <option value="PASTEUR">Pasteur</option>
+                  <option value="ADMIN">Administrateur</option>
+                </select>
+              </div>
 
               <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
                 <button
@@ -709,6 +732,20 @@ export default function MembersPage() {
                   </div>
                 </div>
               )}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Rôle Système *</label>
+                <select
+                  value={editSystemRole}
+                  onChange={(e) => setEditSystemRole(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                >
+                  <option value="MEMBRE">Membre (Fidèle)</option>
+                  <option value="RESPONSABLE_GEM">Responsable de GEM</option>
+                  <option value="TRESORIER">Trésorier</option>
+                  <option value="PASTEUR">Pasteur</option>
+                  <option value="ADMIN">Administrateur</option>
+                </select>
+              </div>
               <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
                 <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all">Annuler</button>
                 <button type="submit" disabled={submitting} className="px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium disabled:opacity-50">{submitting ? "Sauvegarde..." : "Enregistrer"}</button>

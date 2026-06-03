@@ -30,7 +30,8 @@ const updateMemberSchema = z.object({
   ]).optional().nullable(),
   supervisorId: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  isActive: z.boolean().optional()
+  isActive: z.boolean().optional(),
+  systemRole: z.string().optional().nullable()
 });
 
 export async function GET(
@@ -149,7 +150,11 @@ export async function PUT(
         echelon: echelon,
         supervisorId: result.data.supervisorId,
         notes: result.data.notes,
-        isActive: result.data.isActive
+        isActive: result.data.isActive,
+        metadata: result.data.systemRole !== undefined ? {
+          ...((currentMember.metadata || {}) as Record<string, unknown>),
+          systemRole: result.data.systemRole
+        } : undefined
       }
     });
 

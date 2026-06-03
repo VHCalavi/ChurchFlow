@@ -20,9 +20,10 @@ import {
 interface SidebarItem {
   title: string;
   icon: React.ReactNode;
-  href?: string;
+  href: string;
   color: string;
   isDisabled?: boolean;
+  requiredPermission?: string;
 }
 
 interface SidebarProps {
@@ -68,6 +69,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     }
   };
 
+
   const menuItems: SidebarItem[] = [
     {
       title: "Tableau de Bord",
@@ -79,30 +81,44 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       title: "Membres",
       icon: <Users className="w-5.5 h-5.5" />,
       href: "/dashboard/members",
-      color: "#006C69" // Official VH Emerald Green
+      color: "#006C69", // Official VH Emerald Green
+      requiredPermission: "read:members"
     },
     {
       title: "Groupes & GEM",
       icon: <Network className="w-5.5 h-5.5" />,
       href: "/dashboard/groups",
-      color: "#EC8001" // Lively Orange
+      color: "#EC8001", // Lively Orange
+      requiredPermission: "read:groups"
     },
     {
       title: "Réunions & Agenda",
       icon: <CalendarDays className="w-5.5 h-5.5" />,
       href: "/dashboard/meetings",
-      color: "#8B5CF6" // Lively Violet
+      color: "#8B5CF6", // Lively Violet
+      requiredPermission: "read:meetings"
+    },
+    {
+      title: "Permissions (RBAC)",
+      icon: <ShieldCheck className="w-5.5 h-5.5" />,
+      href: "/dashboard/permissions",
+      color: "#EF4444", // Lively Red
+      requiredPermission: "manage:roles"
     }
   ];
 
-  interface SessionUser { roles?: string[] }
-  const userRoles: string[] = (session?.user as SessionUser)?.roles || ["ADMIN"];
+  interface SessionUser {
+    roles?: string[];
+    permissions?: string[];
+  }
+  const userRoles: string[] = (session?.user as SessionUser)?.roles || [];
+  const userPermissions: string[] = (session?.user as SessionUser)?.permissions || [];
   const isAdmin = userRoles.includes("ADMIN");
 
   const filteredMenuItems = menuItems.filter(item => {
     if (isAdmin) return true;
-    const allowedTitles = ["Tableau de Bord", "Membres", "Groupes & GEM", "Réunions & Agenda"];
-    return allowedTitles.includes(item.title);
+    if (!item.requiredPermission) return true;
+    return userPermissions.includes(item.requiredPermission);
   });
 
   // Instantly read theme synchronously if on client to prevent FOUC / transition flash

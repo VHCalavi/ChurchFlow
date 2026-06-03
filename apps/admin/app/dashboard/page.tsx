@@ -140,50 +140,37 @@ export default async function DashboardHome() {
     }
   ];
 
-  // Dynamic members mapping
-  const displayMembers = fetchError
-    ? [
-        { name: "Marc KOFFI", status: "RESPONSABLE", grade: "Serviteur", echelon: "C10", date: "Il y a 2 heures" },
-        { name: "Awa DIALLO", status: "MEMBRE", grade: null, echelon: null, date: "Il y a 5 heures" },
-        { name: "Jean-Pierre TANO", status: "RESPONSABLE", grade: "Aspirant", echelon: "C5", date: "Hier" },
-        { name: "Esther AMON", status: "SYMPATHISANT", grade: null, echelon: null, date: "Il y a 2 jours" }
-      ]
-    : membersList.slice(0, 4).map(m => {
-        const joinDate = new Date(m.createdAt);
-        const dateFormatted = joinDate.toLocaleDateString("fr-FR", {
-          day: "numeric",
-          month: "short"
-        });
-        return {
-          name: `${m.firstName} ${m.lastName}`,
-          status: m.status,
-          grade: m.grade,
-          echelon: m.echelon,
-          date: `Le ${dateFormatted}`
-        };
-      });
+  // Dynamic members mapping — no mock fallback
+  const displayMembers = membersList.slice(0, 4).map(m => {
+    const joinDate = new Date(m.createdAt);
+    const dateFormatted = joinDate.toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "short"
+    });
+    return {
+      name: `${m.firstName} ${m.lastName}`,
+      status: m.status,
+      grade: m.grade,
+      echelon: m.echelon,
+      date: `Le ${dateFormatted}`
+    };
+  });
 
-  // Dynamic meetings mapping
-  const displayMeetings = fetchError
-    ? [
-        { title: "Culte de Célébration", type: "CULTE", date: "Dimanche, 08:00", location: "Temple Principal" },
-        { title: "Répétition de la Chorale", type: "REPETITION", date: "Samedi, 16:00", location: "Salle Polyvalente" },
-        { title: "Temps de Prière (Gethsémané)", type: "TEMPS_DE_PRIERE", date: "Vendredi, 19:00", location: "En Ligne" }
-      ]
-    : meetingsList.slice(0, 3).map(mt => {
-        const meetingDate = new Date(mt.date);
-        const dateFormatted = meetingDate.toLocaleDateString("fr-FR", {
-          weekday: "long",
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-        return {
-          title: mt.title,
-          type: mt.type,
-          date: dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1),
-          location: mt.location || "Non spécifié"
-        };
-      });
+  // Dynamic meetings mapping — no mock fallback
+  const displayMeetings = meetingsList.slice(0, 3).map(mt => {
+    const meetingDate = new Date(mt.date);
+    const dateFormatted = meetingDate.toLocaleDateString("fr-FR", {
+      weekday: "long",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+    return {
+      title: mt.title,
+      type: mt.type,
+      date: dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1),
+      location: mt.location || "Non spécifié"
+    };
+  });
 
   return (
     <DashboardLayout title="Tableau de Bord Global">
@@ -258,40 +245,48 @@ export default async function DashboardHome() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50 text-sm font-medium text-slate-700">
-                {displayMembers.map((member, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-4 text-slate-900 font-semibold">{member.name}</td>
-                    <td className="py-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold tracking-wider ${
-                        member.status === "RESPONSABLE"
-                          ? "bg-primary/10 text-primary border border-primary/20"
-                          : member.status === "MEMBRE"
-                          ? "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20"
-                          : "bg-slate-100 text-slate-700 border border-slate-200"
-                      }`}>
-                        {member.status}
-                      </span>
-                    </td>
-                    <td className="py-4">
-                      {member.grade ? (
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs px-2 py-0.5 bg-slate-50 rounded border border-slate-100 font-semibold text-primary">
-                            {member.grade}
-                          </span>
-                          <span className="text-xs px-2 py-0.5 bg-slate-50 rounded border border-slate-100 font-semibold text-secondary">
-                            {member.echelon}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-slate-400 text-xs">-</span>
-                      )}
-                    </td>
-                    <td className="py-4 text-slate-500 text-xs flex items-center space-x-1.5">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{member.date}</span>
+                {displayMembers.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-12 text-center text-sm text-slate-400 font-medium">
+                      {fetchError ? "Impossible de joindre l'API. Veuillez vérifier la connexion." : "Aucun membre enregistré pour le moment."}
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  displayMembers.map((member, idx) => (
+                    <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="py-4 text-slate-900 font-semibold">{member.name}</td>
+                      <td className="py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold tracking-wider ${
+                          member.status === "RESPONSABLE"
+                            ? "bg-primary/10 text-primary border border-primary/20"
+                            : member.status === "MEMBRE"
+                            ? "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20"
+                            : "bg-slate-100 text-slate-700 border border-slate-200"
+                        }`}>
+                          {member.status}
+                        </span>
+                      </td>
+                      <td className="py-4">
+                        {member.grade ? (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs px-2 py-0.5 bg-slate-50 rounded border border-slate-100 font-semibold text-primary">
+                              {member.grade}
+                            </span>
+                            <span className="text-xs px-2 py-0.5 bg-slate-50 rounded border border-slate-100 font-semibold text-secondary">
+                              {member.echelon}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-slate-400 text-xs">-</span>
+                        )}
+                      </td>
+                      <td className="py-4 text-slate-500 text-xs flex items-center space-x-1.5">
+                        <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{member.date}</span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -311,33 +306,39 @@ export default async function DashboardHome() {
           </div>
 
           <div className="space-y-4">
-            {displayMeetings.map((meeting, idx) => (
-              <div
-                key={idx}
-                className="flex flex-col p-4 rounded-lg border-l-4 border-y border-r border-slate-100 bg-slate-50/20 hover:bg-slate-50 transition-all duration-300"
-                style={{
-                  borderLeftColor: meeting.type === "CULTE" ? "#006C69" : meeting.type === "REPETITION" ? "#CEAD1E" : "#94A3B8"
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${
-                    meeting.type === "CULTE"
-                      ? "bg-primary/10 text-primary"
-                      : meeting.type === "REPETITION"
-                      ? "bg-secondary/10 text-secondary"
-                      : "bg-slate-100 text-slate-700"
-                  }`}>
-                    {meeting.type}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-500 flex items-center">
-                    <CalendarCheck className="w-3 h-3 mr-1 text-slate-400" />
-                    {meeting.date}
-                  </span>
-                </div>
-                <h4 className="text-sm font-bold text-slate-900">{meeting.title}</h4>
-                <p className="text-xs font-medium text-slate-500 mt-1">{meeting.location}</p>
+            {displayMeetings.length === 0 ? (
+              <div className="py-10 text-center text-sm text-slate-400 font-medium">
+                {fetchError ? "Impossible de joindre l'API." : "Aucune réunion planifiée."}
               </div>
-            ))}
+            ) : (
+              displayMeetings.map((meeting, idx) => (
+                <div
+                  key={idx}
+                  className="flex flex-col p-4 rounded-lg border-l-4 border-y border-r border-slate-100 bg-slate-50/20 hover:bg-slate-50 transition-all duration-300"
+                  style={{
+                    borderLeftColor: meeting.type === "CULTE" ? "#006C69" : meeting.type === "REPETITION" ? "#CEAD1E" : "#94A3B8"
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${
+                      meeting.type === "CULTE"
+                        ? "bg-primary/10 text-primary"
+                        : meeting.type === "REPETITION"
+                        ? "bg-secondary/10 text-secondary"
+                        : "bg-slate-100 text-slate-700"
+                    }`}>
+                      {meeting.type}
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-500 flex items-center">
+                      <CalendarCheck className="w-3 h-3 mr-1 text-slate-400" />
+                      {meeting.date}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-900">{meeting.title}</h4>
+                  <p className="text-xs font-medium text-slate-500 mt-1">{meeting.location}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

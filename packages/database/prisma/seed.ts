@@ -26,13 +26,62 @@ async function main() {
   });
   console.log(`✅ Église : ${church.name}`);
 
-  // 2. Rôle ADMIN
-  const adminRole = await prisma.role.upsert({
-    where: { name: "ADMIN" },
-    update: { description: "Administrateur principal du dashboard" },
-    create: { name: "ADMIN", description: "Administrateur principal du dashboard" },
-  });
-  console.log(`✅ Rôle : ${adminRole.name}`);
+  // 2. Création des Rôles & Permissions
+  const permissionsList = [
+    { action: "read", resource: "members", description: "Lecture des fiches membres" },
+    { action: "write", resource: "members", description: "Modification des membres" },
+    { action: "read", resource: "groups", description: "Lecture des groupes & GEM" },
+    { action: "write", resource: "groups", description: "Gestion des groupes & GEM" },
+    { action: "read", resource: "meetings", description: "Lecture des réunions" },
+    { action: "write", resource: "meetings", description: "Gestion et émargement des réunions" },
+    { action: "read", resource: "finances", description: "Lecture des transactions financières" },
+    { action: "write", resource: "finances", description: "Gestion des transactions" },
+    { action: "manage", resource: "roles", description: "Gestion de la matrice RBAC" }
+  ];
+
+  const seededPermissions: Record<string, any> = {};
+  for (const perm of permissionsList) {
+    const created = await prisma.permission.upsert({
+      where: { action_resource: { action: perm.action, resource: perm.resource } },
+      update: { description: perm.description },
+      create: perm
+    });
+    seededPermissions[`${perm.action}:${perm.resource}`] = created;
+  }
+  console.log("✅ Permissions initialisées");
+
+  const rolesData = [
+    { name: "ADMIN", description: "Administrateur Général", perms: ["read:members", "write:members", "read:groups", "write:groups", "read:meetings", "write:meetings", "read:finances", "write:finances", "manage:roles"] },
+    { name: "PASTEUR", description: "Pasteur Titulaire", perms: ["read:members", "read:groups", "read:meetings", "write:meetings"] },
+    { name: "RESPONSABLE_GEM", description: "Responsable de GEM", perms: ["read:groups", "read:meetings", "write:meetings"] },
+    { name: "TRESORIER", description: "Trésorier de l'église", perms: ["read:members", "read:finances", "write:finances"] },
+    { name: "MEMBRE", description: "Fidèle membre de l'église", perms: [] }
+  ];
+
+  const seededRoles: Record<string, any> = {};
+  for (const r of rolesData) {
+    const roleObj = await prisma.role.upsert({
+      where: { name: r.name },
+      update: { description: r.description },
+      create: { name: r.name, description: r.description }
+    });
+    seededRoles[r.name] = roleObj;
+
+    // Assigner les permissions au rôle (vider d'abord puis réinsérer pour un seed propre)
+    await prisma.rolePermission.deleteMany({ where: { roleId: roleObj.id } });
+    for (const pKey of r.perms) {
+      const permObj = seededPermissions[pKey];
+      if (permObj) {
+        await prisma.rolePermission.create({
+          data: {
+            roleId: roleObj.id,
+            permissionId: permObj.id
+          }
+        });
+      }
+    }
+  }
+  console.log("✅ Rôles et associations initialisés");
 
   // 3. Utilisateur Administrateur
   const adminEmail = "admin@churchflow.com";
@@ -59,13 +108,13 @@ async function main() {
     where: {
       userId_roleId: {
         userId: adminUser.id,
-        roleId: adminRole.id,
+        roleId: seededRoles["ADMIN"].id,
       },
     },
     update: {},
     create: {
       userId: adminUser.id,
-      roleId: adminRole.id,
+      roleId: seededRoles["ADMIN"].id,
     },
   });
   console.log("✅ Rôle ADMIN assigné");

@@ -92,7 +92,7 @@ export default function LandingPage() {
       title: "Réunions & Agenda",
       icon: <CalendarDays className="w-5 h-5" />,
       color: "#8B5CF6",
-      desc: "Planifiez, planifiez et analysez l'assiduité de toutes les rencontres officielles de l'église.",
+      desc: "Planifiez, planifiez et analysez la présence de toutes les rencontres officielles de l'église.",
       bullets: [
         "Gestion globale des cultes du dimanche et temps de prière officiels.",
         "Répétitions de chorales, réunions techniques et logistiques.",

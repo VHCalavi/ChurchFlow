@@ -12,6 +12,13 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  // First connection states
+  const [showModal, setShowModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -23,6 +30,24 @@ export default function LoginPage() {
       setLoading(true);
       setError(null);
 
+      // Call the API login endpoint to check for firstConnection
+      const checkRes = await fetch(`/api/v1/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const checkJson = await checkRes.json();
+
+      if (checkJson.firstConnection) {
+        setShowModal(true);
+        setNewPassword(password); // Pre-fill with what they typed
+        setConfirmPassword(password);
+        setLoading(false);
+        return;
+      }
+
+      // Standard sign in
       const res = await signIn("credentials", {
         email,
         password,
@@ -40,6 +65,55 @@ export default function LoginPage() {
       setError("Une erreur de connexion s'est produite");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRegisterFirstConnection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setRegError("Les mots de passe ne correspondent pas");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setRegError("Le mot de passe doit faire au moins 6 caractères");
+      return;
+    }
+
+    try {
+      setRegLoading(true);
+      setRegError(null);
+
+      const res = await fetch(`/api/v1/auth/register-first-connection`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: newPassword })
+      });
+
+      const json = await res.json();
+
+      if (!json.success) {
+        setRegError(json.error || "Une erreur s'est produite");
+      } else {
+        // Sign in automatically
+        const loginRes = await signIn("credentials", {
+          email,
+          password: newPassword,
+          redirect: false,
+        });
+
+        if (loginRes?.error) {
+          setError("Erreur de connexion après création de compte");
+          setShowModal(false);
+        } else {
+          router.push("/dashboard");
+          router.refresh();
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setRegError("Erreur lors de la création du compte");
+    } finally {
+      setRegLoading(false);
     }
   };
 
@@ -129,6 +203,91 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      {/* First Connection Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
+          <div className="w-full max-w-md p-8 rounded-2xl border border-white/10 bg-[#151521]/95 shadow-2xl relative">
+            <div className="flex flex-col items-center mb-6">
+              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-green-500 to-emerald-600 shadow-lg shadow-emerald-500/20 mb-4">
+                <Lock className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white text-center">Première Connexion</h3>
+              <p className="text-sm text-slate-400 text-center mt-2">
+                Votre adresse e-mail correspond à un membre enregistré. Définissez votre mot de passe pour activer votre accès.
+              </p>
+            </div>
+
+            {regError && (
+              <div className="flex items-start space-x-2 p-3 rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 text-xs font-semibold mb-4">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>{regError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleRegisterFirstConnection} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+                  Nouveau mot de passe
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                    <Lock className="w-4 h-4" />
+                  </span>
+                  <input
+                    type="password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Au moins 6 caractères"
+                    className="w-full pl-10 pr-4 py-2.5 text-sm font-semibold rounded-lg border border-white/5 bg-[#1e1e2d] text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">
+                  Confirmer le mot de passe
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                    <Lock className="w-4 h-4" />
+                  </span>
+                  <input
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Confirmer le mot de passe"
+                    className="w-full pl-10 pr-4 py-2.5 text-sm font-semibold rounded-lg border border-white/5 bg-[#1e1e2d] text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="w-1/2 py-2.5 text-sm font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={regLoading}
+                  className="w-1/2 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-lg shadow-primary/20 disabled:opacity-50 transition-all flex items-center justify-center space-x-1"
+                >
+                  {regLoading ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <span>Valider</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

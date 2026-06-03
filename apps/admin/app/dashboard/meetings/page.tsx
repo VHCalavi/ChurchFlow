@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
 import { MeetingsAttendanceChart } from "../../../components/dashboard/MeetingsAttendanceChart";
-import { Edit3, Trash2, ClipboardList } from "lucide-react";
+import { Edit3, Trash2, ClipboardList, Copy } from "lucide-react";
 import {
   Plus,
   Search,
@@ -25,6 +25,7 @@ interface Meeting {
   notes: string | null;
   isActive: boolean;
   tags: string[];
+  groupIds?: string[];
   _count?: { attendees: number } | null;
 }
 
@@ -59,8 +60,43 @@ export default function MeetingsPage() {
   const [allTags, setAllTags] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Load meetings
+  // Groups states
+  const [groups, setGroups] = useState<{ id: string; name: string; type: string }[]>([]);
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
+  const [editSelectedGroupIds, setEditSelectedGroupIds] = useState<string[]>([]);
+  const [filterGroupIds, setFilterGroupIds] = useState<string[]>([]);
+
+  const handleDuplicateMeeting = (meeting: Meeting) => {
+    setTitle(`${meeting.title} (Copie)`);
+    setDescription(meeting.description || "");
+    setType(meeting.type);
+    
+    const d = new Date(meeting.date);
+    const offset = d.getTimezoneOffset();
+    const localTime = new Date(d.getTime() - offset * 60 * 1000);
+    setDate(localTime.toISOString().substring(0, 16));
+    
+    setLocation(meeting.location || "");
+    setNotes(meeting.notes || "");
+    setTags([...meeting.tags]);
+    setSelectedGroupIds([...(meeting.groupIds || [])]);
+    setIsModalOpen(true);
+  };
+
+  // Load meetings and groups
   useEffect(() => {
+    async function loadGroups() {
+      try {
+        const res = await fetch("/api/v1/groups");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setGroups(json.data);
+        }
+      } catch (err) {
+        console.error("Erreur lors du chargement des groupes:", err);
+      }
+    }
+
     async function loadMeetings() {
       try {
         setLoading(true);
@@ -109,6 +145,7 @@ export default function MeetingsPage() {
         setLoading(false);
       }
     }
+    loadGroups();
     loadMeetings();
   }, []);
 
@@ -134,6 +171,7 @@ export default function MeetingsPage() {
         location: location || null,
         notes: notes || null,
         tags,
+        groupIds: selectedGroupIds,
         churchId: "default-church-id"
       };
 
@@ -153,6 +191,8 @@ export default function MeetingsPage() {
         setDate("");
         setLocation("");
         setNotes("");
+        setTags([]);
+        setSelectedGroupIds([]);
         setIsModalOpen(false);
       } else {
         const mockNew: Meeting = {
@@ -164,6 +204,7 @@ export default function MeetingsPage() {
           location: location || null,
           notes: notes || null,
           tags,
+          groupIds: selectedGroupIds,
           isActive: true,
           _count: { attendees: 0 }
         };
@@ -182,6 +223,7 @@ export default function MeetingsPage() {
         location: location || null,
         notes: notes || null,
         tags,
+        groupIds: selectedGroupIds,
         isActive: true,
         _count: { attendees: 0 }
       };
@@ -205,6 +247,7 @@ export default function MeetingsPage() {
     setEditLocation(meeting.location || "");
     setEditNotes(meeting.notes || "");
     setEditTags([...meeting.tags]);
+    setEditSelectedGroupIds([...(meeting.groupIds || [])]);
     setEditNewTag("");
     setIsEditModalOpen(true);
   };
@@ -225,6 +268,7 @@ export default function MeetingsPage() {
           location: editLocation || null,
           notes: editNotes || null,
           tags: editTags,
+          groupIds: editSelectedGroupIds,
         }),
       });
       const data = await res.json();
@@ -258,10 +302,13 @@ export default function MeetingsPage() {
     }
   };
 
-  const filteredMeetings = meetings.filter(m =>
-    m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (m.description && m.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredMeetings = meetings.filter(m => {
+    const matchesSearch = m.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (m.description && m.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesGroup = filterGroupIds.length === 0 ||
+      (m.groupIds && m.groupIds.some(id => filterGroupIds.includes(id)));
+    return matchesSearch && matchesGroup;
+  });
 
   return (
     <DashboardLayout title="Module Réunions & Agenda">
@@ -331,6 +378,45 @@ export default function MeetingsPage() {
         </button>
       </div>
 
+      {/* Filtrage par groupe (comme dans les statistiques) */}
+      {groups.length > 0 && (
+        <div className="mb-6 p-4 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
+          <h4 className="text-xs font-bold text-slate-700 mb-2.5 uppercase tracking-wider">Filtrer par Groupe invité</h4>
+          <div className="flex flex-wrap gap-2">
+            {groups.map(group => {
+              const isSelected = filterGroupIds.includes(group.id);
+              return (
+                <button
+                  key={group.id}
+                  onClick={() => {
+                    if (isSelected) {
+                      setFilterGroupIds(filterGroupIds.filter(id => id !== group.id));
+                    } else {
+                      setFilterGroupIds([...filterGroupIds, group.id]);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    isSelected
+                      ? "bg-primary text-white shadow-sm"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {group.name}
+                </button>
+              );
+            })}
+            {filterGroupIds.length > 0 && (
+              <button
+                onClick={() => setFilterGroupIds([])}
+                className="px-3 py-1.5 rounded-full text-xs font-bold bg-red-55 border border-red-200 text-red-600 hover:bg-red-100 transition-all"
+              >
+                Réinitialiser
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-100">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
@@ -370,10 +456,27 @@ export default function MeetingsPage() {
                         </span>
                       ))}
                     </div>
+
+                    {/* Groupes Invités */}
+                    {meeting.groupIds && meeting.groupIds.length > 0 && (
+                      <div className="flex flex-wrap gap-1 items-center">
+                        {meeting.groupIds.map(gid => {
+                          const groupName = groups.find(g => g.id === gid)?.name || "Groupe";
+                          return (
+                            <span
+                              key={gid}
+                              className="inline-flex items-center px-2.5 py-0.5 text-[10px] font-bold rounded bg-[#006C69]/10 text-[#006C69] border border-[#006C69]/20"
+                            >
+                              {groupName}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
                     
                     <div className="flex items-center text-xs font-semibold text-slate-600 space-x-1.5">
                       <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{new Date(meeting.date).toLocaleString("fr-FR", { weekday: "long", hour: "2-digit", minute: "2-digit" })}</span>
+                      <span>{new Date(meeting.date).toLocaleString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
                     </div>
                   </div>
 
@@ -402,6 +505,13 @@ export default function MeetingsPage() {
                       <ClipboardList className="w-3.5 h-3.5" />
                       <span>Émargement</span>
                     </Link>
+                    <button
+                      onClick={() => handleDuplicateMeeting(meeting)}
+                      className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary transition-all cursor-pointer"
+                      title="Dupliquer la réunion"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                    </button>
                     <button
                       onClick={() => openEditMeetingModal(meeting)}
                       className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-secondary transition-all"
@@ -590,6 +700,39 @@ export default function MeetingsPage() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 font-bold">Groupes invités</label>
+                <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg max-h-32 overflow-y-auto">
+                  {groups.length === 0 ? (
+                    <p className="text-xs text-slate-500 italic">Aucun groupe disponible.</p>
+                  ) : (
+                    groups.map(group => {
+                      const isInvited = selectedGroupIds.includes(group.id);
+                      return (
+                        <button
+                          key={group.id}
+                          type="button"
+                          onClick={() => {
+                            if (isInvited) {
+                              setSelectedGroupIds(selectedGroupIds.filter(id => id !== group.id));
+                            } else {
+                              setSelectedGroupIds([...selectedGroupIds, group.id]);
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                            isInvited
+                              ? "bg-primary border-primary text-white shadow-sm"
+                              : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                          }`}
+                        >
+                          {group.name}
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
               <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
@@ -773,6 +916,39 @@ export default function MeetingsPage() {
                   >
                     Ajouter
                   </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 font-bold">Groupes invités</label>
+                <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg max-h-32 overflow-y-auto">
+                  {groups.length === 0 ? (
+                    <p className="text-xs text-slate-500 italic">Aucun groupe disponible.</p>
+                  ) : (
+                    groups.map(group => {
+                      const isInvited = editSelectedGroupIds.includes(group.id);
+                      return (
+                        <button
+                          key={group.id}
+                          type="button"
+                          onClick={() => {
+                            if (isInvited) {
+                              setEditSelectedGroupIds(editSelectedGroupIds.filter(id => id !== group.id));
+                            } else {
+                              setEditSelectedGroupIds([...editSelectedGroupIds, group.id]);
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                            isInvited
+                              ? "bg-primary border-primary text-white shadow-sm"
+                              : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
+                          }`}
+                        >
+                          {group.name}
+                        </button>
+                      );
+                    })
+                  )}
                 </div>
               </div>
 

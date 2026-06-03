@@ -9,6 +9,7 @@ interface DataPoint {
   value: number;
   presentCount: number;
   totalRecorded: number;
+  date: string;
 }
 
 interface RawMeeting {
@@ -190,13 +191,14 @@ export function MeetingsAttendanceChart() {
         value,
         presentCount,
         totalRecorded: totalCount,
+        date: meeting.date,
       });
     });
 
-    // Trier par date et prendre les 10 derniers
+    // Trier par date (du plus ancien au plus récent) et prendre les 10 derniers
     Object.keys(dataByType).forEach(type => {
       dataByType[type as MeetingType].sort((a, b) =>
-        new Date(a.label).getTime() - new Date(b.label).getTime()
+        new Date(a.date).getTime() - new Date(b.date).getTime()
       );
       dataByType[type as MeetingType] = dataByType[type as MeetingType].slice(-10);
     });
@@ -206,12 +208,15 @@ export function MeetingsAttendanceChart() {
 
   const chartData = generateChartData();
 
-  // Calculer la date minimale/maximale pour le graphique
+  // Calculer les labels triés chronologiquement
   const allLabels = Array.from(
-    new Set(
-      Object.values(chartData).flat().map(d => d.label)
-    )
-  ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    new Map(
+      Object.values(chartData)
+        .flat()
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .map(d => [d.label, d])
+    ).values()
+  ).map(d => d.label);
 
   // Helper functions
   const toggleType = (type: MeetingType) => {
@@ -279,7 +284,7 @@ export function MeetingsAttendanceChart() {
           Présences
         </h3>
         <p className="text-xs font-medium text-slate-500">
-          Filtrer par type de réunion, groupe et tags pour analyser l&apos;assiduité
+          Filtrer par type de réunion, groupe et tags pour analyser les présences
         </p>
       </div>
 

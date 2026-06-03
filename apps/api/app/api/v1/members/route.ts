@@ -30,7 +30,8 @@ const createMemberSchema = z.object({
   ]).optional().nullable(),
   churchId: z.string().optional(),
   supervisorId: z.string().optional().nullable(),
-  notes: z.string().optional().nullable()
+  notes: z.string().optional().nullable(),
+  systemRole: z.string().optional().nullable()
 });
 
 export async function GET() {
@@ -106,7 +107,8 @@ export async function POST(request: Request) {
         echelon: result.data.echelon || null,
         churchId: user.churchId,
         supervisorId: result.data.supervisorId || null,
-        notes: result.data.notes
+        notes: result.data.notes,
+        metadata: result.data.systemRole ? { systemRole: result.data.systemRole } : {}
       }
     });
 

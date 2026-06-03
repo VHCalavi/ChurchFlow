@@ -10,7 +10,8 @@ const updateMeetingSchema = z.object({
   date: z.string().optional(),
   location: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  tags: z.array(z.string()).optional()
+  tags: z.array(z.string()).optional(),
+  groupIds: z.array(z.string()).optional()
 });
 
 // GET /api/v1/meetings/[id]
@@ -42,7 +43,13 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, data: meeting });
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...meeting,
+        groupIds: (meeting.metadata as any)?.groupIds || []
+      }
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur inconnue";
     return NextResponse.json(
@@ -86,6 +93,12 @@ export async function PUT(
       );
     }
 
+    const oldMetadata = (meeting.metadata as any) || {};
+    const newMetadata = {
+      ...oldMetadata,
+      ...(result.data.groupIds !== undefined ? { groupIds: result.data.groupIds } : {})
+    };
+
     const updated = await prisma.meeting.update({
       where: { id: params.id },
       data: {
@@ -95,11 +108,18 @@ export async function PUT(
         date: result.data.date ? new Date(result.data.date) : undefined,
         location: result.data.location,
         notes: result.data.notes,
-        tags: result.data.tags
+        tags: result.data.tags,
+        metadata: newMetadata
       }
     });
 
-    return NextResponse.json({ success: true, data: updated });
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...updated,
+        groupIds: (updated.metadata as any)?.groupIds || []
+      }
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur inconnue";
     return NextResponse.json(

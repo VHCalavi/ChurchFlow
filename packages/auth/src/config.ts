@@ -34,7 +34,8 @@ export const authConfig = {
               avatarUrl: json.data.avatarUrl,
               churchId: json.data.churchId,
               churchName: json.data.churchName,
-              roles: json.data.roles
+              roles: json.data.roles,
+              permissions: json.data.permissions
             } as any;
           }
           return null;
@@ -52,6 +53,7 @@ export const authConfig = {
         token.churchId = user.churchId;
         token.churchName = user.churchName;
         token.roles = user.roles;
+        token.permissions = user.permissions || [];
       }
       return token;
     },
@@ -61,6 +63,7 @@ export const authConfig = {
         session.user.churchId = token.churchId;
         session.user.churchName = token.churchName;
         session.user.roles = token.roles;
+        session.user.permissions = token.permissions || [];
       }
       return session;
     }

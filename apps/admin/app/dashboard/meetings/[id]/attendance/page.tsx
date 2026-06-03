@@ -50,7 +50,8 @@ export default function AttendancePage() {
         setStats(data.data.stats);
         setRows(data.data.sheet.map((m: AttendeeRow & { isPresent: boolean | null }) => ({
           ...m,
-          currentStatus: m.isPresent === true ? "PRESENT" : m.isPresent === false ? "ABSENT" : null,
+          // null = EXCUSED, true = PRESENT, false = ABSENT
+          currentStatus: m.isPresent === true ? "PRESENT" : m.isPresent === false ? "ABSENT" : m.isPresent === null && m.notes !== null ? "EXCUSED" : null,
         })));
       }
     } finally {
@@ -71,7 +72,12 @@ export default function AttendancePage() {
   async function handleSave() {
     const payload = rows
       .filter(r => r.currentStatus !== null)
-      .map(r => ({ memberId: r.id, isPresent: r.currentStatus === "PRESENT", notes: r.currentStatus === "EXCUSED" ? "Excusé" : null }));
+      .map(r => ({
+        memberId: r.id,
+        // PRESENT → true, ABSENT → false, EXCUSED → null
+        isPresent: r.currentStatus === "PRESENT" ? true : r.currentStatus === "EXCUSED" ? null : false,
+        notes: r.currentStatus === "EXCUSED" ? "Excusé" : null,
+      }));
 
     if (payload.length === 0) { notify("Aucune présence à enregistrer.", "error"); return; }
 

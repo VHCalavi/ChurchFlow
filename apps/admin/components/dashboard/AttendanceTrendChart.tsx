@@ -160,7 +160,7 @@ export function AttendanceTrendChart() {
               {data.length} Derniers Cultes
             </span>
           </div>
-          <p className="text-xs font-medium text-slate-500 mt-1">Évolution de l&apos;assiduité — données réelles de l&apos;API</p>
+          <p className="text-xs font-medium text-slate-500 mt-1">Évolution des présences — données réelles de l&apos;API</p>
         </div>
         <div className="flex items-center space-x-1 text-xs font-bold" style={{ color: isTrendUp ? "#10b981" : "#ef4444" }}>
           {isTrendUp ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}

@@ -4,10 +4,11 @@ import { z } from "zod";
 
 const bulkAttendanceSchema = z.object({
   // Array of { memberId, isPresent, notes? }
+  // isPresent: true = PRESENT, false = ABSENT, null = EXCUSED
   attendees: z.array(
     z.object({
       memberId: z.string().min(1),
-      isPresent: z.boolean(),
+      isPresent: z.boolean().nullable(),
       notes: z.string().optional().nullable()
     })
   ).min(1, "Au moins un enregistrement de présence est requis")

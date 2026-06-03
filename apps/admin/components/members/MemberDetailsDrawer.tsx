@@ -32,8 +32,8 @@ export function MemberDetailsDrawer({ memberId, onClose }: Props) {
 
   if (!memberId) return null;
 
-  const presentCount = member?.meetingsAttended.filter(a => a.isPresent).length ?? 0;
-  const total = member?.meetingsAttended.length ?? 0;
+  const presentCount = member?.meetingsAttended?.filter(a => a.isPresent).length ?? 0;
+  const total = member?.meetingsAttended?.length ?? 0;
   const rate = total > 0 ? Math.round((presentCount / total) * 100) : 0;
 
   return (
@@ -119,7 +119,7 @@ export function MemberDetailsDrawer({ memberId, onClose }: Props) {
             <div className="space-y-4">
               <div className="p-4 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Taux d&apos;assiduité</p>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Taux de présence</p>
                   <p className="text-2xl font-bold text-primary">{rate}%</p>
                   <p className="text-xs text-slate-500">{presentCount} présence(s) / {total} réunion(s)</p>
                 </div>
@@ -128,9 +128,9 @@ export function MemberDetailsDrawer({ memberId, onClose }: Props) {
                 </div>
               </div>
               <div className="space-y-2">
-                {member.meetingsAttended.length === 0
+                {(member.meetingsAttended?.length ?? 0) === 0
                   ? <p className="text-sm text-slate-500 text-center py-4">Aucune réunion enregistrée.</p>
-                  : member.meetingsAttended.slice(0, 10).map(a => (
+                  : member.meetingsAttended?.slice(0, 10).map(a => (
                     <div key={a.meetingId} className="flex items-center justify-between p-3 rounded-lg border border-slate-100">
                       <div className="flex items-center space-x-3">
                         {a.isPresent

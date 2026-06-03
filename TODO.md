@@ -1,90 +1,108 @@
-# ChurchFlow — Spécifications Techniques & Checklist d'Implémentation (Graphiques, Tags & Rôles)
+# Spécification Technique & Plan d'Exécution : Rôles, Permissions (RBAC) & Auto-Onboarding des Membres
 
-Cette liste de tâches décrit de manière précise les modifications requises dans le monorepo pour ajouter les fonctionnalités de filtrage d'assiduité multi-courbes par groupe, les tags de réunion et la réattribution des rôles de groupe.
-
----
-
-## 💾 1. Base de Données (Prisma Schema)
-*   **Fichier :** `packages/database/prisma/schema.prisma`
-    *   **Action :** Ajouter le champ `tags String[] @default([])` dans le modèle `Meeting`.
-    *   **Commande 1 :** Régénérer le client Prisma :
-        ```bash
-        pnpm --filter @churchflow/database db:generate
-        ```
-    *   **Commande 2 :** Appliquer la migration physique sur la base de données :
-        ```bash
-        npx prisma db push --schema=packages/database/prisma/schema.prisma
-        ```
-    *   *Note sur l'évolutivité :* Le champ `role` du modèle `MemberGroup` étant déjà stocké sous forme de `String?` dans le schéma Prisma, aucun changement de schéma n'est nécessaire pour faire évoluer les rôles ultérieurement. Tout se configurera au niveau applicatif.
+Ce document décrit de manière précise les modifications requises dans le monorepo pour implémenter un système d'autorisations dynamique. L'objectif est de permettre à n'importe quel membre enregistré dans l'église de tenter de se connecter. Si c'est sa première connexion, le système lui propose de configurer son mot de passe pour créer son compte utilisateur, puis lui donne accès au dashboard avec les habilitations correspondant à son profil de membre.
 
 ---
 
-## 🔌 2. API Backend (apps/api)
+## 👥 1. Rôles Système Requis & Permissions Associées
 
-### A. Endpoint Réunions Générique
-*   **Fichier :** `apps/api/app/api/v1/meetings/route.ts`
-    *   **Action 1 (POST) :** Mettre à jour le schéma de validation Zod `createMeetingSchema` pour accepter un tableau de chaînes optionnel : `tags: z.array(z.string()).optional()`. S'assurer de persister ce tableau lors de la création (`prisma.meeting.create`).
-    *   **Action 2 (GET) :** Mettre à jour la récupération des réunions pour inclure dans la réponse JSON les détails nécessaires au calcul de l'assiduité par groupe et par tag :
-        *   Renvoyer les `tags` pour chaque réunion.
-        *   Inclure la relation `attendees` complète avec l'ID des membres et la liste de leurs groupes d'appartenance :
-            ```typescript
-            attendees: {
-              select: {
-                memberId: true,
-                isPresent: true,
-                member: {
-                  select: {
-                    groups: {
-                      select: { groupId: true }
-                    }
-                  }
-                }
-              }
-            }
-            ```
+Nous définissons 5 rôles système (profils globaux) distincts pour le dashboard :
+1. **Administrateur** (`ADMIN`) : Accès complet à tout le système (Membres, Groupes, Réunions, Finances, Permissions).
+2. **Pasteur** (`PASTEUR`) : Accès en lecture aux membres et groupes, et gestion complète des réunions. Aucun accès aux finances ni aux permissions.
+3. **Responsable GEM** (`RESPONSABLE_GEM`) : Accès en lecture seule aux groupes/GEM, et gestion de ses propres réunions. Aucun accès aux fiches de membres généraux, finances ni permissions.
+4. **Trésorier** (`TRESORIER`) : Accès complet au module Finances, et lecture simple de la liste des membres (pour affecter les dons). Aucun accès aux groupes, réunions ni permissions.
+5. **Membre** (`MEMBRE`) : Accès en lecture seule à son profil personnel et à l'agenda public de l'église.
 
-### B. Endpoint Réunion Spécifique
-*   **Fichier :** `apps/api/app/api/v1/meetings/[id]/route.ts`
-    *   **Action 1 (PUT) :** Mettre à jour le schéma Zod de modification `updateMeetingSchema` pour accepter `tags: z.array(z.string()).optional()`, et persister le champ dans la base de données.
-    *   **Action 2 (Sécurité Phase 6) :** Sécuriser toutes les méthodes (`GET`, `PUT`, `DELETE`) en extrayant le `churchId` de l'utilisateur authentifié (via le helper `getAuthUser`) et valider que la réunion ciblée appartient bien à cette église (sinon renvoyer `403 Forbidden`).
-
-### C. Endpoint Membres de Groupe
-*   **Fichier :** `apps/api/app/api/v1/groups/[id]/members/route.ts`
-    *   **Action (Sécurité Phase 6) :** Sécuriser le endpoint en vérifiant la session de l'utilisateur connecté et en s'assurant que le groupe parent appartient à la même église (`churchId`) pour éviter les injections transverses.
+### Matrice de Permissions Initiale :
+* `members:read`, `members:write` (Gestion des membres)
+* `groups:read`, `groups:write` (Gestion des groupes/GEM)
+* `meetings:read`, `meetings:write` (Planification et émargement des réunions)
+* `finances:read`, `finances:write` (Comptabilité, offrandes et dîmes)
+* `permissions:manage` (Administration de la matrice de droits)
 
 ---
 
-## 🎨 3. Interface Administration (apps/admin)
+## 📂 2. Fichiers à Modifier & Tâches à Réaliser
 
-### A. Détail de Groupe & Gestion des Rôles
-*   **Fichier :** `apps/admin/app/dashboard/groups/[id]/page.tsx`
-    *   **Action 1 :** Remplacer le tableau des rôles par les 4 rôles demandés :
-        ```typescript
-        const ROLES = ["responsable", "co-responsable", "assistant responsable", "membre"];
-        ```
-    *   **Action 2 (Réattribution de rôles) :** Dans la table des membres du groupe, remplacer le badge de rôle par un menu déroulant interactif (`<select>`).
-    *   **Action 3 (Enregistrement en direct) :** Lors du changement de valeur du sélecteur de rôle, appeler `POST /api/v1/groups/${groupId}/members` avec le `memberId` et le nouveau `role`. Recharger les données du groupe avec succès pour confirmer le changement à l'utilisateur.
+### A. Base de Données & Données Initiales
 
-### B. Composant Graphique d'Assiduité Avancé
-*   **Fichier :** `apps/admin/components/dashboard/MeetingsAttendanceChart.tsx` (Nouveau Fichier)
-    *   **Design :** Implémenter un composant graphique premium en SVG natif (sans dépendance type Chart.js) reprenant l'esthétique premium de `AttendanceTrendChart`.
-    *   **Filtres de Saisie :**
-        1.  *Multi-sélecteur de Types* : Liste de cases à cocher ou boutons-badges (CULTE, TEMPS_DE_PRIERE, etc.).
-        2.  *Sélecteur Unique de Groupe* : Liste déroulante alimentée par `/api/v1/groups`, permettant de choisir un groupe spécifique (ou "Tous les groupes").
-        3.  *Multi-sélecteur de Tags* : Permet de filtrer en tapant ou sélectionnant des tags de réunions.
-    *   **Logique de Calcul d'Assiduité :**
-        *   Pour chaque réunion :
-            *   Si filtre groupe sélectionné : Ne conserver que les `attendees` dont le membre fait partie du groupe sélectionné.
-            *   Calculer le taux : `(Nombre d'attendees du groupe présents / Nombre total d'attendees du groupe pour cette réunion) * 100`.
-            *   *Règle anti-doublon :* Puisqu'il n'y a qu'un enregistrement `MeetingAttendee` par membre et par réunion, la présence d'un membre n'est comptée qu'une fois même s'il appartient à plusieurs sous-groupes.
-    *   **Affichage Multi-courbes :** Dessiner une courbe de Bézier de couleur distincte pour chaque type de réunion sélectionné. Afficher une légende en bas avec les codes couleurs correspondants.
+#### 1. `packages/database/prisma/schema.prisma`
+* **Action** : Ajouter un champ JSON `metadata` sur les entités principales pour stocker les propriétés dynamiques futures sans requérir de migration de base de données. Le rôle système du membre y sera stocké.
+* **Tâche** :
+  - Ajouter `metadata Json @default("{}")` aux modèles suivants : `Member`, `Group`, `Meeting`, `User`, `Church`.
+  - Le rôle d'un membre avant sa première connexion sera défini sous la clé `systemRole` dans le champ `metadata` de l'entité `Member` (Exemple : `{ "systemRole": "MEMBRE" }`).
+  - Exécuter `npx prisma db push` ou générer une migration pour appliquer les changements.
 
-### C. Page Réunions & Agenda
-*   **Fichier :** `apps/admin/app/dashboard/meetings/page.tsx`
-    *   **Action 1 :** Importer et afficher le composant `MeetingsAttendanceChart` en haut de la page.
-    *   **Action 2 (Tags Modale Création) :** Ajouter un champ de tags (saisie libre séparée par des virgules ou badges cliquables) dans le formulaire de planification de réunion. Proposer en suggestion les tags existants extraits dynamiquement de la liste des réunions :
-        ```typescript
-        const existingTags = Array.from(new Set(meetings.flatMap(m => m.tags || [])));
-        ```
-    *   **Action 3 (Tags Modale Édition) :** Permettre l'édition et la modification des tags existants sur une réunion sélectionnée.
-    *   **Action 4 (Affichage) :** Afficher les tags sous forme de petits badges esthétiques dans la liste des réunions.
+#### 2. `packages/database/prisma/seed.ts`
+* **Action** : Insérer ou mettre à jour les rôles et permissions par défaut dans la base de données.
+* **Tâche** :
+  - Créer les rôles système : `ADMIN`, `PASTEUR`, `RESPONSABLE_GEM`, `TRESORIER`, `MEMBRE`.
+  - Créer les permissions associées : `members:read`, `members:write`, `groups:read`, `groups:write`, `meetings:read`, `meetings:write`, `finances:read`, `finances:write`, `permissions:manage`.
+  - Alimenter la table de jointure `RolePermission` pour lier les droits de base à chaque rôle.
+
+---
+
+### B. Authentification & Détection de Première Connexion
+
+#### 3. `apps/api/app/api/v1/auth/login/route.ts`
+* **Action** : Détecter si l'email saisi appartient à un membre n'ayant pas encore configuré son accès.
+* **Tâche** :
+  - Lors de la vérification de l'utilisateur avec l'email :
+    - Si l'utilisateur (`User`) n'existe pas en base de données :
+      - Chercher dans la table `Member` si un membre possède cette adresse `email`.
+      - Si le membre existe (et que son `userId` est nul), renvoyer une réponse spécifique :
+        `{ success: true, firstConnection: true, email: "email@test.com" }` avec un code statut HTTP 200.
+      - Si aucun membre n'existe avec cet email, renvoyer une erreur 401 classique ("Identifiants incorrects").
+    - Si l'utilisateur (`User`) existe, procéder à la vérification classique du mot de passe et renvoyer ses permissions (`permissions: string[]`).
+
+#### 4. `packages/auth/src/config.ts`
+* **Action** : Transmettre la liste des permissions de l'utilisateur connecté dans la session NextAuth.
+* **Tâche** :
+  - Mettre à jour le callback `jwt` pour inclure un tableau de chaînes `permissions` dans le jeton.
+  - Dans le callback `session`, copier `token.permissions` dans `session.user.permissions`.
+
+---
+
+### C. Interface de Connexion Frontend (Auto-Onboarding)
+
+#### 5. `apps/admin/app/login/page.tsx` (ou le composant de login associé)
+* **Action** : Intercepter le statut de première connexion et afficher la modale de création de compte.
+* **Tâche** :
+  - Lors de la soumission du formulaire d'authentification :
+    - Si la réponse renvoie `{ firstConnection: true }` :
+      - Ouvrir une boîte de dialogue (modale) esthétique : *"Il s'agit de votre première connexion. Souhaitez-vous créer votre compte en enregistrant un mot de passe ?"*.
+      - Demander à l'utilisateur de saisir et confirmer son nouveau mot de passe.
+      - Envoyer une requête `POST /api/v1/auth/register-first-connection` avec l'email et le mot de passe.
+      - Une fois l'enregistrement réussi, procéder à l'authentification automatique (sign-in) et rediriger vers le dashboard.
+
+#### 6. `apps/api/app/api/v1/auth/register-first-connection/route.ts` *(Nouveau Fichier)*
+* **Action** : Créer l'utilisateur en base de données à partir de sa première saisie de mot de passe en lisant son rôle dans le metadata du membre.
+* **Tâche** :
+  - Recevoir `email` et `password` via `POST`.
+  - Rechercher le membre correspondant dans la table `Member`. S'il n'existe pas ou s'il a déjà un `userId`, rejeter la demande.
+  - Lire la propriété `systemRole` stockée à l'intérieur du champ JSON `metadata` du membre (Exemple : `const role = (member.metadata as any)?.systemRole || "MEMBRE"`).
+  - Hasher le mot de passe à l'aide de `@churchflow/auth`.
+  - Créer l'enregistrement `User` associé (email du membre, nom, mot de passe hashé, et son `churchId`).
+  - Assigner le rôle système extrait de la metadata (par défaut `MEMBRE` si aucun rôle spécifique n'y a été trouvé).
+  - Mettre à jour la fiche `Member` pour enregistrer l'ID du `User` créé dans le champ `userId`.
+
+---
+
+### D. Gestion des Droits en Direct (Interface Administrateur)
+
+#### 7. `apps/admin/app/dashboard/permissions/page.tsx`
+* **Action** : Brancher la page de gestion des permissions sur la base de données.
+* **Tâche** :
+  - Supprimer la matrice codée en dur (`roleMatrix`).
+  - Implémenter un appel `GET /api/v1/permissions` au montage de la page pour récupérer les rôles et leurs permissions réelles.
+  - Implémenter un appel `POST /api/v1/permissions` pour sauvegarder en base les cases cochées/décochées.
+
+#### 8. `apps/admin/components/layout/sidebar.tsx`
+* **Action** : Filtrer dynamiquement la barre latérale selon les permissions de l'utilisateur connecté.
+* **Tâche** :
+  - Récupérer les permissions de l'utilisateur depuis `session.user.permissions`.
+  - Filtrer l'affichage des liens dans la barre latérale en fonction des habilitations :
+    - *Membres* : visible uniquement si l'utilisateur possède `members:read`.
+    - *Groupes & GEM* : visible uniquement si l'utilisateur possède `groups:read`.
+    - *Réunions & Agenda* : visible uniquement si l'utilisateur possède `meetings:read`.
+    - *Permissions (RBAC)* : visible uniquement si l'utilisateur possède `permissions:manage`.

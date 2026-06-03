@@ -11,7 +11,8 @@ const createMeetingSchema = z.object({
   location: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
   tags: z.array(z.string()).optional(),
-  churchId: z.string().optional()
+  churchId: z.string().optional(),
+  groupIds: z.array(z.string()).optional()
 });
 
 export async function GET() {
@@ -59,6 +60,7 @@ export async function GET() {
       _count: { attendees: m._count.attendees },
       presentCount: m.attendees.filter(a => a.isPresent).length,
       attendees: m.attendees,
+      groupIds: (m.metadata as any)?.groupIds || [],
     }));
 
     return NextResponse.json({ success: true, data: meetings });
@@ -96,7 +98,8 @@ export async function POST(request: Request) {
         location: result.data.location,
         notes: result.data.notes,
         tags: result.data.tags || [],
-        churchId: user.churchId
+        churchId: user.churchId,
+        metadata: { groupIds: result.data.groupIds || [] }
       }
     });
 

@@ -35,9 +35,27 @@ export async function POST(request: Request) {
       }
     });
 
-    if (!user || !user.password) {
+    if (!user) {
+      // Check if a member with this email exists and has no associated user
+      const member = await prisma.member.findFirst({
+        where: { email, userId: null }
+      });
+      if (member) {
+        return NextResponse.json({
+          success: true,
+          firstConnection: true,
+          email: member.email
+        });
+      }
       return NextResponse.json(
         { success: false, error: "Identifiants incorrects (utilisateur introuvable)" },
+        { status: 401 }
+      );
+    }
+
+    if (!user.password) {
+      return NextResponse.json(
+        { success: false, error: "Identifiants incorrects (mot de passe non configuré)" },
         { status: 401 }
       );
     }
@@ -62,6 +80,14 @@ export async function POST(request: Request) {
 
     // 4. Formater la réponse pour la session
     const roleNames = user.roles.map(ur => ur.role.name);
+    const roleIds = user.roles.map(ur => ur.roleId);
+    const rolePermissions = await prisma.rolePermission.findMany({
+      where: { roleId: { in: roleIds } },
+      include: { permission: true }
+    });
+    const permissionNames = Array.from(
+      new Set(rolePermissions.map(rp => `${rp.permission.action}:${rp.permission.resource}`))
+    );
 
     return NextResponse.json({
       success: true,
@@ -72,7 +98,8 @@ export async function POST(request: Request) {
         avatarUrl: user.avatarUrl,
         churchId: user.churchId,
         churchName: user.church.name,
-        roles: roleNames
+        roles: roleNames,
+        permissions: permissionNames
       }
     });
   } catch (error) {

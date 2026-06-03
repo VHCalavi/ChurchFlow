@@ -119,6 +119,7 @@ model Church {
   providers    Provider[]
   purchases    Purchase[]
   transactions Transaction[]
+  metadata     Json @default("{}")
 
   @@map("churches")
 }
@@ -145,6 +146,7 @@ model User {
   roles    UserRole[]
   sessions Session[]
   accounts Account[]
+  metadata Json @default("{}")
 
   @@map("users")
 }
@@ -272,6 +274,7 @@ model Member {
   groups          MemberGroup[]
   formations      MemberFormation[]
   meetingsAttended MeetingAttendee[]
+  metadata        Json @default("{}")
 
   @@map("members")
 }
@@ -298,6 +301,7 @@ model Group {
   children Group[] @relation("GroupHierarchy")
 
   members MemberGroup[]
+  metadata Json @default("{}")
 
   @@map("groups")
 }
@@ -374,6 +378,7 @@ model Meeting {
   church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
 
   attendees MeetingAttendee[]
+  metadata  Json @default("{}")
 
   @@map("meetings")
 }
@@ -381,7 +386,7 @@ model Meeting {
 model MeetingAttendee {
   meetingId String
   memberId  String
-  isPresent Boolean  @default(false)
+  isPresent Boolean?
   arrivedAt DateTime?
   notes     String?
 
