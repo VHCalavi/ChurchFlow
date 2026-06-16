@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
 import { MeetingsAttendanceChart } from "../../../components/dashboard/MeetingsAttendanceChart";
-import { Edit3, Trash2, ClipboardList, Copy } from "lucide-react";
+import { Edit3, Trash2, ClipboardList, Copy, AlertTriangle } from "lucide-react";
 import {
   Plus,
   Search,
@@ -65,6 +65,14 @@ export default function MeetingsPage() {
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([]);
   const [editSelectedGroupIds, setEditSelectedGroupIds] = useState<string[]>([]);
   const [filterGroupIds, setFilterGroupIds] = useState<string[]>([]);
+
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ open: false, title: "", message: "", onConfirm: () => {} });
 
   const handleDuplicateMeeting = (meeting: Meeting) => {
     setTitle(`${meeting.title} (Copie)`);
@@ -286,20 +294,27 @@ export default function MeetingsPage() {
     }
   };
 
-  const handleDeleteMeeting = async (meetingId: string) => {
-    if (!confirm("Annuler cette rencontre ? Cette action est irréversible.")) return;
-    try {
-      const res = await fetch(`/api/v1/meetings/${meetingId}`, { method: "DELETE" });
-      const data = await res.json();
-      if (data.success) {
-        setMeetings((prev) => prev.filter((m) => m.id !== meetingId));
-        showNotification("Rencontre annulée avec succès.", "success");
-      } else {
-        showNotification(data.error || "Erreur lors de l'annulation", "error");
-      }
-    } catch {
-      showNotification("Erreur de connexion", "error");
-    }
+  const handleDeleteMeeting = (meetingId: string) => {
+    setConfirmModal({
+      open: true,
+      title: "Annuler la rencontre",
+      message: "Vous êtes sur le point d'annuler cette rencontre. Cette action est irréversible et supprimera également les présences enregistrées.",
+      onConfirm: async () => {
+        setConfirmModal(m => ({ ...m, open: false }));
+        try {
+          const res = await fetch(`/api/v1/meetings/${meetingId}`, { method: "DELETE" });
+          const data = await res.json();
+          if (data.success) {
+            setMeetings((prev) => prev.filter((m) => m.id !== meetingId));
+            showNotification("Rencontre annulée avec succès.", "success");
+          } else {
+            showNotification(data.error || "Erreur lors de l'annulation", "error");
+          }
+        } catch {
+          showNotification("Erreur de connexion", "error");
+        }
+      },
+    });
   };
 
   const filteredMeetings = meetings.filter(m => {
@@ -969,6 +984,45 @@ export default function MeetingsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Confirmation Modal ── */}
+      {confirmModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-100 shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden animate-fade-in">
+            <div className="flex items-center space-x-4 p-6 border-b border-slate-100 bg-red-50">
+              <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-bold text-red-900">{confirmModal.title}</h3>
+              </div>
+              <button
+                onClick={() => setConfirmModal(m => ({ ...m, open: false }))}
+                className="p-1.5 rounded-lg hover:bg-white/60 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-slate-600 leading-relaxed">{confirmModal.message}</p>
+            </div>
+            <div className="flex items-center justify-end space-x-3 px-6 pb-6">
+              <button
+                onClick={() => setConfirmModal(m => ({ ...m, open: false }))}
+                className="px-4 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmModal.onConfirm}
+                className="px-4 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all shadow-sm"
+              >
+                Confirmer l&apos;annulation
+              </button>
+            </div>
           </div>
         </div>
       )}

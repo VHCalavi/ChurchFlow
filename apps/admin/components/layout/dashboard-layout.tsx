@@ -52,7 +52,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
           {/* Premium Metronic Dashboard Footer */}
           <footer className="pt-6 mt-8 border-t border-slate-150 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-slate-400">
             <div>
-              <span>ChurchFlow &copy; {new Date().getFullYear()}. Tous droits réservés.</span>
+              <span>ChurchFlow &copy; {mounted ? new Date().getFullYear() : 2026}. Tous droits réservés.</span>
             </div>
             <div className="flex space-x-6">
               <a href="#" className="hover:text-slate-600 dark:hover:text-white transition-colors">Support</a>

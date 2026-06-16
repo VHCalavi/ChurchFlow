@@ -7,7 +7,8 @@ import {
   Search, 
   Package, 
   Users, 
-  X
+  X,
+  Construction
 } from "lucide-react";
 
 interface Equipment {
@@ -125,6 +126,26 @@ export default function AdministrationPage() {
 
   return (
     <DashboardLayout title="Administration Matérielle & Prestataires">
+      {/* Under Construction Overlay */}
+      <div className="relative w-full min-h-[600px] rounded-xl overflow-hidden">
+        <div className="absolute inset-0 z-20 flex pt-48 justify-center p-6 bg-slate-900/5 backdrop-blur-[2px]">
+          <div className="max-w-md h-min w-full p-8 rounded-2xl border border-slate-150 bg-white/95 shadow-premium text-center flex flex-col items-center transition-all duration-300 hover:scale-[1.01]">
+            <div className="w-16 h-16 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center text-[#F59E0B] mb-6 animate-pulse">
+              <Construction className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2.5">Module en Construction</h2>
+            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+              Le module Administration est en cours de développement. Il regroupera la gestion du patrimoine matériel et des prestataires de la communauté.
+            </p>
+            <div className="w-full bg-slate-100 rounded-full h-1.5 mb-6 overflow-hidden">
+              <div className="bg-gradient-to-r from-[#F59E0B] to-[#006C69] h-1.5 rounded-full" style={{ width: "25%" }} />
+            </div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">25% — En cours</span>
+          </div>
+        </div>
+
+        {/* Blurred background content */}
+        <div className="blur-[5px] opacity-50 pointer-events-none select-none">
       {/* Notifications */}
       {notification && (
         <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-premium animate-fade-in ${
@@ -414,6 +435,8 @@ export default function AdministrationPage() {
           </div>
         </div>
       )}
+        </div>{/* end blurred */}
+      </div>{/* end relative wrapper */}
     </DashboardLayout>
   );
 }

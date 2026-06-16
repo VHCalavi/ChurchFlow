@@ -228,19 +228,34 @@ export default function MembersPage() {
     }
   };
 
-  const handleArchiveMember = async (member: Member) => {
-    if (!confirm(`Archiver ${member.firstName} ${member.lastName} ? Cette action est réversible.`)) return;
+  // Archive modal states
+  const [memberToArchive, setMemberToArchive] = useState<Member | null>(null);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [archiving, setArchiving] = useState(false);
+
+  const triggerArchiveMember = (member: Member) => {
+    setMemberToArchive(member);
+    setIsArchiveModalOpen(true);
+  };
+
+  const handleConfirmArchive = async () => {
+    if (!memberToArchive) return;
     try {
-      const res = await fetch(`/api/v1/members/${member.id}`, { method: "DELETE" });
+      setArchiving(true);
+      const res = await fetch(`/api/v1/members/${memberToArchive.id}`, { method: "DELETE" });
       const data = await res.json();
       if (data.success) {
-        setMembers((prev) => prev.filter((m) => m.id !== member.id));
+        setMembers((prev) => prev.filter((m) => m.id !== memberToArchive.id));
         showNotification("Membre archivé avec succès.", "success");
       } else {
         showNotification(data.error || "Erreur lors de l'archivage", "error");
       }
     } catch {
       showNotification("Erreur de connexion", "error");
+    } finally {
+      setArchiving(false);
+      setIsArchiveModalOpen(false);
+      setMemberToArchive(null);
     }
   };
 
@@ -265,7 +280,8 @@ export default function MembersPage() {
 
   return (
     <DashboardLayout title="Gestion des Membres">
-      {/* Notifications */}
+      <div className="w-full">
+        {/* Notifications */}
       {notification && (
         <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-premium animate-fade-in ${
           notification.type === "success" 
@@ -478,7 +494,7 @@ export default function MembersPage() {
                             <Edit3 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleArchiveMember(member)}
+                            onClick={() => triggerArchiveMember(member)}
                             className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-red-600 transition-all"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -754,7 +770,47 @@ export default function MembersPage() {
           </div>
         </div>
       )}
+      {/* Archive Confirmation Modal */}
+      {isArchiveModalOpen && memberToArchive && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md p-6 bg-white rounded-xl border border-slate-100 shadow-premium text-center flex flex-col items-center">
+            <div className="w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-red-600 mb-4 animate-bounce">
+              <Trash2 className="w-6 h-6" />
+            </div>
+            
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Archiver le membre ?</h3>
+            
+            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+              Êtes-vous sûr de vouloir archiver <span className="font-bold text-slate-800">{memberToArchive.firstName} {memberToArchive.lastName}</span> ? <br />
+              Cette action est réversible, mais il ne sera plus visible dans la liste active.
+            </p>
+
+            <div className="flex items-center justify-center space-x-3 w-full">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsArchiveModalOpen(false);
+                  setMemberToArchive(null);
+                }}
+                className="flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmArchive}
+                disabled={archiving}
+                className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all shadow-premium disabled:opacity-50"
+              >
+                {archiving ? "Archivage..." : "Archiver"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <MemberDetailsDrawer memberId={viewingMemberId} onClose={() => setViewingMemberId(null)} />
+      </div>
     </DashboardLayout>
   );
 }

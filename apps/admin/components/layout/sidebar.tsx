@@ -14,7 +14,11 @@ import {
   ChevronLeft,
   Sun,
   Moon,
-  LogOut
+  LogOut,
+  GraduationCap,
+  Wallet,
+  Settings,
+  UserCircle,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -36,6 +40,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname() || "";
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [sidebarTheme, setSidebarTheme] = useState<"LIGHT" | "DARK">("LIGHT");
+  const [mounted, setMounted] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const triggerToast = (message: string) => {
@@ -46,6 +51,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
   // Read theme securely from localStorage on mount
   useEffect(() => {
+    setMounted(true);
     try {
       const saved = localStorage.getItem("sidebar-theme");
       if (saved === "DARK" || saved === "LIGHT") {
@@ -61,50 +67,75 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     setSidebarTheme(nextTheme);
     try {
       localStorage.setItem("sidebar-theme", nextTheme);
-      
+
       // Also apply theme immediately as a global class or trigger a sync if needed
-      document.dispatchEvent(new CustomEvent("sidebar-theme-changed", { detail: nextTheme }));
+      document.dispatchEvent(
+        new CustomEvent("sidebar-theme-changed", { detail: nextTheme }),
+      );
     } catch {
       // Avoid SSR errors
     }
   };
-
 
   const menuItems: SidebarItem[] = [
     {
       title: "Tableau de Bord",
       icon: <LayoutDashboard className="w-5.5 h-5.5" />,
       href: "/dashboard",
-      color: "#06A7B5" // Lively Cyan/Teal
+      color: "#06A7B5",
     },
     {
       title: "Membres",
       icon: <Users className="w-5.5 h-5.5" />,
       href: "/dashboard/members",
-      color: "#006C69", // Official VH Emerald Green
-      requiredPermission: "read:members"
+      color: "#006C69",
+      requiredPermission: "read:members",
     },
     {
       title: "Groupes & GEM",
       icon: <Network className="w-5.5 h-5.5" />,
       href: "/dashboard/groups",
-      color: "#EC8001", // Lively Orange
-      requiredPermission: "read:groups"
+      color: "#EC8001",
+      requiredPermission: "read:groups",
     },
     {
-      title: "Réunions & Agenda",
+      title: "Rencontres",
       icon: <CalendarDays className="w-5.5 h-5.5" />,
       href: "/dashboard/meetings",
-      color: "#8B5CF6", // Lively Violet
-      requiredPermission: "read:meetings"
+      color: "#8B5CF6",
+      requiredPermission: "read:meetings",
     },
     {
-      title: "Permissions (RBAC)",
+      title: "Formations & Écoles",
+      icon: <GraduationCap className="w-5.5 h-5.5" />,
+      href: "/dashboard/formations",
+      color: "#0EA5E9",
+    },
+    {
+      title: "Finances",
+      icon: <Wallet className="w-5.5 h-5.5" />,
+      href: "/dashboard/finances",
+      color: "#10B981",
+    },
+    {
+      title: "Administration",
+      icon: <Settings className="w-5.5 h-5.5" />,
+      href: "/dashboard/administration",
+      color: "#F59E0B",
+    },
+    {
+      title: "Permissions",
       icon: <ShieldCheck className="w-5.5 h-5.5" />,
       href: "/dashboard/permissions",
-      color: "#EF4444", // Lively Red
-      requiredPermission: "manage:roles"
-    }
+      color: "#EF4444",
+      requiredPermission: "manage:roles",
+    },
+    {
+      title: "Mon Profil",
+      icon: <UserCircle className="w-5.5 h-5.5" />,
+      href: "/dashboard/profile",
+      color: "#A855F7",
+    },
   ];
 
   interface SessionUser {
@@ -112,18 +143,21 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     permissions?: string[];
   }
   const userRoles: string[] = (session?.user as SessionUser)?.roles || [];
-  const userPermissions: string[] = (session?.user as SessionUser)?.permissions || [];
+  const userPermissions: string[] =
+    (session?.user as SessionUser)?.permissions || [];
   const isAdmin = userRoles.includes("ADMIN");
 
-  const filteredMenuItems = menuItems.filter(item => {
-    if (isAdmin) return true;
-    if (!item.requiredPermission) return true;
-    return userPermissions.includes(item.requiredPermission);
-  });
+  const filteredMenuItems = mounted
+    ? menuItems.filter((item) => {
+        if (isAdmin) return true;
+        if (!item.requiredPermission) return true;
+        return userPermissions.includes(item.requiredPermission);
+      })
+    : [];
 
   // Instantly read theme synchronously if on client to prevent FOUC / transition flash
   let currentTheme = sidebarTheme;
-  if (typeof window !== "undefined") {
+  if (mounted && typeof window !== "undefined") {
     try {
       const saved = localStorage.getItem("sidebar-theme");
       if (saved === "DARK") {
@@ -135,13 +169,13 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   }
 
   return (
-    <aside 
+    <aside
       suppressHydrationWarning={true}
       className={`fixed inset-y-0 left-0 z-20 flex flex-col h-screen border-r shadow-sm transition-all duration-300 ease-in-out ${
         isCollapsed ? "w-20" : "w-72"
       } ${
-        currentTheme === "DARK" 
-          ? "bg-[#151521] border-[#1f1f2e] shadow-[0_0_30px_rgba(0,0,0,0.2)]" 
+        currentTheme === "DARK"
+          ? "bg-[#151521] border-[#1f1f2e] shadow-[0_0_30px_rgba(0,0,0,0.2)]"
           : "bg-white border-slate-100"
       }`}
     >
@@ -151,23 +185,23 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         className="absolute top-7 -right-3.5 z-30 flex items-center justify-center w-7 h-7 rounded-full border bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:text-primary transition-all duration-300 shadow-md cursor-pointer focus:outline-none"
         title={isCollapsed ? "Déplier le menu" : "Plier le menu"}
       >
-        <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`} />
+        <ChevronLeft
+          className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`}
+        />
       </button>
 
       {/* Brand Header */}
-      <div 
+      <div
         className={`flex items-center h-20 border-b transition-all duration-300 ${
           isCollapsed ? "px-0 justify-center" : "px-6 justify-start space-x-3.5"
-        } ${
-          currentTheme === "DARK" ? "border-[#1f1f2e]" : "border-slate-100"
-        }`}
+        } ${currentTheme === "DARK" ? "border-[#1f1f2e]" : "border-slate-100"}`}
       >
         <Link href="/dashboard" className="flex items-center space-x-3">
           <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-tr from-primary to-secondary shadow-sm flex-shrink-0">
             <span className="font-extrabold text-lg text-white">CF</span>
           </div>
           {!isCollapsed && (
-            <span 
+            <span
               className={`font-extrabold text-lg tracking-tight transition-opacity duration-300 ${
                 currentTheme === "DARK" ? "text-white" : "text-primary"
               }`}
@@ -179,7 +213,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       </div>
 
       {/* Main Navigation */}
-      <nav 
+      <nav
         className={`flex-1 py-6 space-y-2 overflow-y-auto scrollbar-none transition-all duration-300 ${
           isCollapsed ? "px-2" : "px-4"
         }`}
@@ -191,61 +225,69 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
           // Compute custom colored styles for a beautiful, premium, color-themed Metronic active/hover effect
           let linkStyle: React.CSSProperties = {};
-          
+
           if (isDisabled) {
             linkStyle = {
               backgroundColor: "transparent",
               color: currentTheme === "DARK" ? "#4f5366" : "#cbd5e1",
               borderColor: "transparent",
-              cursor: "not-allowed"
+              cursor: "not-allowed",
             };
           } else if (isActive) {
             linkStyle = {
               backgroundColor: `${item.color}15`, // 15% opacity hex alpha
               color: item.color,
-              borderColor: `${item.color}25` // 25% opacity hex alpha
+              borderColor: `${item.color}25`, // 25% opacity hex alpha
             };
           } else if (isHovered) {
             linkStyle = {
               backgroundColor: `${item.color}08`, // 5% opacity hex alpha
               color: item.color,
-              borderColor: "transparent"
+              borderColor: "transparent",
             };
           } else {
             linkStyle = {
               backgroundColor: "transparent",
               color: currentTheme === "DARK" ? "#a1a5b7" : "#475569", // Metronic silver vs slate-600
-              borderColor: "transparent"
+              borderColor: "transparent",
             };
           }
 
           const content = (
-            <div className={`flex items-center w-full ${isCollapsed ? "justify-center" : "justify-between"}`}>
-              <div className={`flex items-center ${isCollapsed ? "justify-center" : "space-x-3.5"}`}>
-                <span 
+            <div
+              className={`flex items-center w-full ${isCollapsed ? "justify-center" : "justify-between"}`}
+            >
+              <div
+                className={`flex items-center ${isCollapsed ? "justify-center" : "space-x-3.5"}`}
+              >
+                <span
                   className={`transition-transform duration-200 flex items-center justify-center ${!isDisabled ? "group-hover:scale-105" : ""}`}
                   style={{ color: isDisabled ? undefined : item.color }}
                 >
                   {item.icon}
                 </span>
                 {!isCollapsed && (
-                  <span 
+                  <span
                     className={`text-sm tracking-wide transition-all duration-200 ${
                       isActive ? "font-semibold" : "font-medium"
                     }`}
-                    style={{ 
+                    style={{
                       color: isDisabled
-                        ? (currentTheme === "DARK" ? "#4f5366" : "#94a3b8")
-                        : (isActive || isHovered 
-                          ? item.color 
-                          : currentTheme === "DARK" ? "#a1a5b7" : "#334155")
+                        ? currentTheme === "DARK"
+                          ? "#4f5366"
+                          : "#94a3b8"
+                        : isActive || isHovered
+                          ? item.color
+                          : currentTheme === "DARK"
+                            ? "#a1a5b7"
+                            : "#334155",
                     }}
                   >
                     {item.title}
                   </span>
                 )}
               </div>
-              
+
               {!isCollapsed && (
                 <>
                   {isDisabled && (
@@ -254,7 +296,10 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                     </span>
                   )}
                   {!isDisabled && isActive && (
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: item.color }} />
+                    <div
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
                   )}
                 </>
               )}
@@ -266,10 +311,18 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <div key={index} className="relative">
                 <button
                   type="button"
-                  title={isCollapsed ? `${item.title} (Bientôt disponible)` : undefined}
+                  title={
+                    isCollapsed
+                      ? `${item.title} (Bientôt disponible)`
+                      : undefined
+                  }
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
-                  onClick={() => triggerToast(`Le module ${item.title} est en cours de développement.`)}
+                  onClick={() =>
+                    triggerToast(
+                      `Le module ${item.title} est en cours de développement.`,
+                    )
+                  }
                   style={linkStyle}
                   className={`flex items-center rounded-xl transition-all duration-200 group border w-full ${
                     isCollapsed ? "justify-center p-3" : "px-4 py-3"
@@ -290,7 +343,9 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 onMouseLeave={() => setHoveredIndex(null)}
                 style={linkStyle}
                 className={`flex items-center rounded-xl transition-all duration-200 group border ${
-                  isCollapsed ? "justify-center p-3" : "justify-between px-4 py-3"
+                  isCollapsed
+                    ? "justify-center p-3"
+                    : "justify-between px-4 py-3"
                 }`}
               >
                 {content}
@@ -302,9 +357,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       {/* Sidebar Footer Theme Switcher & User Info */}
       <div className="flex flex-col flex-shrink-0">
-        
         {/* Rounded interactive Light/Dark toggle bar */}
-        <div 
+        <div
           className={`flex items-center border-t py-3 transition-all duration-300 ${
             isCollapsed ? "p-3 justify-center" : "px-6 py-3.5 justify-between"
           } ${
@@ -312,7 +366,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           }`}
         >
           {!isCollapsed && (
-            <span 
+            <span
               className={`text-[10px] font-extrabold uppercase tracking-widest ${
                 currentTheme === "DARK" ? "text-slate-400" : "text-slate-500"
               }`}
@@ -327,43 +381,50 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 ? "bg-[#1e1e2d] border-[#2b2b40] text-amber-400 hover:bg-[#2b2b40] hover:text-amber-300 shadow-sm"
                 : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-700 shadow-xs"
             }`}
-            title={currentTheme === "DARK" ? "Activer le Mode Clair" : "Activer le Mode Sombre"}
+            title={
+              currentTheme === "DARK"
+                ? "Activer le Mode Clair"
+                : "Activer le Mode Sombre"
+            }
           >
-            {currentTheme === "DARK" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {currentTheme === "DARK" ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
           </button>
         </div>
 
         {/* Sidebar Footer User Info */}
-        <div 
+        <div
           className={`border-t transition-all duration-300 ${
             isCollapsed ? "p-3" : "p-4"
           } ${
-            currentTheme === "DARK" ? "border-[#1f1f2e] bg-[#1a1a24]/30" : "border-slate-100 bg-slate-50/50"
+            currentTheme === "DARK"
+              ? "border-[#1f1f2e] bg-[#1a1a24]/30"
+              : "border-slate-100 bg-slate-50/50"
           }`}
         >
-          <div className={`flex items-center rounded-xl ${isCollapsed ? "flex-col gap-2 justify-center" : "space-x-3 p-1"}`}>
-            <div 
+          <div
+            className={`flex justify-center items-center rounded-xl ${isCollapsed ? "flex-col gap-2 justify-center" : "space-x-3 p-1"}`}
+          >
+            {/* <div
               className={`flex items-center justify-center w-10 h-10 rounded-xl border flex-shrink-0 shadow-sm ${
-                currentTheme === "DARK" ? "bg-[#1e1e2d] border-[#2b2b40]" : "bg-white border-slate-100"
+                currentTheme === "DARK"
+                  ? "bg-[#1e1e2d] border-[#2b2b40]"
+                  : "bg-white border-slate-100"
               }`}
             >
               <UserCheck className="w-5 h-5 text-primary" />
-            </div>
+            </div> */}
             {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p 
-                  className={`text-sm font-semibold truncate ${
-                    currentTheme === "DARK" ? "text-slate-200" : "text-slate-900"
-                  }`}
+              <div className="flex-1 min-w-0"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              >
+                <p
+                  className={`text-sm font-semibold truncate text-red-500`}
                 >
-                  {session?.user?.name || "Dr. Paul OBIANG"}
-                </p>
-                <p 
-                  className={`text-xs font-medium truncate ${
-                    currentTheme === "DARK" ? "text-slate-400" : "text-slate-500"
-                  }`}
-                >
-                  {session?.user?.email || "admin@churchflow.com"}
+                  Déconnexion
                 </p>
               </div>
             )}
@@ -381,7 +442,6 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             </button>
           </div>
         </div>
-
       </div>
 
       {/* Toast Notification for Disabled Modules */}

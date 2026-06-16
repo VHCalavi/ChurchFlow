@@ -41,7 +41,7 @@ export async function GET() {
 
   try {
     const members = await prisma.member.findMany({
-      where: { churchId: user.churchId },
+      where: { churchId: user.churchId, isActive: true },
       include: {
         supervisor: {
           select: { id: true, firstName: true, lastName: true }

@@ -40,9 +40,9 @@ apps/api/
 
 ## Convention de routing — Règle stricte
 
-| Pattern | Méthodes | Usage |
-|---|---|---|
-| `/api/v1/{resource}` | `GET` `POST` | Liste paginée + Création |
+| Pattern                   | Méthodes             | Usage                               |
+| ------------------------- | -------------------- | ----------------------------------- |
+| `/api/v1/{resource}`      | `GET` `POST`         | Liste paginée + Création            |
 | `/api/v1/{resource}/[id]` | `GET` `PUT` `DELETE` | Détail + Modification + Suppression |
 
 - **Versionnement obligatoire** : toujours `/api/v1/`. Quand une v2 sera nécessaire, créer `/api/v2/` sans casser `/api/v1/`.
@@ -62,7 +62,7 @@ import { z } from "zod";
 // 1. Schéma de validation Zod (toujours en haut du fichier)
 const createResourceSchema = z.object({
   // ...champs
-  churchId: z.string().min(1),  // TOUJOURS présent
+  churchId: z.string().min(1), // TOUJOURS présent
 });
 
 // 2. GET — Liste filtrée par churchId
@@ -73,7 +73,7 @@ export async function GET(request: Request) {
   if (!churchId) {
     return NextResponse.json(
       { success: false, error: "churchId requis" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -92,8 +92,11 @@ export async function POST(request: Request) {
 
   if (!result.success) {
     return NextResponse.json(
-      { success: false, error: result.error.errors.map(e => e.message).join(", ") },
-      { status: 400 }
+      {
+        success: false,
+        error: result.error.errors.map((e) => e.message).join(", "),
+      },
+      { status: 400 },
     );
   }
 
@@ -131,65 +134,79 @@ Ces interfaces sont définies dans `packages/types/src/index.ts` : `ApiResponse<
 ## Routes existantes
 
 ### `GET /api/v1/health`
+
 Vérification que l'API est en ligne.
 
 ### `GET /api/v1/churches`
+
 Retourne la liste de toutes les églises enregistrées (ordre alphabétique).
 
 ### `POST /api/v1/churches`
+
 Crée une nouvelle église (système multi-tenant).
 
 ### `GET /api/v1/churches/[id]`
+
 Retourne les détails d'une église par son ID (inclut les statistiques globales de ses membres, groupes, réunions...).
 
 ### `GET /api/v1/members?churchId=`
+
 Retourne tous les membres d'une église avec leur superviseur (select partiel).
 
 ### `POST /api/v1/members`
+
 Crée un membre. Validation hiérarchique :
+
 - Si `status !== "RESPONSABLE"` → `grade` et `echelon` interdits.
 - Si `status === "RESPONSABLE"` → `grade` et `echelon` obligatoires.
 
 ### `GET /api/v1/members/[id]`
+
 Retourne un membre par ID.
 
 ### `GET /api/v1/groups?churchId=`
+
 Retourne tous les groupes. Types : `DEPARTEMENT`, `TRIBU`, `GEM`.
 
 ### `POST /api/v1/groups`
+
 Crée un groupe. Un `GEM` doit avoir un `parentId` (Département ou Tribu).
 
 ### `GET /api/v1/meetings?churchId=`
+
 Retourne toutes les réunions.
 
 ### `POST /api/v1/meetings`
+
 Crée une réunion.
 
 ### `GET /api/v1/formations?churchId=`
+
 Retourne toutes les formations.
 
 ### `POST /api/v1/formations`
+
 Crée une formation. Types : `ACADEMIE`, `BAPTEME`, `PORTEURS_DE_VIE`, `ECOLE_DES_BERGERS`.
 
 ---
 
 ## Routes à créer (roadmap)
 
-| Route | Priorité |
-|---|---|
-| `/api/v1/members/[id]` PUT + DELETE | Haute |
-| `/api/v1/groups/[id]` PUT + DELETE | Haute |
-| `/api/v1/meetings/[id]` PUT + DELETE | Haute |
-| `/api/v1/formations/[id]` PUT + DELETE | Haute |
-| `/api/v1/transactions` GET + POST | Haute |
-| `/api/v1/transactions/[id]` | Moyenne |
-| `/api/v1/materials` GET + POST | Moyenne |
-| `/api/v1/providers` GET + POST | Moyenne |
-| `/api/v1/purchases` GET + POST | Moyenne |
-| `/api/v1/auth/login` | Haute |
-| `/api/v1/auth/session` | Haute |
-| `/api/v1/users` GET + POST | Haute |
-| `/api/v1/roles` + `/api/v1/permissions` | Haute (RBAC) |
+| Route                                   | Priorité |
+| --------------------------------------- | -------- |
+| `/api/v1/members/[id]` PUT + DELETE     | Haute    |
+| `/api/v1/groups/[id]` PUT + DELETE      | Haute    |
+| `/api/v1/meetings/[id]` PUT + DELETE    | Haute    |
+| `/api/v1/formations/[id]` PUT + DELETE  | Haute    |
+| `/api/v1/transactions` GET + POST       | Haute    |
+| `/api/v1/transactions/[id]`             | Moyenne  |
+| `/api/v1/materials` GET + POST          | Moyenne  |
+| `/api/v1/providers` GET + POST          | Moyenne  |
+| `/api/v1/purchases` GET + POST          | Moyenne  |
+| `/api/v1/auth/login`                    | Haute    |
+| `/api/v1/auth/session`                  | Haute    |
+| `/api/v1/users` GET + POST              | Haute    |
+| `/api/v1/roles` + `/api/v1/permissions` | Haute    |
 
 ---
 
@@ -198,9 +215,9 @@ Crée une formation. Types : `ACADEMIE`, `BAPTEME`, `PORTEURS_DE_VIE`, `ECOLE_DE
 ```json
 {
   "@churchflow/database": "workspace:*",
-  "@churchflow/types":    "workspace:*",
-  "@churchflow/utils":    "workspace:*",
-  "@churchflow/auth":     "workspace:*"
+  "@churchflow/types": "workspace:*",
+  "@churchflow/utils": "workspace:*",
+  "@churchflow/auth": "workspace:*"
 }
 ```
 
@@ -214,10 +231,10 @@ Chaque modèle Prisma possède un `churchId`. Chaque requête GET **doit** filtr
 
 ```typescript
 // CORRECT
-prisma.member.findMany({ where: { churchId } })
+prisma.member.findMany({ where: { churchId } });
 
 // INTERDIT — retourne les données de toutes les églises
-prisma.member.findMany()
+prisma.member.findMany();
 ```
 
 En production, le `churchId` proviendra de la session Auth.js (côté serveur), pas du body de la requête client.

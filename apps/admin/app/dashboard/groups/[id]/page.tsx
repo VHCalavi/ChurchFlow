@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { DashboardLayout } from "../../../../components/layout/dashboard-layout";
-import { ArrowLeft, Users, UserPlus, Trash2, Search, X, Edit3 } from "lucide-react";
+import { ArrowLeft, Users, UserPlus, Trash2, Search, X, Edit3, AlertTriangle } from "lucide-react";
 
 interface GroupMember {
   memberId: string;
@@ -43,6 +43,16 @@ export default function GroupDetailPage() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [savingGroup, setSavingGroup] = useState(false);
+
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    open: boolean;
+    title: string;
+    message: string;
+    variant: "danger" | "warning";
+    onConfirm: () => void;
+    confirmLabel?: string;
+  }>({ open: false, title: "", message: "", variant: "danger", onConfirm: () => {} });
 
   useEffect(() => {
     loadGroup();
@@ -109,12 +119,21 @@ export default function GroupDetailPage() {
     finally { setAddingMember(false); }
   }
 
-  async function handleRemoveMember(memberId: string, name: string) {
-    if (!confirm(`Retirer ${name} du groupe ?`)) return;
-    const res = await fetch(`/api/v1/groups/${groupId}/members?memberId=${memberId}`, { method: "DELETE" });
-    const data = await res.json();
-    if (data.success) { notify(`${name} retiré du groupe.`, "success"); loadGroup(); }
-    else notify(data.error || "Erreur", "error");
+  function handleRemoveMember(memberId: string, name: string) {
+    setConfirmModal({
+      open: true,
+      title: "Retirer du groupe",
+      message: `Êtes-vous sûr de vouloir retirer ${name} de ce groupe ? Cette action peut être annulée en le réajoutant manuellement.`,
+      variant: "warning",
+      confirmLabel: "Retirer",
+      onConfirm: async () => {
+        setConfirmModal(m => ({ ...m, open: false }));
+        const res = await fetch(`/api/v1/groups/${groupId}/members?memberId=${memberId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (data.success) { notify(`${name} retiré du groupe.`, "success"); loadGroup(); }
+        else notify(data.error || "Erreur", "error");
+      },
+    });
   }
 
   async function handleRoleChange(memberId: string, newRole: string) {
@@ -152,12 +171,21 @@ export default function GroupDetailPage() {
     finally { setSavingGroup(false); }
   }
 
-  async function handleDeleteGroup() {
-    if (!confirm(`Supprimer le groupe "${group?.name}" ? Cette action est irréversible.`)) return;
-    const res = await fetch(`/api/v1/groups/${groupId}`, { method: "DELETE" });
-    const data = await res.json();
-    if (data.success) router.push("/dashboard/groups");
-    else notify(data.error || "Impossible de supprimer ce groupe", "error");
+  function handleDeleteGroup() {
+    setConfirmModal({
+      open: true,
+      title: "Supprimer le groupe",
+      message: `Vous êtes sur le point de supprimer définitivement le groupe "${group?.name}". Cette action est irréversible et supprimera également toutes les associations de membres.`,
+      variant: "danger",
+      confirmLabel: "Supprimer définitivement",
+      onConfirm: async () => {
+        setConfirmModal(m => ({ ...m, open: false }));
+        const res = await fetch(`/api/v1/groups/${groupId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (data.success) router.push("/dashboard/groups");
+        else notify(data.error || "Impossible de supprimer ce groupe", "error");
+      },
+    });
   }
 
   const typeLabel = group?.type === "DEPARTEMENT" ? "Département" : group?.type === "TRIBU" ? "Tribu" : "GEM";
@@ -341,6 +369,60 @@ export default function GroupDetailPage() {
                 <button type="submit" disabled={savingGroup} className="px-4 py-2.5 text-sm font-bold text-white bg-primary rounded-lg disabled:opacity-50">{savingGroup ? "Sauvegarde..." : "Enregistrer"}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Confirmation Modal ── */}
+      {confirmModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-100 shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden animate-fade-in">
+            {/* Header */}
+            <div className={`flex items-center space-x-4 p-6 border-b border-slate-100 ${
+              confirmModal.variant === "danger" ? "bg-red-50" : "bg-amber-50"
+            }`}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                confirmModal.variant === "danger" ? "bg-red-100" : "bg-amber-100"
+              }`}>
+                <AlertTriangle className={`w-5 h-5 ${
+                  confirmModal.variant === "danger" ? "text-red-600" : "text-amber-600"
+                }`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className={`text-base font-bold ${
+                  confirmModal.variant === "danger" ? "text-red-900" : "text-amber-900"
+                }`}>{confirmModal.title}</h3>
+              </div>
+              <button
+                onClick={() => setConfirmModal(m => ({ ...m, open: false }))}
+                className="p-1.5 rounded-lg hover:bg-white/60 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            {/* Body */}
+            <div className="p-6">
+              <p className="text-sm text-slate-600 leading-relaxed">{confirmModal.message}</p>
+            </div>
+            {/* Footer */}
+            <div className="flex items-center justify-end space-x-3 px-6 pb-6">
+              <button
+                onClick={() => setConfirmModal(m => ({ ...m, open: false }))}
+                className="px-4 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={confirmModal.onConfirm}
+                className={`px-4 py-2.5 text-sm font-bold text-white rounded-lg transition-all shadow-sm ${
+                  confirmModal.variant === "danger"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-amber-500 hover:bg-amber-600"
+                }`}
+              >
+                {confirmModal.confirmLabel || "Confirmer"}
+              </button>
+            </div>
           </div>
         </div>
       )}

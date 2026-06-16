@@ -37,24 +37,24 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
         {/* Right Tools */}
         <div className="flex items-center space-x-4">
           {/* Search Button (Exact Metronic Icon Trigger style!) */}
-          <button 
+          {/* <button 
             onClick={() => setIsSearchOpen(true)}
             className="p-2.5 rounded-xl border border-slate-100 bg-white hover:bg-slate-50 hover:text-primary text-slate-400 transition-all cursor-pointer"
           >
             <Search className="w-5 h-5" />
-          </button>
+          </button> */}
 
           {/* Notifications Button */}
-          <button 
+          {/* <button 
             onClick={() => setIsOpen(true)}
             className="relative p-2.5 rounded-xl border border-slate-100 bg-white hover:bg-slate-50 hover:text-primary text-slate-400 transition-all cursor-pointer"
           >
             <Bell className="w-5 h-5" />
             <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary ring-4 ring-white animate-pulse" />
-          </button>
+          </button> */}
 
           {/* Divider */}
-          <div className="w-px h-6 bg-slate-100" />
+          {/* <div className="w-px h-6 bg-slate-100" /> */}
 
           {/* Profile */}
           <Link href="/dashboard/profile" className="flex items-center space-x-3 cursor-pointer group">
