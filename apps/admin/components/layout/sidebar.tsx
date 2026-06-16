@@ -116,12 +116,14 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       icon: <Wallet className="w-5.5 h-5.5" />,
       href: "/dashboard/finances",
       color: "#10B981",
+      requiredPermission: "read:finances",
     },
     {
       title: "Administration",
       icon: <Settings className="w-5.5 h-5.5" />,
       href: "/dashboard/administration",
       color: "#F59E0B",
+      requiredPermission: "manage:roles",
     },
     {
       title: "Permissions",
