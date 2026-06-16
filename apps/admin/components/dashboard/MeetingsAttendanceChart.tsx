@@ -29,7 +29,7 @@ interface RawMeeting {
   }>;
 }
 
-// Couleurs pour les types de réunions
+// Couleurs pour les types de rencontres
 const TYPE_COLORS: Record<MeetingType, string> = {
   CULTE: "#006C69",           // Vert VH
   TEMPS_DE_PRIERE: "#CEAD1E", // Gold
@@ -74,12 +74,12 @@ export function MeetingsAttendanceChart() {
         setLoading(true);
         setError(null);
 
-        // Charger les réunions
+        // Charger les rencontres
         const meetingsRes = await fetch("/api/v1/meetings");
         const meetingsData = await meetingsRes.json();
 
         if (!meetingsData.success || !Array.isArray(meetingsData.data)) {
-          throw new Error("Impossible de charger les données des réunions");
+          throw new Error("Impossible de charger les données des rencontres");
         }
 
         // Charger les groupes
@@ -143,7 +143,7 @@ export function MeetingsAttendanceChart() {
       dataByType[type as MeetingType] = [];
     });
 
-    // Calculer pour chaque réunion
+    // Calculer pour chaque rencontre
     filteredMeetings.forEach(meeting => {
       // Filtrer par type
       if (!filteredTypes.includes(meeting.type)) return;
@@ -249,19 +249,86 @@ export function MeetingsAttendanceChart() {
     setFilteredTags(filteredTags.filter(t => t !== tag));
   };
 
-  // Render
-  const width = 800;
-  const height = 350;
-  const paddingLeft = 60;
-  const paddingRight = 30;
-  const paddingTop = 40;
-  const paddingBottom = 60;
+  // Live Statistics Calculations
+  let totalPresentSum = 0;
+  let totalExpectedSum = 0;
+  let maxAttendanceRate = 0;
+
+  filteredMeetings.forEach(m => {
+    let mTotal = 0;
+    let mPresent = 0;
+
+    m.attendees.forEach(a => {
+      mTotal++;
+      if (a.isPresent) mPresent++;
+    });
+
+    totalExpectedSum += mTotal;
+    totalPresentSum += mPresent;
+
+    if (mTotal > 0) {
+      const rate = Math.round((mPresent / mTotal) * 100);
+      if (rate > maxAttendanceRate) {
+        maxAttendanceRate = rate;
+      }
+    }
+  });
+
+  const avgAttendance = totalExpectedSum > 0 ? Math.round((totalPresentSum / totalExpectedSum) * 100) : 0;
+
+  // Donut chart distribution calculations
+  const typeCounts: Record<MeetingType, number> = {
+    CULTE: 0,
+    TEMPS_DE_PRIERE: 0,
+    REPETITION: 0,
+    AGAPE: 0,
+    AUTRE: 0,
+  };
+
+  filteredMeetings.forEach(m => {
+    if (typeCounts[m.type] !== undefined) {
+      typeCounts[m.type]++;
+    }
+  });
+
+  const distribution = Object.entries(typeCounts)
+    .map(([type, count]) => ({
+      type: type as MeetingType,
+      label: TYPE_LABELS[type as MeetingType],
+      color: TYPE_COLORS[type as MeetingType],
+      count
+    }))
+    .filter(item => item.count > 0);
+
+  const totalCount = distribution.reduce((sum, item) => sum + item.count, 0);
+
+  let accumulatedPercent = 0;
+  const segments = distribution.map(item => {
+    const percent = totalCount > 0 ? (item.count / totalCount) * 100 : 0;
+    const dashArray = `${percent} ${100 - percent}`;
+    const dashOffset = (100 - accumulatedPercent + 25) % 100;
+    accumulatedPercent += percent;
+    return {
+      ...item,
+      percent,
+      dashArray,
+      dashOffset
+    };
+  });
+
+  // Render variables for SVG line chart
+  const width = 600;
+  const height = 280;
+  const paddingLeft = 50;
+  const paddingRight = 20;
+  const paddingTop = 30;
+  const paddingBottom = 40;
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
 
   const allValues = Object.values(chartData).flat().map(d => d.value);
-  const minVal = Math.max(0, Math.min(...allValues) - 10);
-  const maxVal = Math.min(100, Math.max(...allValues) + 5);
+  const minVal = Math.max(0, Math.min(...allValues, 0) - 10);
+  const maxVal = Math.min(100, Math.max(...allValues, 100) + 5);
 
   const getY = (val: number) => {
     const ratio = (val - minVal) / (maxVal - minVal || 1);
@@ -272,81 +339,79 @@ export function MeetingsAttendanceChart() {
     return paddingLeft + (index / (allLabels.length - 1 || 1)) * chartWidth;
   };
 
-  const yGridLevels = Array.from({ length: 6 }, (_, i) =>
-    Math.round(minVal + (i / 5) * (maxVal - minVal))
-  );
+  const yGridLevels = [0, 25, 50, 75, 100].filter(l => l >= minVal && l <= maxVal);
 
   return (
-    <div className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:shadow-premium transition-all duration-300">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-6">
+      <div className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
         <h3 className="text-base font-bold text-slate-900 tracking-tight mb-2">
-          Présences
+          Statistiques de Présences
         </h3>
-        <p className="text-xs font-medium text-slate-500">
-          Filtrer par type de réunion, groupe et tags pour analyser les présences
+        <p className="text-xs font-medium text-slate-555">
+          Filtrer par type de rencontre, groupe et tags pour analyser les présences
         </p>
-      </div>
 
-      {/* Filtres */}
-      <div className="space-y-4 mb-6">
-        {/* Types de réunions */}
-        <div>
-          <h4 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">Types de réunions</h4>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(TYPE_LABELS).map(([type, label]) => (
-              <button
-                key={type}
-                onClick={() => toggleType(type as MeetingType)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-                  filteredTypes.includes(type as MeetingType)
-                    ? "text-white shadow-sm"
-                    : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                }`}
-                style={{
-                  backgroundColor: filteredTypes.includes(type as MeetingType)
-                    ? TYPE_COLORS[type as MeetingType]
-                    : undefined,
-                }}
-              >
-                {filteredTypes.includes(type as MeetingType) && (
-                  <Check className="w-3.5 h-3.5 animate-[scale-in_0.15s_ease-out]" strokeWidth={3} />
-                )}
-                <span>{label}</span>
-              </button>
-            ))}
+        {/* Filtres */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-slate-100">
+          {/* Types de rencontres */}
+          <div className="md:col-span-2 space-y-2.5">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Types de rencontres</h4>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(TYPE_LABELS).map(([type, label]) => (
+                <button
+                  key={type}
+                  onClick={() => toggleType(type as MeetingType)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
+                    filteredTypes.includes(type as MeetingType)
+                      ? "text-white shadow-sm"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                  style={{
+                    backgroundColor: filteredTypes.includes(type as MeetingType)
+                      ? TYPE_COLORS[type as MeetingType]
+                      : undefined,
+                  }}
+                >
+                  {filteredTypes.includes(type as MeetingType) && (
+                    <Check className="w-3 h-3 animate-[scale-in_0.15s_ease-out]" strokeWidth={3} />
+                  )}
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Sélecteur de groupe */}
+          <div className="space-y-2.5">
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Groupe</h4>
+            <select
+              value={selectedGroup}
+              onChange={(e) => setSelectedGroup(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+            >
+              <option value="all">Tous les groupes</option>
+              {groups.map(group => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* Sélecteur de groupe */}
-        <div>
-          <h4 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">Groupe</h4>
-          <select
-            value={selectedGroup}
-            onChange={(e) => setSelectedGroup(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="all">Tous les groupes</option>
-            {groups.map(group => (
-              <option key={group.id} value={group.id}>
-                {group.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Tags */}
-        <div>
-          <h4 className="text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide flex items-center gap-1">
-            <Tag className="w-3 h-3" />
-            Tags
+        <div className="mt-4 pt-4 border-t border-slate-100">
+          <h4 className="text-xs font-bold text-slate-700 mb-2.5 uppercase tracking-wide flex items-center gap-1">
+            <Tag className="w-3.5 h-3.5" />
+            Filtrer par Tags
           </h4>
-          <div className="flex flex-wrap gap-2 mb-2">
+          <div className="flex flex-wrap gap-2 mb-3">
             {allTags.map(tag => (
               <button
                 key={tag}
                 onClick={() => toggleTag(tag)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
                   filteredTags.includes(tag)
                     ? "text-white"
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -361,18 +426,18 @@ export function MeetingsAttendanceChart() {
           </div>
 
           {/* Ajout de tag */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 max-w-md">
             <input
               type="text"
               value={searchTag}
               onChange={(e) => setSearchTag(e.target.value)}
-              placeholder="Ajouter un tag..."
-              className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+              placeholder="Rechercher / Ajouter un tag..."
+              className="flex-1 px-3.5 py-2 text-sm font-semibold rounded-lg border border-slate-200 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
               onKeyPress={(e) => e.key === "Enter" && addSearchTag()}
             />
             <button
               onClick={addSearchTag}
-              className="px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+              className="px-4 py-2 rounded-lg bg-[#006C69] text-white text-xs font-bold hover:bg-[#006c69]/90 transition-colors shadow-sm"
             >
               Ajouter
             </button>
@@ -380,17 +445,14 @@ export function MeetingsAttendanceChart() {
 
           {/* Tags sélectionnés */}
           {filteredTags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {filteredTags.map(tag => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold"
                 >
                   {tag}
-                  <button
-                    onClick={() => removeFilterTag(tag)}
-                    className="hover:text-primary/70"
-                  >
+                  <button onClick={() => removeFilterTag(tag)} className="hover:text-primary/70">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -402,160 +464,223 @@ export function MeetingsAttendanceChart() {
 
       {/* États */}
       {loading && (
-        <div className="flex items-center justify-center py-16 text-slate-400 space-x-2">
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span className="text-sm font-medium">Chargement des données...</span>
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-100">
+          <Loader2 className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-sm font-semibold text-slate-700">Chargement des rencontres...</p>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center space-x-3 py-8 px-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm font-semibold">
+        <div className="flex items-center space-x-3 py-6 px-4 rounded-xl bg-red-50 border border-red-150 text-red-650 text-sm font-semibold">
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {!loading && !error && Object.keys(chartData).some(type => chartData[type as MeetingType].length > 0) && (
+      {!loading && !error && filteredMeetings.length > 0 && (
         <>
-          {/* Graphique SVG */}
-          <div className="relative w-full overflow-hidden mb-6">
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
-              {/* Définitions des dégradés */}
-              {Object.entries(TYPE_COLORS).map(([type, color]) => {
-                const gradientId = `gradient-${type}`;
-                const lineGradientId = `line-gradient-${type}`;
-                return (
-                  <defs key={type}>
-                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={color} stopOpacity="0.22" />
-                      <stop offset="100%" stopColor={color} stopOpacity="0.00" />
-                    </linearGradient>
-                    <linearGradient id={lineGradientId} x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor={color} />
-                      <stop offset="100%" stopColor={color} />
-                    </linearGradient>
-                  </defs>
-                );
-              })}
-
-              {/* Grille Y */}
-              {yGridLevels.map((level) => (
-                <g key={level} className="opacity-40">
-                  <line
-                    x1={paddingLeft} y1={getY(level)}
-                    x2={width - paddingRight} y2={getY(level)}
-                    stroke="#E2E8F0" strokeWidth="1" strokeDasharray="4,4"
-                  />
-                  <text x={paddingLeft - 10} y={getY(level) + 4}
-                    textAnchor="end" fontSize="9" fontWeight="600" fill="#94a3b8">
-                    {level}%
-                  </text>
-                </g>
-              ))}
-
-              {/* Courbes */}
-              {Object.entries(chartData).map(([type, data]) => {
-                if (data.length === 0) return null;
-
-                const color = TYPE_COLORS[type as MeetingType];
-                let linePath = "";
-
-                if (data.length === 1) {
-                  linePath = `M ${getX(0)} ${getY(data[0].value)}`;
-                } else {
-                  linePath = `M ${getX(0)} ${getY(data[0].value)}`;
-                  for (let i = 0; i < data.length - 1; i++) {
-                    const x1 = getX(i);
-                    const y1 = getY(data[i].value);
-                    const x2 = getX(i + 1);
-                    const y2 = getY(data[i + 1].value);
-                    const cpx = chartWidth / data.length / 2;
-                    linePath += ` C ${x1 + cpx} ${y1}, ${x2 - cpx} ${y2}, ${x2} ${y2}`;
-                  }
-                }
-
-                // Remplissage
-                const fillPath = data.length > 0
-                  ? `${linePath} L ${getX(data.length - 1)} ${paddingTop + chartHeight} L ${getX(0)} ${paddingTop + chartHeight} Z`
-                  : "";
-
-                return (
-                  <g key={type}>
-                    {fillPath && (
-                      <path d={fillPath} fill={`url(#gradient-${type})`} />
-                    )}
-                    {linePath && (
-                      <path d={linePath} fill="none" stroke={`url(#line-gradient-${type})`}
-                        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    )}
-                    {/* Points de données */}
-                    {data.map((point, index) => {
-                      const x = getX(index);
-                      const y = getY(point.value);
-                      return (
-                        <g key={index}>
-                          <circle cx={x} cy={y} r="3" fill={color} stroke="white" strokeWidth="1" />
-                          <text x={x} y={height - 10} textAnchor="middle" fontSize="8" fill="#6D6E71">
-                            {point.label}
-                          </text>
-                        </g>
-                      );
-                    })}
-                  </g>
-                );
-              })}
-            </svg>
+          {/* Chiffres en haut (Stat Boxes) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Rencontres</span>
+              <h4 className="text-3xl font-black text-slate-900 mt-1">{filteredMeetings.length}</h4>
+              <p className="text-[10px] font-semibold text-slate-400 mt-1.5">Rencontres filtrées</p>
+            </div>
+            
+            <div className="p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Présence Moyenne</span>
+              <h4 className="text-3xl font-black text-slate-900 mt-1">{avgAttendance}%</h4>
+              <p className="text-[10px] font-semibold text-slate-400 mt-1.5">Taux de présence global</p>
+            </div>
+            
+            <div className="p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Présents Cumulés</span>
+              <h4 className="text-3xl font-black text-slate-900 mt-1">{totalPresentSum}</h4>
+              <p className="text-[10px] font-semibold text-slate-400 mt-1.5">Émargements enregistrés</p>
+            </div>
+            
+            <div className="p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
+              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Record Affluence</span>
+              <h4 className="text-3xl font-black text-[#006C69] mt-1">{maxAttendanceRate}%</h4>
+              <p className="text-[10px] font-semibold text-slate-400 mt-1.5">Taux max sur une rencontre</p>
+            </div>
           </div>
 
-          {/* Légende */}
-          <div className="flex flex-wrap gap-4 justify-center mb-6">
-            {Object.entries(TYPE_LABELS).map(([type, label]) => (
-              <div key={type} className="flex items-center gap-2">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: TYPE_COLORS[type as MeetingType] }}
-                />
-                <span className="text-xs font-medium text-slate-600">{label}</span>
+          {/* Graphiques dans des cases (Circle & Diagram) */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            {/* Graphe en cercle (Circle/Donut Chart Case) */}
+            <div className="lg:col-span-2 p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] flex flex-col justify-between items-center min-h-[380px]">
+              <div className="w-full text-left">
+                <h4 className="text-sm font-extrabold text-slate-950 tracking-tight">Distribution par Type</h4>
+                <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Répartition des types de rencontres</p>
               </div>
-            ))}
-          </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-4 gap-3 pt-4 border-t border-slate-50">
-            {Object.entries(chartData).map(([type, data]) => {
-              if (data.length === 0) return null;
-
-              const avg = data.reduce((sum, d) => sum + d.value, 0) / data.length;
-              const total = data.reduce((sum, d) => sum + d.totalRecorded, 0);
-              const present = data.reduce((sum, d) => sum + d.presentCount, 0);
-
-              return (
-                <div key={type} className="text-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-                  <div className="flex items-center justify-center space-x-1 mb-1">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: TYPE_COLORS[type as MeetingType] }}
-                    />
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      {TYPE_LABELS[type as MeetingType]}
-                    </span>
-                  </div>
-                  <p className="text-sm font-extrabold text-slate-900">{Math.round(avg)}%</p>
-                  <p className="text-[10px] font-semibold text-slate-400 mt-0.5">
-                    {present}/{total} présents
-                  </p>
+              {totalCount === 0 ? (
+                <div className="flex-grow flex items-center justify-center">
+                  <span className="text-xs text-slate-400">Aucune donnée de type</span>
                 </div>
-              );
-            })}
+              ) : (
+                <div className="relative w-44 h-44 flex items-center justify-center my-4">
+                  <svg viewBox="0 0 42 42" className="w-full h-full transform -rotate-90">
+                    <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#f1f5f9" strokeWidth="4.2" />
+                    {segments.map((seg, idx) => (
+                      <circle
+                        key={idx}
+                        cx="21"
+                        cy="21"
+                        r="15.91549430918954"
+                        fill="transparent"
+                        stroke={seg.color}
+                        strokeWidth="4.2"
+                        strokeDasharray={seg.dashArray}
+                        strokeDashoffset={seg.dashOffset}
+                        className="transition-all duration-500 ease-in-out"
+                      />
+                    ))}
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-2xl font-black text-slate-900">{totalCount}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Légendes par type */}
+              <div className="w-full space-y-1.5 mt-2 pt-4 border-t border-slate-50">
+                {segments.map((seg, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: seg.color }} />
+                      <span>{seg.label}</span>
+                    </div>
+                    <span className="text-slate-500 font-bold">{seg.count} ({Math.round(seg.percent)}%)</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Graphe en diagramme (Diagram/Line Chart Case) */}
+            <div className="lg:col-span-3 p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] flex flex-col justify-between min-h-[380px]">
+              <div className="w-full text-left">
+                <h4 className="text-sm font-extrabold text-slate-950 tracking-tight">Évolution des Présences</h4>
+                <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Taux de présence sur les 10 dernières rencontres</p>
+              </div>
+
+              {/* Diagramme Line Chart SVG */}
+              <div className="relative w-full overflow-hidden my-4">
+                <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
+                  {/* Définitions des dégradés */}
+                  {Object.entries(TYPE_COLORS).map(([type, color]) => {
+                    const gradientId = `gradient-${type}`;
+                    const lineGradientId = `line-gradient-${type}`;
+                    return (
+                      <defs key={type}>
+                        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
+                          <stop offset="100%" stopColor={color} stopOpacity="0.00" />
+                        </linearGradient>
+                        <linearGradient id={lineGradientId} x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor={color} />
+                          <stop offset="100%" stopColor={color} />
+                        </linearGradient>
+                      </defs>
+                    );
+                  })}
+
+                  {/* Grille Y */}
+                  {yGridLevels.map((level) => (
+                    <g key={level} className="opacity-40">
+                      <line
+                        x1={paddingLeft} y1={getY(level)}
+                        x2={width - paddingRight} y2={getY(level)}
+                        stroke="#E2E8F0" strokeWidth="1" strokeDasharray="4,4"
+                      />
+                      <text x={paddingLeft - 10} y={getY(level) + 4}
+                        textAnchor="end" fontSize="9" fontWeight="700" fill="#94a3b8">
+                        {level}%
+                      </text>
+                    </g>
+                  ))}
+
+                  {/* Courbes */}
+                  {Object.entries(chartData).map(([type, data]) => {
+                    if (data.length === 0) return null;
+
+                    const color = TYPE_COLORS[type as MeetingType];
+                    let linePath = "";
+
+                    if (data.length === 1) {
+                      linePath = `M ${getX(0)} ${getY(data[0].value)}`;
+                    } else {
+                      linePath = `M ${getX(0)} ${getY(data[0].value)}`;
+                      for (let i = 0; i < data.length - 1; i++) {
+                        const x1 = getX(i);
+                        const y1 = getY(data[i].value);
+                        const x2 = getX(i + 1);
+                        const y2 = getY(data[i + 1].value);
+                        const cpx = chartWidth / data.length / 2;
+                        linePath += ` C ${x1 + cpx} ${y1}, ${x2 - cpx} ${y2}, ${x2} ${y2}`;
+                      }
+                    }
+
+                    // Remplissage
+                    const fillPath = data.length > 0
+                      ? `${linePath} L ${getX(data.length - 1)} ${paddingTop + chartHeight} L ${getX(0)} ${paddingTop + chartHeight} Z`
+                      : "";
+
+                    return (
+                      <g key={type}>
+                        {fillPath && (
+                          <path d={fillPath} fill={`url(#gradient-${type})`} />
+                        )}
+                        {linePath && (
+                          <path d={linePath} fill="none" stroke={`url(#line-gradient-${type})`}
+                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        )}
+                        {/* Points de données */}
+                        {data.map((point, index) => {
+                          const x = getX(index);
+                          const y = getY(point.value);
+                          return (
+                            <g key={index}>
+                              <circle cx={x} cy={y} r="3" fill={color} stroke="white" strokeWidth="1" />
+                              <text x={x} y={height - 8} textAnchor="middle" fontSize="8" fontWeight="600" fill="#64748b">
+                                {point.label}
+                              </text>
+                            </g>
+                          );
+                        })}
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+
+              {/* Légende du Diagramme */}
+              <div className="flex flex-wrap gap-4 justify-center pt-4 border-t border-slate-50">
+                {Object.entries(TYPE_LABELS).map(([type, label]) => {
+                  if (chartData[type as MeetingType]?.length === 0) return null;
+                  return (
+                    <div key={type} className="flex items-center gap-2">
+                      <div
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: TYPE_COLORS[type as MeetingType] }}
+                      />
+                      <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </>
       )}
 
-      {!loading && !error && Object.keys(chartData).every(type => chartData[type as MeetingType].length === 0) && (
-        <div className="flex flex-col items-center justify-center py-14 text-center">
-          <Users className="w-10 h-10 text-slate-300 mb-3" />
-          <p className="text-sm font-semibold text-slate-500">Aucune donn&eacute;e correspondant aux filtres.</p>
-          <p className="text-xs text-slate-400 mt-1">Essayez de modifier vos crit&egrave;res de s&eacute;lection.</p>
+      {!loading && !error && filteredMeetings.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-100 text-center">
+          <Users className="w-12 h-12 text-slate-355 mb-4" />
+          <p className="text-sm font-bold text-slate-800">Aucune donnée disponible</p>
+          <p className="text-xs text-slate-500 mt-1">Aucune rencontre ne correspond aux critères de sélection.</p>
         </div>
       )}
     </div>
