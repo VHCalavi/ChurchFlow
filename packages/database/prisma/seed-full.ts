@@ -275,32 +275,33 @@ async function main() {
 
   // 9. Générer des présences (émargement) pour les réunions passées
   console.log("⏳ Génération des présences (émargement)...");
+  const attendeesData = [];
   for (const meeting of seededMeetings) {
       if (meeting.date < today) {
           // Présence aléatoire : entre 40% et 90% des membres actifs
           const attendanceRate = 0.4 + (Math.random() * 0.5);
           for (const member of seededMembers) {
               if (member.isActive && Math.random() < attendanceRate) {
-                  await prisma.meetingAttendee.create({
-                      data: {
-                          meetingId: meeting.id,
-                          memberId: member.id,
-                          isPresent: true,
-                      }
+                  attendeesData.push({
+                      meetingId: meeting.id,
+                      memberId: member.id,
+                      isPresent: true,
                   });
               } else if (member.isActive && Math.random() > 0.8) {
                   // Quelques absents excusés (20% des restants)
-                  await prisma.meetingAttendee.create({
-                    data: {
+                  attendeesData.push({
                         meetingId: meeting.id,
                         memberId: member.id,
                         isPresent: false,
                         notes: "Raison de santé"
-                    }
-                });
+                  });
               }
           }
       }
+  }
+  
+  if (attendeesData.length > 0) {
+      await prisma.meetingAttendee.createMany({ data: attendeesData, skipDuplicates: true });
   }
   console.log("✅ Présences générées pour enrichir les statistiques");
 
