@@ -6,12 +6,8 @@ import {
   User,
   Settings,
   ShieldAlert,
-  MapPin,
   Mail,
   Building2,
-  Clock,
-  Laptop,
-  Smartphone,
   Save,
   Eye,
   EyeOff,
@@ -35,8 +31,7 @@ export default function ProfilePage() {
   const [name, setName] = useState("Dr. Paul OBIANG");
   const [email, setEmail] = useState("admin@churchflow.com");
   const [phone, setPhone] = useState("+229 97 11 22 33 44");
-  const [role, setRole] = useState("Pasteur Principal");
-  const [church, setChurch] = useState("Vases d'Honneur Calavi (VHAIDC)");
+  const [role] = useState("Pasteur Principal");
   const [language, setLanguage] = useState("Français (FR)");
 
   // Password fields
