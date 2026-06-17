@@ -47,7 +47,7 @@ export async function GET(
       success: true,
       data: {
         ...meeting,
-        groupIds: (meeting.metadata as any)?.groupIds || []
+        groupIds: (meeting.metadata as { groupIds?: string[] })?.groupIds || []
       }
     });
   } catch (error) {
@@ -93,7 +93,7 @@ export async function PUT(
       );
     }
 
-    const oldMetadata = (meeting.metadata as any) || {};
+    const oldMetadata = (meeting.metadata as Record<string, unknown>) || {};
     const newMetadata = {
       ...oldMetadata,
       ...(result.data.groupIds !== undefined ? { groupIds: result.data.groupIds } : {})
@@ -117,7 +117,7 @@ export async function PUT(
       success: true,
       data: {
         ...updated,
-        groupIds: (updated.metadata as any)?.groupIds || []
+        groupIds: (updated.metadata as { groupIds?: string[] })?.groupIds || []
       }
     });
   } catch (error) {
