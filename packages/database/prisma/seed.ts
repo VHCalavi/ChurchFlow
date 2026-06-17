@@ -67,19 +67,12 @@ async function main() {
     });
     seededRoles[r.name] = roleObj;
 
-    // Assigner les permissions au rôle (vider d'abord puis réinsérer pour un seed propre)
-    await prisma.rolePermission.deleteMany({ where: { roleId: roleObj.id } });
-    for (const pKey of r.perms) {
-      const permObj = seededPermissions[pKey];
-      if (permObj) {
-        await prisma.rolePermission.create({
-          data: {
-            roleId: roleObj.id,
-            permissionId: permObj.id
-          }
-        });
-      }
-    }
+    await prisma.rolePermission.createMany({
+      data: r.perms
+        .filter((pKey) => seededPermissions[pKey])
+        .map((pKey) => ({ roleId: roleObj.id, permissionId: seededPermissions[pKey].id })),
+      skipDuplicates: true,
+    });
   }
   console.log("✅ Rôles et associations initialisés");
 
