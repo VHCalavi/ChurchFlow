@@ -149,8 +149,8 @@ export default function LandingPage() {
       <div className={`absolute top-[-20%] left-[-10%] w-[700px] h-[700px] rounded-full blur-[180px] pointer-events-none transition-opacity ${
         isDark ? "bg-[#06a7b5] opacity-[0.07]" : "bg-[#06a7b5] opacity-[0.04]"
       }`} />
-      <div className={`absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[160px] pointer-events-none transition-opacity ${
-        isDark ? "bg-[#ec8001] opacity-[0.05]" : "bg-[#ec8001] opacity-[0.03]"
+      <div className={`absolute top-[60%] right-[-8%] w-[500px] h-[500px] rounded-full blur-[160px] pointer-events-none transition-opacity ${
+        isDark ? "bg-[#ec8001] opacity-[0.04]" : "bg-[#ec8001] opacity-[0.025]"
       }`} />
 
       {/* ===== HEADER ===== */}
