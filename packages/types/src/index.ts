@@ -34,14 +34,9 @@ export type Gender = "HOMME" | "FEMME";
 
 export type TransactionType = "ENTREE" | "SORTIE";
 
-export type TransactionCategory =
-  | "OFFRANDE"
-  | "DIXIME"
-  | "DON"
-  | "COTISATION"
-  | "ACHAT"
-  | "PRESTATAIRE"
-  | "AUTRE";
+export type ExpenseFamily = "FONCTIONNEMENT" | "INVESTISSEMENT" | "EXCEPTIONNEL";
+
+export type PaymentMethod = "ESPECES" | "MOBILE_MONEY" | "CHEQUE" | "VIREMENT";
 
 // --- Entities ---
 export interface Church {
@@ -122,19 +117,44 @@ export interface Meeting {
   updatedAt: Date;
 }
 
-export interface Transaction {
+export interface FinanceCategory {
   id: string;
-  title: string;
-  description?: string;
-  amount: number;
-  type: TransactionType;
-  category: TransactionCategory;
-  date: Date;
-  reference?: string;
-  notes?: string;
+  name: string;
+  flowType: TransactionType;
+  family: ExpenseFamily | null;
+  color: string | null;
+  isDefault: boolean;
+  isActive: boolean;
   churchId: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface Transaction {
+  id: string;
+  label: string;
+  amount: number;
+  type: TransactionType;
+  expenseFamily: ExpenseFamily | null;
+  paymentMethod: PaymentMethod;
+  date: Date;
+  donorName: string | null;
+  reference: string | null;
+  notes: string | null;
+  churchId: string;
+  categoryId: string | null;
+  category: FinanceCategory | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FinanceDashboard {
+  solde: number;
+  totalEntrees: number;
+  totalSorties: number;
+  entreesThisMois: number;
+  sortiesByFamily: Record<ExpenseFamily, number>;
+  evolution6mois: { label: string; entrees: number; sorties: number }[];
 }
 
 // --- API Response Wrappers ---

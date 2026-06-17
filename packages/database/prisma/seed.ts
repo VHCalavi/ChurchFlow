@@ -272,6 +272,48 @@ async function main() {
   }
   console.log("✅ 3 réunions de test créées");
 
+  // Finance categories par défaut
+  const defaultCategories = [
+    // Entrées
+    { name: "Offrande", flowType: "ENTREE" as const, family: null, color: "#10B981" },
+    { name: "Dîme", flowType: "ENTREE" as const, family: null, color: "#006C69" },
+    { name: "Don / Action de grâce", flowType: "ENTREE" as const, family: null, color: "#12BC7E" },
+    { name: "Collecte enfants", flowType: "ENTREE" as const, family: null, color: "#CEAD1E" },
+    { name: "Autre entrée", flowType: "ENTREE" as const, family: null, color: "#6D6E71" },
+    // Fonctionnement
+    { name: "Électricité", flowType: "SORTIE" as const, family: "FONCTIONNEMENT" as const, color: "#F97316" },
+    { name: "Eau", flowType: "SORTIE" as const, family: "FONCTIONNEMENT" as const, color: "#F97316" },
+    { name: "Internet / Téléphone", flowType: "SORTIE" as const, family: "FONCTIONNEMENT" as const, color: "#F97316" },
+    { name: "Frais de loge / Location salle", flowType: "SORTIE" as const, family: "FONCTIONNEMENT" as const, color: "#F97316" },
+    { name: "Entretien & Nettoyage", flowType: "SORTIE" as const, family: "FONCTIONNEMENT" as const, color: "#F97316" },
+    { name: "Fournitures de bureau", flowType: "SORTIE" as const, family: "FONCTIONNEMENT" as const, color: "#F97316" },
+    { name: "Transport", flowType: "SORTIE" as const, family: "FONCTIONNEMENT" as const, color: "#F97316" },
+    { name: "Autre fonctionnement", flowType: "SORTIE" as const, family: "FONCTIONNEMENT" as const, color: "#F97316" },
+    // Investissement
+    { name: "Matériel sono & audiovisuel", flowType: "SORTIE" as const, family: "INVESTISSEMENT" as const, color: "#3B82F6" },
+    { name: "Instruments de musique", flowType: "SORTIE" as const, family: "INVESTISSEMENT" as const, color: "#3B82F6" },
+    { name: "Mobilier & Équipements", flowType: "SORTIE" as const, family: "INVESTISSEMENT" as const, color: "#3B82F6" },
+    { name: "Équipements informatiques", flowType: "SORTIE" as const, family: "INVESTISSEMENT" as const, color: "#3B82F6" },
+    { name: "Travaux & Aménagements", flowType: "SORTIE" as const, family: "INVESTISSEMENT" as const, color: "#3B82F6" },
+    { name: "Autre investissement", flowType: "SORTIE" as const, family: "INVESTISSEMENT" as const, color: "#3B82F6" },
+    // Exceptionnel
+    { name: "Campagne CJSA", flowType: "SORTIE" as const, family: "EXCEPTIONNEL" as const, color: "#8B5CF6" },
+    { name: "Séminaire", flowType: "SORTIE" as const, family: "EXCEPTIONNEL" as const, color: "#8B5CF6" },
+    { name: "Convention / Conférence", flowType: "SORTIE" as const, family: "EXCEPTIONNEL" as const, color: "#8B5CF6" },
+    { name: "Voyage pastoral", flowType: "SORTIE" as const, family: "EXCEPTIONNEL" as const, color: "#8B5CF6" },
+    { name: "Événement spécial", flowType: "SORTIE" as const, family: "EXCEPTIONNEL" as const, color: "#8B5CF6" },
+    { name: "Autre exceptionnel", flowType: "SORTIE" as const, family: "EXCEPTIONNEL" as const, color: "#8B5CF6" },
+  ];
+
+  for (const cat of defaultCategories) {
+    await prisma.financeCategory.upsert({
+      where: { churchId_name_flowType: { churchId: church.id, name: cat.name, flowType: cat.flowType } },
+      update: {},
+      create: { ...cat, churchId: church.id, isDefault: true },
+    });
+  }
+  console.log(`✅ ${defaultCategories.length} catégories financières par défaut créées`);
+
   console.log("🌿 Seeding terminé avec succès avec toutes les données de test !");
 }
 
