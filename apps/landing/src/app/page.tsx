@@ -200,7 +200,7 @@ export default function LandingPage() {
             {/* Action Buttons */}
             <div className="flex items-center space-x-4 border-l pl-6 border-slate-200/50 dark:border-white/5">
               <a 
-                href="http://localhost:3001/dashboard" 
+                href="{process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001"}/dashboard" 
                 className={`text-sm font-bold transition-colors ${
                   isDark ? "text-slate-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
                 }`}
@@ -301,7 +301,7 @@ export default function LandingPage() {
           </nav>
           <div className="pt-4 border-t border-slate-200/50 flex flex-col space-y-3">
             <a 
-              href="http://localhost:3001/dashboard" 
+              href="{process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001"}/dashboard" 
               className={`w-full text-center py-2.5 rounded-xl border font-semibold ${
                 isDark ? "border-white/10 text-slate-300 bg-white/2" : "border-slate-200 text-slate-700 bg-slate-50"
               }`}
@@ -968,7 +968,7 @@ export default function LandingPage() {
                 </p>
 
                 <a
-                  href="http://localhost:3001/dashboard"
+                  href="{process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001"}/dashboard"
                   className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-base font-extrabold text-white bg-[#06a7b5] hover:bg-[#006c69] transition-all shadow-[0_0_30px_rgba(6,167,181,0.3)] hover:shadow-[0_0_40px_rgba(6,167,181,0.45)] active:scale-98"
                 >
                   <span>Accéder Gratuitement</span>
