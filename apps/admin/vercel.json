@@ -1,7 +1,7 @@
 {
   "buildCommand": "cd ../.. && pnpm turbo run build --filter=@churchflow/admin",
   "devCommand": "pnpm run dev",
-  "installCommand": "cd ../.. && pnpm install --include=optional",
+  "installCommand": "cd ../.. && NODE_ENV=development pnpm install",
   "framework": "nextjs",
   "regions": [
     "fra1"
