@@ -10,7 +10,6 @@ import {
   Network,
   CalendarDays,
   ShieldCheck,
-  UserCheck,
   ChevronLeft,
   Sun,
   Moon,
