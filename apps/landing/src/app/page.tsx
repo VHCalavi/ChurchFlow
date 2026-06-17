@@ -199,23 +199,23 @@ export default function LandingPage() {
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-4 border-l pl-6 border-slate-200/50 dark:border-white/5">
-              <a 
-                href="{process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001"}/dashboard" 
+              <a
+                href="https://churchflow-indol.vercel.app/login"
                 className={`text-sm font-bold transition-colors ${
                   isDark ? "text-slate-300 hover:text-white" : "text-slate-600 hover:text-slate-900"
                 }`}
               >
                 Connexion
               </a>
-              <a 
-                href="#pricing" 
+              <a
+                href="https://churchflow-indol.vercel.app/login"
                 className={`px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-sm ${
-                  isDark 
-                    ? "bg-[#06a7b5] text-white hover:bg-[#006c69] shadow-[0_0_20px_rgba(6,167,181,0.25)]" 
+                  isDark
+                    ? "bg-[#06a7b5] text-white hover:bg-[#006c69] shadow-[0_0_20px_rgba(6,167,181,0.25)]"
                     : "bg-slate-950 text-white hover:bg-slate-800 shadow-sm"
                 }`}
               >
-                Démarrer gratuitement
+                Démarrer
               </a>
             </div>
 
@@ -300,21 +300,21 @@ export default function LandingPage() {
             </a>
           </nav>
           <div className="pt-4 border-t border-slate-200/50 flex flex-col space-y-3">
-            <a 
-              href="{process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001"}/dashboard" 
+            <a
+              href="https://churchflow-indol.vercel.app/login"
               className={`w-full text-center py-2.5 rounded-xl border font-semibold ${
                 isDark ? "border-white/10 text-slate-300 bg-white/2" : "border-slate-200 text-slate-700 bg-slate-50"
               }`}
             >
               Connexion
             </a>
-             <a 
-               href="#pricing" 
-               onClick={() => setMobileMenuOpen(false)}
-               className="w-full text-center py-2.5 rounded-xl bg-[#06a7b5] text-white font-bold"
-             >
-               Démarrer gratuitement
-             </a>
+            <a
+              href="https://churchflow-indol.vercel.app/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full text-center py-2.5 rounded-xl bg-[#06a7b5] text-white font-bold"
+            >
+              Démarrer
+            </a>
           </div>
         </div>
       )}
@@ -346,11 +346,11 @@ export default function LandingPage() {
 
         {/* Actions buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
-          <a 
-            href="#pricing" 
+          <a
+            href="https://churchflow-indol.vercel.app/login"
             className="w-full sm:w-auto px-8 py-4 rounded-xl text-base font-extrabold text-white bg-[#06a7b5] hover:bg-[#006c69] active:scale-98 transition-all shadow-[0_0_30px_rgba(6,167,181,0.3)] flex items-center justify-center space-x-2"
           >
-            <span>Démarrer gratuitement</span>
+            <span>Démarrer</span>
             <ArrowRight className="w-5 h-5" />
           </a>
           <a 
@@ -968,10 +968,10 @@ export default function LandingPage() {
                 </p>
 
                 <a
-                  href="{process.env.NEXT_PUBLIC_ADMIN_URL || "http://localhost:3001"}/dashboard"
+                  href="https://churchflow-indol.vercel.app/login"
                   className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-base font-extrabold text-white bg-[#06a7b5] hover:bg-[#006c69] transition-all shadow-[0_0_30px_rgba(6,167,181,0.3)] hover:shadow-[0_0_40px_rgba(6,167,181,0.45)] active:scale-98"
                 >
-                  <span>Accéder Gratuitement</span>
+                  <span>Accéder</span>
                   <ArrowRight className="w-5 h-5" />
                 </a>
 
