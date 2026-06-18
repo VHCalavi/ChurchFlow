@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { 
   Bell, 
   Search, 
@@ -20,10 +21,18 @@ interface TopbarProps {
 }
 
 export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<"ALL" | "INBOX" | "TEAM" | "FOLLOWING">("ALL");
   const [activeSearchTab, setActiveSearchTab] = useState<string>("MIXED");
+
+  interface SessionUser {
+    roles?: string[];
+  }
+  const sessionUser = session?.user as (SessionUser & { name?: string | null }) | undefined;
+  const displayName = sessionUser?.name || session?.user?.email || "Utilisateur";
+  const displayRole = sessionUser?.roles?.[0] || "Membre";
 
   return (
     <>
@@ -62,8 +71,8 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
               <User className="w-5 h-5 text-primary" />
             </div>
             <div className="hidden lg:block text-left">
-              <p className="text-sm font-semibold text-slate-700 group-hover:text-primary transition-all">Dr. Paul OBIANG</p>
-              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Pasteur Principal</p>
+              <p className="text-sm font-semibold text-slate-700 group-hover:text-primary transition-all">{displayName}</p>
+              <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">{displayRole}</p>
             </div>
           </Link>
         </div>

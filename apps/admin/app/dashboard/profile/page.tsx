@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
 import {
   User,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 export default function ProfilePage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<
     "OVERVIEW" | "SETTINGS" | "SECURITY"
   >("SETTINGS");
@@ -31,13 +33,28 @@ export default function ProfilePage() {
     type: "success" | "error";
   } | null>(null);
 
-  // Profile data states
-  const [name, setName] = useState("Dr. Paul OBIANG");
-  const [email, setEmail] = useState("admin@churchflow.com");
-  const [phone, setPhone] = useState("+229 97 11 22 33 44");
-  const [role, setRole] = useState("Pasteur Principal");
+  // Profile data states — seeded from session, editable
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [role, setRole] = useState("");
   const [church, setChurch] = useState("Vases d'Honneur Calavi (VHAIDC)");
   const [language, setLanguage] = useState("Français (FR)");
+
+  // Populate form fields once session is available
+  useEffect(() => {
+    if (session?.user) {
+      interface SessionUser {
+        roles?: string[];
+        phone?: string;
+      }
+      const su = session.user as SessionUser & { name?: string | null; email?: string | null };
+      setName(su.name || "");
+      setEmail(su.email || "");
+      setPhone(su.phone || "");
+      setRole(su.roles?.[0] || "Membre");
+    }
+  }, [session]);
 
   // Password fields
   const [currentPassword, setCurrentPassword] = useState("");
