@@ -4,8 +4,7 @@ import React, { useState, useEffect } from "react";
 import { MemberDetailsDrawer } from "../../../components/members/MemberDetailsDrawer";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
 import { StatCard } from "../../../components/ui/stat-card";
-import { HorizonCard } from "../../../components/ui/horizon-card";
-import { IconBox } from "../../../components/ui/icon-box";
+
 import { 
   Plus, 
   Search, 
@@ -347,7 +346,7 @@ export default function MembersPage() {
                   setEchelonFilter("ALL");
                 }
               }}
-              className="pl-10 pr-8 py-2.5 text-xs font-bold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-card [&>option]:text-foreground"
+              className="pl-10 pr-8 py-2.5 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-card [&>option]:text-foreground"
             >
               <option value="ALL">Tous les Statuts</option>
               <option value="RESPONSABLE">Responsables</option>
@@ -362,7 +361,7 @@ export default function MembersPage() {
                 <select
                   value={gradeFilter}
                   onChange={(e) => setGradeFilter(e.target.value)}
-                  className="px-4 py-2.5 text-xs font-bold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-card [&>option]:text-foreground"
+                  className="px-4 py-2.5 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-card [&>option]:text-foreground"
                 >
                   <option value="ALL">Tous les Grades</option>
                   <option value="ASPIRANT">Aspirant</option>
@@ -378,7 +377,7 @@ export default function MembersPage() {
                 <select
                   value={echelonFilter}
                   onChange={(e) => setEchelonFilter(e.target.value)}
-                  className="px-4 py-2.5 text-xs font-bold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-card [&>option]:text-foreground"
+                  className="px-4 py-2.5 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-card [&>option]:text-foreground"
                 >
                   <option value="ALL">Tous les Échelons</option>
                   <option value="C2">C2</option>
@@ -420,7 +419,7 @@ export default function MembersPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-border text-[#A3AED0] text-[11px] font-bold uppercase tracking-wider">
+                  <tr className="border-b border-border text-muted-foreground text-sm font-medium">
                     <th className="py-4 px-6">Nom Complet</th>
                     <th className="py-4 px-6">Statut</th>
                     <th className="py-4 px-6">Hiérarchie</th>
@@ -468,8 +467,8 @@ export default function MembersPage() {
                           <span className="text-[#A3AED0] text-xs font-normal">—</span>
                         )}
                       </td>
-                      <td className="py-4 px-6 text-foreground text-xs font-bold">{member.phone || "Non renseigné"}</td>
-                      <td className="py-4 px-6 text-[#A3AED0] text-xs font-normal">
+                      <td className="py-4 px-6 text-foreground text-sm font-bold">{member.phone || "Non renseigné"}</td>
+                      <td className="py-4 px-6 text-[#A3AED0] text-sm font-medium">
                         {new Date(member.createdAt).toLocaleDateString("fr-FR")}
                       </td>
                       <td className="py-4 px-6">
@@ -500,21 +499,21 @@ export default function MembersPage() {
             {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-6 py-4 border-t border-border">
-                <span className="text-xs font-semibold text-muted-foreground">
+                <span className="text-sm font-medium text-muted-foreground">
                   Page {currentPage} sur {totalPages} ({filteredMembers.length} membres)
                 </span>
                 <div className="flex items-center space-x-2">
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    className="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-background text-foreground hover:opacity-80 disabled:opacity-40 transition-all cursor-pointer"
+                    className="px-4 py-2 text-sm font-medium rounded-xl bg-background text-foreground hover:opacity-80 disabled:opacity-40 transition-all cursor-pointer"
                   >
                     Précédent
                   </button>
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    className="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-primary text-white hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer"
+                    className="px-4 py-2 text-sm font-medium rounded-xl bg-primary text-white hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer"
                   >
                     Suivant
                   </button>
@@ -542,7 +541,7 @@ export default function MembersPage() {
             <form onSubmit={handleCreateMember} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Prénom *</label>
+                  <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Prénom *</label>
                   <input
                     type="text"
                     required
@@ -552,7 +551,7 @@ export default function MembersPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Nom de Famille *</label>
+                  <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Nom de Famille *</label>
                   <input
                     type="text"
                     required
@@ -564,7 +563,7 @@ export default function MembersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
@@ -574,7 +573,7 @@ export default function MembersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Téléphone</label>
+                <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Téléphone</label>
                 <input
                   type="tel"
                   placeholder="+229 ..."
@@ -585,7 +584,7 @@ export default function MembersPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Statut Ecclésiastique *</label>
+                <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Statut Ecclésiastique *</label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as "SYMPATHISANT" | "MEMBRE" | "RESPONSABLE")}
@@ -601,7 +600,7 @@ export default function MembersPage() {
               {status === "RESPONSABLE" && (
                 <div className="grid grid-cols-2 gap-4 p-4 rounded-3xl bg-[#F4F7FE]/50 dark:bg-[#0B1437]/50 border border-[#E0E5F2] dark:border-white/5 animate-fade-in">
                   <div>
-                    <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1.5">Grade *</label>
+                    <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Grade *</label>
                     <select
                       value={grade}
                       onChange={(e) => setGrade(e.target.value)}
@@ -618,7 +617,7 @@ export default function MembersPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1.5">Échelon *</label>
+                    <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Échelon *</label>
                     <select
                       value={echelon}
                       onChange={(e) => setEchelon(e.target.value)}
@@ -637,7 +636,7 @@ export default function MembersPage() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Rôle Système *</label>
+                <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Rôle Système *</label>
                 <select
                   value={systemRole}
                   onChange={(e) => setSystemRole(e.target.value)}
@@ -684,26 +683,26 @@ export default function MembersPage() {
              <form onSubmit={handleEditMember} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Prénom *</label>
+                  <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Prénom *</label>
                   <input type="text" required value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Nom *</label>
+                  <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Nom *</label>
                   <input type="text" required value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
+                  <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Email</label>
                   <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Téléphone</label>
+                  <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Téléphone</label>
                   <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Statut *</label>
+                <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Statut *</label>
                 <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as "SYMPATHISANT" | "MEMBRE" | "RESPONSABLE")} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white">
                   <option value="SYMPATHISANT">Sympathisant</option>
                   <option value="MEMBRE">Membre</option>
@@ -713,7 +712,7 @@ export default function MembersPage() {
               {editStatus === "RESPONSABLE" && (
                 <div className="grid grid-cols-2 gap-4 p-4 rounded-3xl bg-[#F4F7FE]/50 dark:bg-[#0B1437]/50 border border-[#E0E5F2] dark:border-white/5">
                   <div>
-                    <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1.5">Grade *</label>
+                    <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Grade *</label>
                     <select value={editGrade} onChange={(e) => setEditGrade(e.target.value)} required className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white">
                       <option value="">Sélectionner...</option>
                       <option value="ASPIRANT">Aspirant</option>
@@ -725,7 +724,7 @@ export default function MembersPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1.5">Échelon *</label>
+                    <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Échelon *</label>
                     <select value={editEchelon} onChange={(e) => setEditEchelon(e.target.value)} required className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white">
                       <option value="">Sélectionner...</option>
                       <option value="C2">C2</option>
@@ -739,7 +738,7 @@ export default function MembersPage() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Rôle Système *</label>
+                <label className="block text-sm font-medium text-[#1B2559] dark:text-white mb-1.5">Rôle Système *</label>
                 <select
                   value={editSystemRole}
                   onChange={(e) => setEditSystemRole(e.target.value)}

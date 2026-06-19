@@ -34,10 +34,10 @@ export function StatCard({
         )}
         
         <div className="flex flex-col">
-          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider leading-none mb-1.5">
+          <span className="text-sm font-medium text-muted-foreground leading-none mb-1.5">
             {title}
           </span>
-          <span className="text-2xl font-extrabold text-foreground tracking-tight">
+          <span className="text-2xl font-bold text-foreground tracking-tight">
             {value}
           </span>
           

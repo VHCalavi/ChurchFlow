@@ -82,7 +82,7 @@ export function MemberDetailsDrawer({ memberId, onClose }: Props) {
               <h3 className="text-sm font-bold text-foreground">
                 {member ? `${member.firstName} ${member.lastName}` : "Chargement..."}
               </h3>
-              <p className="text-xs font-medium text-[#A3AED0] mt-0.5">
+              <p className="text-sm font-medium text-[#A3AED0] mt-0.5">
                 {member?.status || "Profil Membre"}
               </p>
             </div>
@@ -101,7 +101,7 @@ export function MemberDetailsDrawer({ memberId, onClose }: Props) {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`py-4 px-4 text-xs font-bold uppercase tracking-wide border-b-2 transition-all ${
+              className={`py-4 px-4 text-sm font-medium border-b-2 transition-all ${
                 tab === t
                   ? "border-[#422AFB] text-[#422AFB] dark:border-[#7551FF] dark:text-[#7551FF]"
                   : "border-transparent text-[#A3AED0] hover:text-foreground"
@@ -137,17 +137,17 @@ export function MemberDetailsDrawer({ memberId, onClose }: Props) {
                 },
               ].map(({ label, value }) => (
                 <div key={label} className="flex justify-between py-2.5 border-b border-[#E0E5F2]/40 dark:border-white/5">
-                  <span className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider">{label}</span>
-                  <span className="text-sm font-semibold text-foreground">{value}</span>
+                  <span className="text-sm font-medium text-muted-foreground">{label}</span>
+                  <span className="text-sm font-bold text-foreground">{value}</span>
                 </div>
               ))}
               
               {member.grade && (
                 <div className="flex items-center gap-2 pt-4">
-                  <span className="px-3.5 py-1.5 bg-[#F4F7FE] dark:bg-[#0B1437] text-foreground rounded-full text-xs font-bold">
+                  <span className="px-3.5 py-1.5 bg-[#F4F7FE] dark:bg-[#0B1437] text-foreground rounded-full text-sm font-medium">
                     {member.grade}
                   </span>
-                  <span className="px-3.5 py-1.5 bg-primary/10 text-primary rounded-full text-xs font-bold">
+                  <span className="px-3.5 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium">
                     {member.echelon}
                   </span>
                 </div>
@@ -174,10 +174,10 @@ export function MemberDetailsDrawer({ memberId, onClose }: Props) {
                       </div>
                       <div className="flex flex-col items-start">
                         <p className="text-sm font-bold text-foreground leading-tight">{mg.group.name}</p>
-                        <p className="text-xs font-medium text-[#A3AED0] mt-0.5">{mg.group.type}</p>
+                        <p className="text-sm font-medium text-[#A3AED0] mt-0.5">{mg.group.type}</p>
                       </div>
                     </div>
-                    <span className="px-3 py-1 bg-card rounded-xl text-xs font-bold text-foreground border border-[#E0E5F2] dark:border-white/10">
+                    <span className="px-3 py-1 bg-card rounded-xl text-sm font-medium text-foreground border border-[#E0E5F2] dark:border-white/10">
                       {mg.role || "Membre"}
                     </span>
                   </div>
@@ -191,9 +191,9 @@ export function MemberDetailsDrawer({ memberId, onClose }: Props) {
               {/* Presence Statistics Card */}
               <div className="p-5 rounded-2xl bg-[#E6FAF5]/80 dark:bg-[#0B2A22]/20 border border-[#01B574]/20 flex items-center justify-between">
                 <div className="flex flex-col items-start">
-                  <p className="text-xs font-bold text-[#01B574] uppercase tracking-wider">Taux de présence</p>
+                  <p className="text-sm font-medium text-[#01B574]">Taux de présence</p>
                   <p className="text-3xl font-extrabold text-[#01B574] mt-1">{rate}%</p>
-                  <p className="text-xs font-medium text-[#A3AED0] mt-1">
+                  <p className="text-sm font-medium text-[#A3AED0] mt-1">
                     {presentCount} présence(s) sur {total} réunion(s)
                   </p>
                 </div>
@@ -219,7 +219,7 @@ export function MemberDetailsDrawer({ memberId, onClose }: Props) {
                           <XCircle className="w-4 h-4 text-[#EE5D50]" />
                         )}
                         <div className="flex flex-col items-start">
-                          <p className="text-xs font-bold text-foreground leading-tight">
+                          <p className="text-sm font-medium text-foreground leading-tight">
                             {a.meeting?.title || "Réunion"}
                           </p>
                           <p className="text-[10px] font-medium text-[#A3AED0] mt-0.5">
