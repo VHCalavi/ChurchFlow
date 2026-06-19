@@ -153,9 +153,9 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const textActive = isDark ? "#ffffff" : "#1B2559"; /* gray.700 / white */
   const textInactive = "#A3AED0"; /* secondaryGray.600 */
   /* Icon colours */
-  const iconActive = isDark ? "#ffffff" : "#422AFB"; /* brand.500 */
+  const iconActive = "#12BC7E"; /* Couleur primary VH */
   /* Active bar */
-  const barColor = isDark ? "#7551FF" : "#422AFB"; /* brand.400 / brand.500 */
+  const barColor = "#12BC7E"; /* Couleur primary VH */
 
   return (
     <aside
@@ -172,7 +172,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           <div
             className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
             style={{
-              background: "linear-gradient(135deg, #006C69 0%, #09B5AF 100%)",
+              background: "linear-gradient(135deg, #12BC7E 0%, #09B5AF 100%)",
             }}
           >
             <span className="font-extrabold text-sm text-white">CF</span>
@@ -186,7 +186,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 Church<span style={{ color: iconActive }}>Flow</span>
               </span>
               <span
-                className="text-[9px] font-bold uppercase tracking-widest mt-0.5"
+                className="text-xs font-bold uppercase tracking-widest mt-0.5"
                 style={{ color: textInactive }}
               >
                 Vase d&apos;Honneur
@@ -353,7 +353,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                   {session?.user?.name || session?.user?.email || "Admin"}
                 </p>
                 <p
-                  className="text-[9px] font-semibold uppercase tracking-widest"
+                  className="text-xs font-semibold uppercase tracking-widest"
                   style={{ color: textInactive }}
                 >
                   Connecté
@@ -364,7 +364,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="p-1.5 rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer"
-              style={{ color: "#EE5D50" }}
+              style={{ color: iconActive }}
               title="Déconnexion"
             >
               <LogOut className="w-4 h-4" />
