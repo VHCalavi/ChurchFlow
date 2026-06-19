@@ -88,121 +88,11 @@ export default function MembersPage() {
         if (json.success && json.data && json.data.length > 0) {
           setMembers(json.data);
         } else {
-          setMembers([
-            {
-              id: "1",
-              firstName: "Marc",
-              lastName: "KOFFI",
-              email: "marc.koffi@gmail.com",
-              phone: "+229 97 45 89 65",
-              status: "RESPONSABLE",
-              grade: "Serviteur",
-              echelon: "C10",
-              isActive: true,
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: "2",
-              firstName: "Awa",
-              lastName: "DIALLO",
-              email: "awa.diallo@outlook.com",
-              phone: "+229 95 12 45 78",
-              status: "MEMBRE",
-              grade: null,
-              echelon: null,
-              isActive: true,
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: "3",
-              firstName: "Jean-Pierre",
-              lastName: "TANO",
-              email: "jp.tano@gmail.com",
-              phone: "+229 61 23 56 89",
-              status: "RESPONSABLE",
-              grade: "Aspirant",
-              echelon: "C5",
-              isActive: true,
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: "4",
-              firstName: "Esther",
-              lastName: "AMON",
-              email: "esther.amon@live.fr",
-              phone: "+229 97 78 96 54",
-              status: "SYMPATHISANT",
-              grade: null,
-              echelon: null,
-              isActive: true,
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: "5",
-              firstName: "Dr. Paul",
-              lastName: "OBIANG",
-              email: "p.obiang@churchflow.com",
-              phone: "+241 06 12 34 56",
-              status: "RESPONSABLE",
-              grade: "Pasteur titulaire",
-              echelon: "GA C100",
-              isActive: true,
-              createdAt: new Date().toISOString(),
-            },
-          ]);
+          setMembers([]);
         }
       } catch (err) {
         console.error("Erreur lors du chargement des membres:", err);
-        setMembers([
-          {
-            id: "1",
-            firstName: "Marc",
-            lastName: "KOFFI",
-            email: "marc.koffi@gmail.com",
-            phone: "+229 97 45 89 65",
-            status: "RESPONSABLE",
-            grade: "Serviteur",
-            echelon: "C10",
-            isActive: true,
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: "2",
-            firstName: "Awa",
-            lastName: "DIALLO",
-            email: "awa.diallo@outlook.com",
-            phone: "+229 95 12 45 78",
-            status: "MEMBRE",
-            grade: null,
-            echelon: null,
-            isActive: true,
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: "3",
-            firstName: "Jean-Pierre",
-            lastName: "TANO",
-            email: "jp.tano@gmail.com",
-            phone: "+229 61 23 56 89",
-            status: "RESPONSABLE",
-            grade: "Aspirant",
-            echelon: "C5",
-            isActive: true,
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: "4",
-            firstName: "Esther",
-            lastName: "AMON",
-            email: "esther.amon@live.fr",
-            phone: "+229 97 78 96 54",
-            status: "SYMPATHISANT",
-            grade: null,
-            echelon: null,
-            isActive: true,
-            createdAt: new Date().toISOString(),
-          },
-        ]);
+        setMembers([]);
       } finally {
         setLoading(false);
       }
@@ -412,7 +302,7 @@ export default function MembersPage() {
           <div
             className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-2xl shadow-horizon-xl animate-fade-in-up ${
               notification.type === "success"
-                ? "bg-[#12BC7E] text-white"
+                ? "bg-[#006C69] text-white"
                 : "bg-[#CD3C14] text-white"
             }`}
           >
@@ -426,7 +316,7 @@ export default function MembersPage() {
             title="Total Registre"
             value={String(members.length)}
             icon={<Users className="w-5 h-5" />}
-            iconBg="bg-[#12BC7E]"
+            iconBg="bg-[#006C69]"
             iconColorClass="text-white"
           />
 
@@ -460,7 +350,7 @@ export default function MembersPage() {
               placeholder="Rechercher par nom, email, tél..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+              className="w-full pl-11 pr-4 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all"
             />
           </div>
 
@@ -476,7 +366,7 @@ export default function MembersPage() {
                     setEchelonFilter("ALL");
                   }
                 }}
-                className="pl-10 pr-8 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                className="pl-10 pr-8 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
               >
                 <option value="ALL">Tous les Statuts</option>
                 <option value="RESPONSABLE">Responsables</option>
@@ -491,7 +381,7 @@ export default function MembersPage() {
                   <select
                     value={gradeFilter}
                     onChange={(e) => setGradeFilter(e.target.value)}
-                    className="px-4 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                    className="px-4 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                   >
                     <option value="ALL">Tous les Grades</option>
                     <option value="ASPIRANT">Aspirant</option>
@@ -507,7 +397,7 @@ export default function MembersPage() {
                   <select
                     value={echelonFilter}
                     onChange={(e) => setEchelonFilter(e.target.value)}
-                    className="px-4 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                    className="px-4 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                   >
                     <option value="ALL">Tous les Échelons</option>
                     <option value="C2">C2</option>
@@ -572,7 +462,7 @@ export default function MembersPage() {
                       >
                         <td className="py-4 px-6">
                           <div className="flex items-center space-x-3">
-                            <div className="w-9 h-9 rounded-full bg-[#12BC7E] flex items-center justify-center font-bold text-sm text-white flex-shrink-0">
+                            <div className="w-9 h-9 rounded-full bg-[#006C69] flex items-center justify-center font-bold text-sm text-white flex-shrink-0">
                               {member.firstName[0]}
                               {member.lastName[0]}
                             </div>
@@ -592,7 +482,7 @@ export default function MembersPage() {
                               member.status === "RESPONSABLE"
                                 ? "bg-[#CEAD1E] text-white"
                                 : member.status === "MEMBRE"
-                                  ? "bg-[#12BC7E] text-white"
+                                  ? "bg-[#006C69] text-white"
                                   : "bg-[#A3AED0] text-[#1B2559]"
                             }`}
                           >
@@ -605,7 +495,7 @@ export default function MembersPage() {
                               <span className="text-sm px-3 py-1 bg-[#F4F7FE] text-[#1B2559] rounded-full font-bold">
                                 {member.grade}
                               </span>
-                              <span className="text-sm px-3 py-1 bg-[#12BC7E] text-white rounded-full font-bold">
+                              <span className="text-sm px-3 py-1 bg-[#006C69] text-white rounded-full font-bold">
                                 {member.echelon}
                               </span>
                             </div>
@@ -673,7 +563,7 @@ export default function MembersPage() {
                       onClick={() =>
                         setCurrentPage((prev) => Math.min(totalPages, prev + 1))
                       }
-                      className="px-4 py-3 text-sm font-bold rounded-full bg-[#12BC7E] text-white hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer"
+                      className="px-4 py-3 text-sm font-bold rounded-full bg-[#006C69] text-white hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer"
                     >
                       Suivant
                     </button>
@@ -711,7 +601,7 @@ export default function MembersPage() {
                       required
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all"
                     />
                   </div>
                   <div>
@@ -723,7 +613,7 @@ export default function MembersPage() {
                       required
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all"
                     />
                   </div>
                 </div>
@@ -736,7 +626,7 @@ export default function MembersPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all"
                   />
                 </div>
 
@@ -749,7 +639,7 @@ export default function MembersPage() {
                     placeholder="+229 ..."
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all"
                   />
                 </div>
 
@@ -767,7 +657,7 @@ export default function MembersPage() {
                           | "RESPONSABLE",
                       )
                     }
-                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                   >
                     <option value="SYMPATHISANT">
                       Sympathisant (Visiteur)
@@ -790,7 +680,7 @@ export default function MembersPage() {
                         value={grade}
                         onChange={(e) => setGrade(e.target.value)}
                         required
-                        className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                        className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                       >
                         <option value="">Sélectionner...</option>
                         <option value="Aspirant">Aspirant</option>
@@ -817,7 +707,7 @@ export default function MembersPage() {
                         value={echelon}
                         onChange={(e) => setEchelon(e.target.value)}
                         required
-                        className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                        className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                       >
                         <option value="">Sélectionner...</option>
                         <option value="C2">C2</option>
@@ -837,7 +727,7 @@ export default function MembersPage() {
                   <select
                     value={systemRole}
                     onChange={(e) => setSystemRole(e.target.value)}
-                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                   >
                     <option value="MEMBRE">Membre (Fidèle)</option>
                     <option value="RESPONSABLE_GEM">Responsable de GEM</option>
@@ -893,7 +783,7 @@ export default function MembersPage() {
                       required
                       value={editFirstName}
                       onChange={(e) => setEditFirstName(e.target.value)}
-                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all"
                     />
                   </div>
                   <div>
@@ -905,7 +795,7 @@ export default function MembersPage() {
                       required
                       value={editLastName}
                       onChange={(e) => setEditLastName(e.target.value)}
-                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all"
                     />
                   </div>
                 </div>
@@ -918,7 +808,7 @@ export default function MembersPage() {
                       type="email"
                       value={editEmail}
                       onChange={(e) => setEditEmail(e.target.value)}
-                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all"
                     />
                   </div>
                   <div>
@@ -929,7 +819,7 @@ export default function MembersPage() {
                       type="tel"
                       value={editPhone}
                       onChange={(e) => setEditPhone(e.target.value)}
-                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                      className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all"
                     />
                   </div>
                 </div>
@@ -947,7 +837,7 @@ export default function MembersPage() {
                           | "RESPONSABLE",
                       )
                     }
-                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                   >
                     <option value="SYMPATHISANT">Sympathisant</option>
                     <option value="MEMBRE">Membre</option>
@@ -964,7 +854,7 @@ export default function MembersPage() {
                         value={editGrade}
                         onChange={(e) => setEditGrade(e.target.value)}
                         required
-                        className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                        className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                       >
                         <option value="">Sélectionner...</option>
                         <option value="ASPIRANT">Aspirant</option>
@@ -991,7 +881,7 @@ export default function MembersPage() {
                         value={editEchelon}
                         onChange={(e) => setEditEchelon(e.target.value)}
                         required
-                        className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                        className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                       >
                         <option value="">Sélectionner...</option>
                         <option value="C2">C2</option>
@@ -1011,7 +901,7 @@ export default function MembersPage() {
                   <select
                     value={editSystemRole}
                     onChange={(e) => setEditSystemRole(e.target.value)}
-                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                   >
                     <option value="MEMBRE">Membre (Fidèle)</option>
                     <option value="RESPONSABLE_GEM">Responsable de GEM</option>
