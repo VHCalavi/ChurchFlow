@@ -126,8 +126,8 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
         style={{
           position: "fixed",
           top: "20px",
-          right: "30px",
-          width: "calc(100vw - 380px)",
+          right: "20px",
+          width: "calc(100vw - 365px)",
           zIndex: 10,
           minHeight: "75px",
           borderRadius: "16px",
@@ -142,8 +142,8 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingLeft: "12px",
-          paddingRight: "10px",
+          paddingLeft: "1.2rem",
+          paddingRight: "1.5rem",
           paddingTop: "8px",
           paddingBottom: "8px",
         }}
