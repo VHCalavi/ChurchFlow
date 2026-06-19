@@ -159,7 +159,7 @@
 
 /* Hero Banner dégradé VH — style Horizon marketplace banner */
 .horizon-hero-banner {
-  background: linear-gradient(135deg, #006C69 0%, #09B5AF 50%, #12BC7E 100%);
+  background: #006C69;
   border-radius: 20px;
   position: relative;
   overflow: hidden;

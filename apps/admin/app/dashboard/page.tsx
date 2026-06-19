@@ -156,15 +156,15 @@ export default async function DashboardHome() {
           </div>
         )}
 
-        {/* Welcome Banner - Horizon Marketplace Style */}
-        <div className="horizon-hero-banner p-8 text-white flex flex-col justify-center min-h-[160px] shadow-horizon-md animate-fade-in-up">
-          <span className="text-xs font-bold uppercase tracking-wider bg-white/20 w-fit px-3 py-1 rounded-full mb-3">
+        {/* Welcome Banner */}
+        <div className="bg-primary horizon-hero-banner p-8 text-white flex flex-col justify-center min-h-[160px] shadow-horizon-md animate-fade-in-up">
+          <span className="text-sm font-bold bg-white/20 w-fit px-3 py-1 rounded-full mb-3">
             Portail Administration
           </span>
-          <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl leading-tight">
+          <h2 className="text-base font-bold leading-tight">
             Bonjour, {session?.user?.name || "Administrateur"} 👋
           </h2>
-          <p className="text-sm font-semibold text-white/85 mt-2 max-w-xl">
+          <p className="text-sm text-white/85 mt-2 max-w-xl">
             Bienvenue sur le tableau de bord de ChurchFlow. Suivez
             l&apos;évolution des membres, la gestion des cellules et
             l&apos;organisation des cultes en temps réel.
@@ -222,18 +222,18 @@ export default async function DashboardHome() {
           {/* Next Meetings Section */}
           <HorizonCard className="flex flex-col h-full justify-between">
             <div>
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-navy-700">
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-border">
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-800 dark:text-white">
+                  <h3 className="text-base font-bold text-foreground">
                     Prochaines Réunions
                   </h3>
-                  <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     Rencontres officielles et cultes
                   </p>
                 </div>
                 <Link
                   href="/dashboard/meetings"
-                  className="p-1.5 rounded-lg bg-slate-50 dark:bg-navy-900 hover:bg-slate-100 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <CalendarDays className="w-4 h-4" />
                 </Link>
@@ -248,38 +248,27 @@ export default async function DashboardHome() {
                   displayMeetings.map((meeting, idx) => (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-xl border border-slate-100/80 dark:border-navy-700 bg-slate-50/20 dark:bg-navy-950/20 hover:bg-slate-50 dark:hover:bg-navy-900 transition-all flex flex-col gap-2"
+                      className="p-3.5 rounded-xl border border-border bg-background hover:bg-background/80 transition-all flex flex-col gap-2"
                       style={{
                         borderLeftWidth: "4px",
-                        borderLeftColor:
-                          meeting.type === "CULTE"
-                            ? "#006C69"
-                            : meeting.type === "REPETITION"
-                              ? "#CEAD1E"
-                              : "#94A3B8",
+                        borderLeftColor: "#006C69",
                       }}
                     >
                       <div className="flex items-center justify-between">
                         <span
-                          className={`text-[9px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded ${
-                            meeting.type === "CULTE"
-                              ? "bg-[#006C69]/10 text-[#006C69]"
-                              : meeting.type === "REPETITION"
-                                ? "bg-[#CEAD1E]/10 text-[#CEAD1E]"
-                                : "bg-slate-100 dark:bg-navy-700 text-slate-600 dark:text-slate-300"
-                          }`}
+                          className="text-sm font-bold bg-primary/10 text-primary px-2 py-0.5 rounded"
                         >
                           {meeting.type}
                         </span>
-                        <span className="text-xs font-semibold text-slate-450 dark:text-slate-500 flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {meeting.date}
                         </span>
                       </div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-white">
+                      <h4 className="text-sm font-bold text-foreground">
                         {meeting.title}
                       </h4>
-                      <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                      <span className="text-sm text-muted-foreground">
                         {meeting.location}
                       </span>
                     </div>
@@ -290,7 +279,7 @@ export default async function DashboardHome() {
 
             <Link
               href="/dashboard/meetings"
-              className="mt-6 flex items-center justify-center gap-1.5 w-full py-3 rounded-xl bg-slate-50 dark:bg-navy-900 hover:bg-slate-100/80 dark:hover:bg-navy-700/80 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
+              className="mt-6 flex items-center justify-center gap-1.5 w-full py-3 rounded-xl bg-primary hover:bg-primary/90 text-sm font-bold text-white transition-colors"
             >
               <span>Voir le calendrier complet</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -302,18 +291,18 @@ export default async function DashboardHome() {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Members Table */}
           <HorizonCard className="xl:col-span-2">
-            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-navy-700">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-border">
               <div>
-                <h3 className="text-base font-extrabold text-slate-800 dark:text-white">
+                <h3 className="text-base font-bold text-foreground">
                   Membres Récemment Enregistrés
                 </h3>
-                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Derniers enregistrements administratifs
                 </p>
               </div>
               <Link
                 href="/dashboard/members"
-                className="flex items-center gap-1 text-xs font-extrabold text-[#006C69] hover:underline"
+                className="flex items-center gap-1 text-sm font-bold text-primary hover:underline"
               >
                 <span>Voir tout</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -323,14 +312,14 @@ export default async function DashboardHome() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 dark:border-navy-700 text-slate-400 dark:text-slate-500 text-xs font-extrabold tracking-wider uppercase">
+                  <tr className="border-b border-border text-muted-foreground text-sm font-medium">
                     <th className="pb-3 pr-4">Membre</th>
                     <th className="pb-3 pr-4">Statut</th>
                     <th className="pb-3 pr-4">Grade & Échelon</th>
                     <th className="pb-3">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50 dark:divide-navy-750 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <tbody className="divide-y divide-border text-sm font-medium text-muted-foreground">
                   {displayMembers.length === 0 ? (
                     <tr>
                       <td
@@ -350,7 +339,7 @@ export default async function DashboardHome() {
                       >
                         <td className="py-3.5 pr-4 flex items-center gap-3">
                           {/* Avatar Circle with initials */}
-                          <div className="w-8 h-8 rounded-full bg-[#006C69]/10 text-[#006C69] font-extrabold flex items-center justify-center text-xs">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-sm">
                             {member.name
                               .split(" ")
                               .map((n) => n[0])
@@ -358,19 +347,13 @@ export default async function DashboardHome() {
                               .join("")
                               .toUpperCase()}
                           </div>
-                          <span className="font-extrabold text-slate-800 dark:text-white">
+                          <span className="font-bold text-foreground">
                             {member.name}
                           </span>
                         </td>
                         <td className="py-3.5 pr-4">
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wider uppercase ${
-                              member.status === "RESPONSABLE"
-                                ? "bg-[#006C69]/10 text-[#006C69]"
-                                : member.status === "MEMBRE"
-                                  ? "bg-emerald-500/10 text-emerald-700"
-                                  : "bg-slate-100 dark:bg-navy-700 text-slate-600 dark:text-slate-350"
-                            }`}
+                            className="inline-flex items-center px-2 py-0.5 rounded text-sm font-bold bg-primary/10 text-primary"
                           >
                             {member.status}
                           </span>
@@ -378,20 +361,20 @@ export default async function DashboardHome() {
                         <td className="py-3.5 pr-4">
                           {member.grade ? (
                             <div className="flex items-center gap-1">
-                              <span className="text-xs px-2 py-0.5 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700 rounded font-bold text-[#006C69]">
+                              <span className="text-sm px-2 py-0.5 bg-background border border-border rounded font-bold text-primary">
                                 {member.grade}
                               </span>
-                              <span className="text-xs px-2 py-0.5 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700 rounded font-bold text-[#EC8001]">
+                              <span className="text-sm px-2 py-0.5 bg-background border border-border rounded font-bold">
                                 {member.echelon}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-slate-400 dark:text-slate-650">
+                            <span className="text-muted-foreground">
                               —
                             </span>
                           )}
                         </td>
-                        <td className="py-3.5 text-slate-450 dark:text-slate-500 font-semibold">
+                        <td className="py-3.5 text-muted-foreground font-medium">
                           {member.date}
                         </td>
                       </tr>
@@ -405,11 +388,11 @@ export default async function DashboardHome() {
           {/* Quick Actions / Shortcuts Panel */}
           <HorizonCard className="flex flex-col justify-between">
             <div>
-              <div className="pb-4 mb-4 border-b border-slate-100 dark:border-navy-700">
-                <h3 className="text-base font-extrabold text-slate-800 dark:text-white">
+              <div className="pb-4 mb-4 border-b border-border">
+                <h3 className="text-base font-bold text-foreground">
                   Raccourcis Administrateur
                 </h3>
-                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Accès rapides aux actions fréquentes
                 </p>
               </div>
@@ -417,16 +400,16 @@ export default async function DashboardHome() {
               <div className="grid grid-cols-1 gap-2.5">
                 <Link
                   href="/dashboard/members?action=create"
-                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-navy-700 bg-slate-50/30 hover:bg-slate-50 dark:hover:bg-navy-900 transition-all cursor-pointer group"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background hover:bg-background/80 transition-all cursor-pointer group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[#006C69]/10 text-[#006C69] flex items-center justify-center font-bold text-xs">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
                     +
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-[#006C69] transition-colors">
+                    <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
                       Ajouter un membre
                     </span>
-                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    <span className="text-sm text-muted-foreground">
                       Enregistrer un nouveau fidèle
                     </span>
                   </div>
@@ -434,16 +417,16 @@ export default async function DashboardHome() {
 
                 <Link
                   href="/dashboard/groups"
-                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-navy-700 bg-slate-50/30 hover:bg-slate-50 dark:hover:bg-navy-900 transition-all cursor-pointer group"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background hover:bg-background/80 transition-all cursor-pointer group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[#EC8001]/10 text-[#EC8001] flex items-center justify-center font-bold text-xs">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-bold text-sm">
                     G
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-[#EC8001] transition-colors">
+                    <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
                       Gérer les GEMs
                     </span>
-                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    <span className="text-sm text-muted-foreground">
                       Assignations et rapports de cellule
                     </span>
                   </div>
@@ -451,16 +434,16 @@ export default async function DashboardHome() {
 
                 <Link
                   href="/dashboard/profile"
-                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-navy-700 bg-slate-50/30 hover:bg-slate-50 dark:hover:bg-navy-900 transition-all cursor-pointer group"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-border bg-background hover:bg-background/80 transition-all cursor-pointer group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 text-[#8B5CF6] flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
                     <User className="w-4 h-4" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-[#8B5CF6] transition-colors">
+                    <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">
                       Paramètres profil
                     </span>
-                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+                    <span className="text-sm text-muted-foreground">
                       Rôles, identifiants et accès
                     </span>
                   </div>
@@ -469,7 +452,7 @@ export default async function DashboardHome() {
             </div>
 
             <div className="mt-6 flex flex-col gap-2">
-              <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">
+              <span className="text-sm font-bold text-muted-foreground text-center">
                 Système ChurchFlow v1.0
               </span>
             </div>

@@ -111,7 +111,7 @@ export default function ProfilePage() {
         {/* METRONIC-STYLE COVER PROFILE CARD */}
         <div className="mb-8 horizon-card overflow-hidden">
           {/* Banner with solid VH primary color */}
-          <div className="h-44 bg-[#12BC7E] relative" />
+          <div className="h-44  horizon-hero-banner relative" />
 
           {/* User Details Box */}
           <div className="p-6 relative">
