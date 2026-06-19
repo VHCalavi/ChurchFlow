@@ -84,14 +84,17 @@ enum TransactionType {
   SORTIE
 }
 
-enum TransactionCategory {
-  OFFRANDE
-  DIXIME
-  DON
-  COTISATION
-  ACHAT
-  PRESTATAIRE
-  AUTRE
+enum ExpenseFamily {
+  FONCTIONNEMENT
+  INVESTISSEMENT
+  EXCEPTIONNEL
+}
+
+enum PaymentMethod {
+  ESPECES
+  MOBILE_MONEY
+  CHEQUE
+  VIREMENT
 }
 
 // ============================================================
@@ -110,16 +113,17 @@ model Church {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  members      Member[]
-  groups       Group[]
-  formations   Formation[]
-  meetings     Meeting[]
-  users        User[]
-  materials    Material[]
-  providers    Provider[]
-  purchases    Purchase[]
-  transactions Transaction[]
-  metadata     Json @default("{}")
+  members           Member[]
+  groups            Group[]
+  formations        Formation[]
+  meetings          Meeting[]
+  users             User[]
+  materials         Material[]
+  providers         Provider[]
+  purchases         Purchase[]
+  transactions      Transaction[]
+  financeCategories FinanceCategory[]
+  metadata          Json @default("{}")
 
   @@map("churches")
 }
@@ -465,21 +469,43 @@ model Purchase {
 // FINANCES
 // ============================================================
 
-model Transaction {
-  id          String              @id @default(cuid())
-  title       String
-  description String?
-  amount      Decimal             @db.Decimal(12, 2)
-  type        TransactionType
-  category    TransactionCategory
-  date        DateTime            @default(now())
-  reference   String?
-  notes       String?             @db.Text
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+model FinanceCategory {
+  id        String          @id @default(cuid())
+  name      String
+  flowType  TransactionType
+  family    ExpenseFamily?  // null pour les entrées
+  color     String?
+  isDefault Boolean         @default(false)
+  isActive  Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 
-  churchId String
-  church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  churchId     String
+  church       Church        @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([churchId, name, flowType])
+  @@map("finance_categories")
+}
+
+model Transaction {
+  id            String          @id @default(cuid())
+  label         String
+  amount        Decimal         @db.Decimal(12, 2)
+  type          TransactionType
+  expenseFamily ExpenseFamily?
+  paymentMethod PaymentMethod   @default(ESPECES)
+  date          DateTime        @default(now())
+  donorName     String?
+  reference     String?
+  notes         String?         @db.Text
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  churchId   String
+  church     Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  categoryId String?
+  category   FinanceCategory? @relation(fields: [categoryId], references: [id])
 
   @@map("transactions")
 }

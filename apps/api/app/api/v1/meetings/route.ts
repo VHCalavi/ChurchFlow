@@ -60,7 +60,7 @@ export async function GET() {
       _count: { attendees: m._count.attendees },
       presentCount: m.attendees.filter(a => a.isPresent).length,
       attendees: m.attendees,
-      groupIds: (m.metadata as any)?.groupIds || [],
+      groupIds: (m.metadata as { groupIds?: string[] })?.groupIds || [],
     }));
 
     return NextResponse.json({ success: true, data: meetings });

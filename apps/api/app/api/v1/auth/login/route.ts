@@ -79,8 +79,8 @@ export async function POST(request: Request) {
     }
 
     // 4. Formater la réponse pour la session
-    const roleNames = user.roles.map(ur => ur.role.name);
-    const roleIds = user.roles.map(ur => ur.roleId);
+    const roleNames = user.roles.map((ur: { role: { name: string }; roleId: string }) => ur.role.name);
+    const roleIds = user.roles.map((ur: { role: { name: string }; roleId: string }) => ur.roleId);
     const rolePermissions = await prisma.rolePermission.findMany({
       where: { roleId: { in: roleIds } },
       include: { permission: true }
