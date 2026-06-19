@@ -111,68 +111,68 @@ export default function AttendancePage() {
       )}
 
       {/* Back */}
-      <button onClick={() => router.push("/dashboard/meetings")} className="flex items-center space-x-2 text-sm font-semibold text-slate-500 hover:text-primary transition-colors mb-6">
+      <button onClick={() => router.push("/dashboard/meetings")} className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-primary transition-colors mb-6">
         <ArrowLeft className="w-4 h-4" /><span>Retour aux Réunions</span>
       </button>
 
       {loading ? (
         <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Meeting Info + Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-2 p-5 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
-              <p className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-1">Réunion</p>
-              <h2 className="text-lg font-bold text-slate-900">{meeting?.title}</h2>
-              <p className="text-sm text-slate-500 mt-1">{meeting?.date ? new Date(meeting.date).toLocaleDateString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) : ""}</p>
-              {meeting?.location && <p className="text-sm text-slate-400 mt-0.5">{meeting.location}</p>}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="md:col-span-2 horizon-card p-6">
+              <p className="text-sm font-bold text-foreground mb-1">Réunion</p>
+              <h2 className="text-base font-bold text-foreground">{meeting?.title}</h2>
+              <p className="text-sm text-muted-foreground mt-1">{meeting?.date ? new Date(meeting.date).toLocaleDateString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) : ""}</p>
+              {meeting?.location && <p className="text-sm text-muted-foreground mt-0.5">{meeting.location}</p>}
             </div>
             {[
               { label: "Présents (session)", value: presentCount, color: "text-emerald-600" },
               { label: "Enregistrés", value: totalMarked, color: "text-primary" },
-              { label: "Taux (enregistré)", value: `${stats?.attendanceRate ?? 0}%`, color: "text-secondary" },
+              { label: "Taux (enregistré)", value: `${stats?.attendanceRate ?? 0}%`, color: "text-muted-foreground" },
             ].map(s => (
-              <div key={s.label} className="p-5 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] flex flex-col justify-between">
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">{s.label}</p>
-                <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
+              <div key={s.label} className="horizon-card p-6 flex flex-col justify-between">
+                <p className="text-sm font-bold text-foreground">{s.label}</p>
+                <p className={`text-2xl font-bold text-foreground ${s.color}`}>{s.value}</p>
               </div>
             ))}
           </div>
 
           {/* Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 horizon-card p-6">
             <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Rechercher un membre..." className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-primary" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Rechercher un membre..." className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
             </div>
             <div className="flex items-center space-x-2">
-              <button onClick={() => markAll("PRESENT")} className="px-3 py-2 text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all">Tout présent</button>
-              <button onClick={() => markAll("ABSENT")} className="px-3 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-all">Tout absent</button>
-              <button onClick={handleSave} disabled={saving} className="flex items-center space-x-2 px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all disabled:opacity-50">
+              <button onClick={() => markAll("PRESENT")} className="btn-horizon btn-horizon-secondary">Tout présent</button>
+              <button onClick={() => markAll("ABSENT")} className="btn-horizon btn-horizon-danger">Tout absent</button>
+              <button onClick={handleSave} disabled={saving} className="btn-horizon btn-horizon-primary">
                 <Save className="w-3.5 h-3.5" /><span>{saving ? "Enregistrement..." : "Enregistrer"}</span>
               </button>
             </div>
           </div>
 
           {/* Attendance list */}
-          <div className="rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] overflow-hidden">
-            <div className="px-6 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center space-x-2">
-              <Users className="w-4 h-4 text-slate-400" />
-              <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">{filtered.length} membre(s)</p>
+          <div className="horizon-card !p-0 overflow-hidden">
+            <div className="px-6 py-3 border-b border-border text-muted-foreground flex items-center space-x-2">
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <p className="text-sm font-bold text-foreground">{filtered.length} membre(s)</p>
             </div>
             {filtered.length === 0 ? (
-              <p className="text-center py-10 text-sm text-slate-500">Aucun résultat.</p>
+              <p className="text-center py-10 text-sm text-muted-foreground">Aucun résultat.</p>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-border">
                 {filtered.map(row => (
-                  <div key={row.id} className="flex items-center justify-between px-6 py-3 hover:bg-slate-50/50 transition-colors">
+                  <div key={row.id} className="flex items-center justify-between px-6 py-3 hover:bg-background/60 transition-colors">
                     <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-lg bg-primary/5 text-primary flex items-center justify-center font-bold text-sm border border-primary/10">
+                      <div className="w-9 h-9 rounded-full bg-primary/5 text-primary flex items-center justify-center font-bold text-sm border border-primary/10">
                         {row.firstName[0]}{row.lastName[0]}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-slate-800">{row.firstName} {row.lastName}</p>
-                        <p className="text-sm text-slate-500">{row.status}{row.grade ? ` — ${row.grade}` : ""}</p>
+                        <p className="text-sm font-bold text-foreground">{row.firstName} {row.lastName}</p>
+                        <p className="text-sm text-muted-foreground">{row.status}{row.grade ? ` — ${row.grade}` : ""}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -186,7 +186,7 @@ export default function AttendancePage() {
                         return (
                           <button key={s} onClick={() => setStatus(row.id, s)}
                             title={s === "PRESENT" ? "Présent" : s === "ABSENT" ? "Absent" : "Excusé"}
-                            className={`w-9 h-9 flex items-center justify-center rounded-lg border-2 transition-all ${active ? cfg.activeClass : "border-slate-200 text-slate-400 hover:border-slate-300"}`}>
+                            className={`w-9 h-9 flex items-center justify-center rounded-full border-2 transition-all ${active ? cfg.activeClass : "border-border text-muted-foreground hover:border-border"}`}>
                             {cfg.icon}
                           </button>
                         );

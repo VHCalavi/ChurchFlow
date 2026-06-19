@@ -173,13 +173,12 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
             Horizon: bg white/navy.800, p 10px, borderRadius 30px, boxShadow
         */}
         <div
-          className="flex items-center"
+          className="flex items-center gap-3"
           style={{
             background: menuBg,
             padding: "10px",
             borderRadius: "30px",
             boxShadow: menuShadow,
-            gap: "0px",
           }}
         >
           {/* SearchBar (me: 10px, borderRadius: 30px) */}
