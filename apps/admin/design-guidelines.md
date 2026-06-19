@@ -9,52 +9,61 @@
 **Règle d'or** : Toujours utiliser les **tokens CSS** ou les **classes Tailwind sémantiques**. Ne jamais hardcoder une nouvelle couleur globale (fond, texte principal) directement dans un composant.
 
 ### Fonds
-| Contexte | Classe Tailwind | Valeur (light / dark) |
-|---|---|---|
-| Fond général de page | `bg-background` | `#F4F7FE` / `#0B1437` |
-| Fond d'une carte/section | `bg-card` | `#FFFFFF` / `#111C44` |
+
+| Contexte                 | Classe Tailwind | Valeur (light / dark) |
+| ------------------------ | --------------- | --------------------- |
+| Fond général de page     | `bg-background` | `#F4F7FE` / `#0B1437` |
+| Fond d'une carte/section | `bg-card`       | `#FFFFFF` / `#111C44` |
 
 ### Textes
-| Contexte | Classe Tailwind | Valeur (light / dark) |
-|---|---|---|
-| Texte principal (titres, données) | `text-foreground` | `#1B2559` / `#FFFFFF` |
+
+| Contexte                               | Classe Tailwind         | Valeur (light / dark) |
+| -------------------------------------- | ----------------------- | --------------------- |
+| Texte principal (titres, données)      | `text-foreground`       | `#1B2559` / `#FFFFFF` |
 | Texte secondaire (labels, sous-titres) | `text-muted-foreground` | `#A3AED0` / `#A3AED0` |
 
 ### Couleur Primaire
+
 - **Variable CSS** : `--primary` → `#12BC7E` (définie dans `globals.css`)
 - **Utilisation** : `bg-primary`, `text-primary`, `border-primary`, `ring-primary/25`
 
 ### Bordures
+
 - Toujours utiliser `border-border` (token Tailwind) — jamais `border-slate-100` ou `border-slate-200` hardcodé.
 
 ---
 
 ## 2. Typographie (La règle la plus importante)
 
-> **L'ancienne pratique (`text-xs`, `uppercase`, `tracking-wider`) est interdite pour les textes de contenu courant.** Le système Chakra Horizon UI utilise une typographie douce et lisible basée sur 14px.
+> **Ancienne pratique interdite** : `text-xs`, `uppercase`, `tracking-wider` pour tout texte de contenu. Le système Horizon UI utilise une typographie moderne et lisible basée sur 14px minimum.
+
+> **RÈGLE ABSOLUE** : Aucun `text-[taille fixe]` n'est autorisé. Utiliser uniquement `text-sm` (14px), `text-base` (16px), `text-xl` (20px), etc. pour garantir une lecture confortable.
 
 ### Hiérarchie des Tailles
 
-| Élément | Classes | Taille |
-|---|---|---|
-| **Titre de page / section** | `text-xl font-bold text-foreground` | 20px |
-| **Titre de carte** | `text-base font-bold text-foreground` | 16px |
-| **Sous-titre de carte** | `text-sm font-bold text-foreground` | 14px |
-| **Valeur numérique principale (StatCard)** | `text-2xl font-bold text-foreground` | 24px |
-| **Label de champ de formulaire** | `text-sm font-medium text-foreground` | 14px |
-| **Texte secondaire / sous-label** | `text-sm font-medium text-muted-foreground` | 14px |
-| **En-tête de colonne de tableau** | `text-sm font-medium text-muted-foreground` | 14px |
-| **Donnée de cellule de tableau (principale)** | `text-sm font-bold text-foreground` | 14px |
-| **Donnée de cellule de tableau (secondaire)** | `text-sm font-medium text-muted-foreground` | 14px |
+| Élément                                       | Classes                                     | Taille |
+| --------------------------------------------- | ------------------------------------------- | ------ |
+| **Titre de page / section**                   | `text-xl font-bold text-foreground`         | 20px   |
+| **Titre de carte**                            | `text-base font-bold text-foreground`       | 16px   |
+| **Sous-titre de carte**                       | `text-sm font-bold text-foreground`         | 14px   |
+| **Valeur numérique principale (StatCard)**    | `text-2xl font-bold text-foreground`        | 24px   |
+| **Label de champ de formulaire**              | `text-sm font-medium text-foreground`       | 14px   |
+| **Texte secondaire / sous-label**             | `text-sm font-medium text-muted-foreground` | 14px   |
+| **En-tête de colonne de tableau**             | `text-sm font-medium text-muted-foreground` | 14px   |
+| **Donnée de cellule de tableau (principale)** | `text-sm font-bold text-foreground`         | 14px   |
+| **Donnée de cellule de tableau (secondaire)** | `text-sm font-medium text-muted-foreground` | 14px   |
 
-### ❌ Interdictions
-- `text-xs` (`12px`) : **interdit pour tout texte de contenu** (labels, cellules, sous-titres)
-- `text-[10px]`, `text-[11px]` : interdit
-- `uppercase` + `tracking-wider` : interdit pour les labels de formulaires et textes de contenu
-- `font-extrabold` (`800`) : interdit pour les valeurs de données — préférer `font-bold` (`700`)
+### ❌ Interdictions strictes
+
+- `text-xs` (`12px`) : **interdit** — sauf pour badges/tags ultra-compacts
+- `text-[taille fixe]` : **interdit** — toujours utiliser `text-sm`, `text-base`, `text-xl`, etc.
+- `uppercase` + `tracking-wider` : **interdit** — créer une hiérarchie avec les poids de police
+- `font-extrabold` (`800`) : **interdit** — toujours utiliser `font-bold` (`700`)
 
 ### ✅ Exceptions autorisées (petits badges/tags uniquement)
+
 Les éléments de type **badge** ou **tag compact** peuvent conserver `text-xs font-bold` car leur rôle est différent d'un texte de contenu :
+
 ```tsx
 // Badges de type de groupe ou statut : OK
 <span className="text-xs font-bold px-2.5 py-1 bg-primary/10 text-primary rounded-lg">DEPT</span>
@@ -69,13 +78,13 @@ Utiliser exclusivement les classes globales définies dans `globals.css` :
 
 ```tsx
 // Bouton d'action principal (Ajouter, Enregistrer, Confirmer)
-className="btn-horizon btn-horizon-primary"
+className = "btn-horizon btn-horizon-primary";
 
 // Bouton secondaire (Annuler, Retour)
-className="btn-horizon btn-horizon-secondary"
+className = "btn-horizon btn-horizon-secondary";
 
 // Bouton destructif (Supprimer)
-className="btn-horizon btn-horizon-danger"
+className = "btn-horizon btn-horizon-danger";
 ```
 
 Ne **jamais** recréer un bouton avec des classes Tailwind manuelles pour remplacer ceux-ci.
@@ -88,18 +97,24 @@ Style standard "Pill" (bulle) sans bordure, à utiliser **partout** (barres de r
 
 ```tsx
 // Input texte / email / tel
-className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
+className =
+  "w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all";
 
 // Select
-className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white"
+className =
+  "w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white";
 
 // Textarea (arrondi adapté car multi-lignes)
-className="w-full px-5 py-3 text-sm font-semibold rounded-2xl border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 resize-none"
+className =
+  "w-full px-5 py-3 text-sm font-semibold rounded-2xl border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 resize-none";
 ```
 
 **Label associé** :
+
 ```tsx
-<label className="block text-sm font-medium text-foreground mb-1.5">Nom du champ *</label>
+<label className="block text-sm font-medium text-foreground mb-1.5">
+  Nom du champ *
+</label>
 ```
 
 ---
@@ -108,13 +123,13 @@ className="w-full px-5 py-3 text-sm font-semibold rounded-2xl border-none bg-[#F
 
 ```tsx
 // Utiliser la classe globale définie dans globals.css
-className="horizon-card"
+className = "horizon-card";
 
 // Pour une carte avec padding personnalisé
-className="horizon-card p-6"
+className = "horizon-card p-6";
 
 // Pour une carte conteneur de tableau (sans padding interne)
-className="horizon-card !p-0 overflow-hidden"
+className = "horizon-card !p-0 overflow-hidden";
 ```
 
 - Fond, arrondi (`20px`), et ombre portée sont gérés automatiquement
@@ -152,7 +167,9 @@ className="horizon-card !p-0 overflow-hidden"
   <div className="w-full max-w-lg p-6 bg-card rounded-[20px] shadow-horizon-xl">
     {/* En-tête */}
     <div className="flex items-center justify-between mb-5 pb-3 border-b border-border">
-      <h3 className="text-base font-bold text-foreground">Titre de la Modale</h3>
+      <h3 className="text-base font-bold text-foreground">
+        Titre de la Modale
+      </h3>
       <button className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-colors">
         <X className="w-5 h-5" />
       </button>
@@ -162,8 +179,12 @@ className="horizon-card !p-0 overflow-hidden"
       {/* ... champs ... */}
       {/* Footer */}
       <div className="flex justify-end space-x-3 pt-3 border-t border-border">
-        <button type="button" className="btn-horizon btn-horizon-secondary">Annuler</button>
-        <button type="submit" className="btn-horizon btn-horizon-primary">Enregistrer</button>
+        <button type="button" className="btn-horizon btn-horizon-secondary">
+          Annuler
+        </button>
+        <button type="submit" className="btn-horizon btn-horizon-primary">
+          Enregistrer
+        </button>
       </div>
     </form>
   </div>

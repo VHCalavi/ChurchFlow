@@ -20,7 +20,7 @@ import {
   CalendarCheck,
   CalendarDays,
   FileText,
-  DollarSign
+  DollarSign,
 } from "lucide-react";
 
 interface ApiMember {
@@ -58,7 +58,8 @@ export default async function DashboardHome() {
 
   // Forward the session cookies to the API so it can validate the JWT
   const cookieStore = cookies();
-  const cookieHeader = cookieStore.getAll()
+  const cookieHeader = cookieStore
+    .getAll()
     .map((c) => `${c.name}=${c.value}`)
     .join("; ");
 
@@ -107,37 +108,37 @@ export default async function DashboardHome() {
   // Format statistics
   const activeMembersCount = membersList.length.toString();
   const activeGroupsCount = groupsList.length.toString();
-  const gemCount = groupsList.filter(g => g.type === "GEM").length.toString();
+  const gemCount = groupsList.filter((g) => g.type === "GEM").length.toString();
 
   // Dynamic members mapping
-  const displayMembers = membersList.slice(0, 4).map(m => {
+  const displayMembers = membersList.slice(0, 4).map((m) => {
     const joinDate = new Date(m.createdAt);
     const dateFormatted = joinDate.toLocaleDateString("fr-FR", {
       day: "numeric",
-      month: "short"
+      month: "short",
     });
     return {
       name: `${m.firstName} ${m.lastName}`,
       status: m.status,
       grade: m.grade,
       echelon: m.echelon,
-      date: `Le ${dateFormatted}`
+      date: `Le ${dateFormatted}`,
     };
   });
 
   // Dynamic meetings mapping
-  const displayMeetings = meetingsList.slice(0, 3).map(mt => {
+  const displayMeetings = meetingsList.slice(0, 3).map((mt) => {
     const meetingDate = new Date(mt.date);
     const dateFormatted = meetingDate.toLocaleDateString("fr-FR", {
       weekday: "long",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     });
     return {
       title: mt.title,
       type: mt.type,
       date: dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1),
-      location: mt.location || "Non spécifié"
+      location: mt.location || "Non spécifié",
     };
   });
 
@@ -148,7 +149,10 @@ export default async function DashboardHome() {
         {fetchError && (
           <div className="flex items-center space-x-3 p-4 rounded-2xl border border-red-200 bg-red-50 text-red-600 text-xs font-bold">
             <ShieldAlert className="w-4 h-4 flex-shrink-0" />
-            <span>Impossible de joindre l&apos;API ChurchFlow. Utilisation de données hors ligne.</span>
+            <span>
+              Impossible de joindre l&apos;API ChurchFlow. Utilisation de
+              données hors ligne.
+            </span>
           </div>
         )}
 
@@ -161,7 +165,9 @@ export default async function DashboardHome() {
             Bonjour, {session?.user?.name || "Administrateur"} 👋
           </h2>
           <p className="text-sm font-semibold text-white/85 mt-2 max-w-xl">
-            Bienvenue sur le tableau de bord de ChurchFlow. Suivez l&apos;évolution des membres, la gestion des cellules et l&apos;organisation des cultes en temps réel.
+            Bienvenue sur le tableau de bord de ChurchFlow. Suivez
+            l&apos;évolution des membres, la gestion des cellules et
+            l&apos;organisation des cultes en temps réel.
           </p>
         </div>
 
@@ -170,7 +176,9 @@ export default async function DashboardHome() {
           <StatCard
             title="Membres Actifs"
             value={fetchError ? "—" : activeMembersCount}
-            change={fetchError ? undefined : `+${activeMembersCount} enregistrés`}
+            change={
+              fetchError ? undefined : `+${activeMembersCount} enregistrés`
+            }
             isPositive={true}
             icon={<Users className="w-5 h-5 text-[#006C69]" />}
             iconBg="bg-[#006C69]/10"
@@ -243,20 +251,27 @@ export default async function DashboardHome() {
                       className="p-3.5 rounded-xl border border-slate-100/80 dark:border-navy-700 bg-slate-50/20 dark:bg-navy-950/20 hover:bg-slate-50 dark:hover:bg-navy-900 transition-all flex flex-col gap-2"
                       style={{
                         borderLeftWidth: "4px",
-                        borderLeftColor: meeting.type === "CULTE" ? "#006C69" : meeting.type === "REPETITION" ? "#CEAD1E" : "#94A3B8"
+                        borderLeftColor:
+                          meeting.type === "CULTE"
+                            ? "#006C69"
+                            : meeting.type === "REPETITION"
+                              ? "#CEAD1E"
+                              : "#94A3B8",
                       }}
                     >
                       <div className="flex items-center justify-between">
-                        <span className={`text-[9px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded ${
-                          meeting.type === "CULTE"
-                            ? "bg-[#006C69]/10 text-[#006C69]"
-                            : meeting.type === "REPETITION"
-                            ? "bg-[#CEAD1E]/10 text-[#CEAD1E]"
-                            : "bg-slate-100 dark:bg-navy-700 text-slate-600 dark:text-slate-300"
-                        }`}>
+                        <span
+                          className={`text-[9px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded ${
+                            meeting.type === "CULTE"
+                              ? "bg-[#006C69]/10 text-[#006C69]"
+                              : meeting.type === "REPETITION"
+                                ? "bg-[#CEAD1E]/10 text-[#CEAD1E]"
+                                : "bg-slate-100 dark:bg-navy-700 text-slate-600 dark:text-slate-300"
+                          }`}
+                        >
                           {meeting.type}
                         </span>
-                        <span className="text-[10px] font-semibold text-slate-450 dark:text-slate-500 flex items-center gap-1">
+                        <span className="text-xs font-semibold text-slate-450 dark:text-slate-500 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {meeting.date}
                         </span>
@@ -264,7 +279,7 @@ export default async function DashboardHome() {
                       <h4 className="text-xs font-bold text-slate-800 dark:text-white">
                         {meeting.title}
                       </h4>
-                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                      <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
                         {meeting.location}
                       </span>
                     </div>
@@ -308,7 +323,7 @@ export default async function DashboardHome() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 dark:border-navy-700 text-slate-400 dark:text-slate-500 text-[10px] font-extrabold tracking-wider uppercase">
+                  <tr className="border-b border-slate-100 dark:border-navy-700 text-slate-400 dark:text-slate-500 text-xs font-extrabold tracking-wider uppercase">
                     <th className="pb-3 pr-4">Membre</th>
                     <th className="pb-3 pr-4">Statut</th>
                     <th className="pb-3 pr-4">Grade & Échelon</th>
@@ -318,7 +333,10 @@ export default async function DashboardHome() {
                 <tbody className="divide-y divide-slate-50 dark:divide-navy-750 text-xs font-semibold text-slate-700 dark:text-slate-300">
                   {displayMembers.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-12 text-center text-xs font-bold text-slate-400 dark:text-slate-500">
+                      <td
+                        colSpan={4}
+                        className="py-12 text-center text-xs font-bold text-slate-400 dark:text-slate-500"
+                      >
                         {fetchError
                           ? "Impossible de charger les membres."
                           : "Aucun membre enregistré récemment."}
@@ -326,39 +344,51 @@ export default async function DashboardHome() {
                     </tr>
                   ) : (
                     displayMembers.map((member, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-navy-900/50 transition-colors">
+                      <tr
+                        key={idx}
+                        className="hover:bg-slate-50/50 dark:hover:bg-navy-900/50 transition-colors"
+                      >
                         <td className="py-3.5 pr-4 flex items-center gap-3">
                           {/* Avatar Circle with initials */}
-                          <div className="w-8 h-8 rounded-full bg-[#006C69]/10 text-[#006C69] font-extrabold flex items-center justify-center text-[10px]">
-                            {member.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+                          <div className="w-8 h-8 rounded-full bg-[#006C69]/10 text-[#006C69] font-extrabold flex items-center justify-center text-xs">
+                            {member.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .slice(0, 2)
+                              .join("")
+                              .toUpperCase()}
                           </div>
                           <span className="font-extrabold text-slate-800 dark:text-white">
                             {member.name}
                           </span>
                         </td>
                         <td className="py-3.5 pr-4">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wider uppercase ${
-                            member.status === "RESPONSABLE"
-                              ? "bg-[#006C69]/10 text-[#006C69]"
-                              : member.status === "MEMBRE"
-                              ? "bg-emerald-500/10 text-emerald-700"
-                              : "bg-slate-100 dark:bg-navy-700 text-slate-600 dark:text-slate-350"
-                          }`}>
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wider uppercase ${
+                              member.status === "RESPONSABLE"
+                                ? "bg-[#006C69]/10 text-[#006C69]"
+                                : member.status === "MEMBRE"
+                                  ? "bg-emerald-500/10 text-emerald-700"
+                                  : "bg-slate-100 dark:bg-navy-700 text-slate-600 dark:text-slate-350"
+                            }`}
+                          >
                             {member.status}
                           </span>
                         </td>
                         <td className="py-3.5 pr-4">
                           {member.grade ? (
                             <div className="flex items-center gap-1">
-                              <span className="text-[10px] px-2 py-0.5 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700 rounded font-bold text-[#006C69]">
+                              <span className="text-xs px-2 py-0.5 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700 rounded font-bold text-[#006C69]">
                                 {member.grade}
                               </span>
-                              <span className="text-[10px] px-2 py-0.5 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700 rounded font-bold text-[#EC8001]">
+                              <span className="text-xs px-2 py-0.5 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700 rounded font-bold text-[#EC8001]">
                                 {member.echelon}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-slate-400 dark:text-slate-650">—</span>
+                            <span className="text-slate-400 dark:text-slate-650">
+                              —
+                            </span>
                           )}
                         </td>
                         <td className="py-3.5 text-slate-450 dark:text-slate-500 font-semibold">
@@ -396,7 +426,7 @@ export default async function DashboardHome() {
                     <span className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-[#006C69] transition-colors">
                       Ajouter un membre
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
                       Enregistrer un nouveau fidèle
                     </span>
                   </div>
@@ -413,7 +443,7 @@ export default async function DashboardHome() {
                     <span className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-[#EC8001] transition-colors">
                       Gérer les GEMs
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
                       Assignations et rapports de cellule
                     </span>
                   </div>
@@ -430,7 +460,7 @@ export default async function DashboardHome() {
                     <span className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-[#8B5CF6] transition-colors">
                       Paramètres profil
                     </span>
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                    <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
                       Rôles, identifiants et accès
                     </span>
                   </div>

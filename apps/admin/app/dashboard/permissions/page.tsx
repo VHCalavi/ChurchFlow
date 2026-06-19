@@ -2,14 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
-import { 
-  Check, 
-  X,
-  Lock,
-  UserCheck,
-  Save,
-  Loader2
-} from "lucide-react";
+import { Check, X, Lock, UserCheck, Save, Loader2 } from "lucide-react";
 
 interface Role {
   id: string;
@@ -30,7 +23,10 @@ interface RolePermissionMapping {
 }
 
 export default function PermissionsPage() {
-  const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [notification, setNotification] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [mappings, setMappings] = useState<RolePermissionMapping[]>([]);
@@ -63,19 +59,34 @@ export default function PermissionsPage() {
   };
 
   const isPermissionGranted = (roleId: string, permissionId: string) => {
-    return mappings.some(m => m.roleId === roleId && m.permissionId === permissionId);
+    return mappings.some(
+      (m) => m.roleId === roleId && m.permissionId === permissionId,
+    );
   };
 
-  const handleTogglePermission = (roleId: string, permissionId: string, roleName: string, action: string, resource: string) => {
+  const handleTogglePermission = (
+    roleId: string,
+    permissionId: string,
+    roleName: string,
+    action: string,
+    resource: string,
+  ) => {
     if (roleName === "ADMIN" && action === "manage" && resource === "roles") {
-      showNotification("Impossible de désactiver les droits d'administration de l'Admin Général", "error");
+      showNotification(
+        "Impossible de désactiver les droits d'administration de l'Admin Général",
+        "error",
+      );
       return;
     }
 
-    setMappings(prev => {
-      const exists = prev.some(m => m.roleId === roleId && m.permissionId === permissionId);
+    setMappings((prev) => {
+      const exists = prev.some(
+        (m) => m.roleId === roleId && m.permissionId === permissionId,
+      );
       if (exists) {
-        return prev.filter(m => !(m.roleId === roleId && m.permissionId === permissionId));
+        return prev.filter(
+          (m) => !(m.roleId === roleId && m.permissionId === permissionId),
+        );
       } else {
         return [...prev, { roleId, permissionId }];
       }
@@ -88,13 +99,19 @@ export default function PermissionsPage() {
       const res = await fetch(`/api/v1/permissions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rolePermissions: mappings })
+        body: JSON.stringify({ rolePermissions: mappings }),
       });
       const json = await res.json();
       if (json.success) {
-        showNotification("Matrice de droits enregistrée avec succès !", "success");
+        showNotification(
+          "Matrice de droits enregistrée avec succès !",
+          "success",
+        );
       } else {
-        showNotification("Erreur lors de la sauvegarde: " + json.error, "error");
+        showNotification(
+          "Erreur lors de la sauvegarde: " + json.error,
+          "error",
+        );
       }
     } catch (err) {
       console.error(err);
@@ -116,7 +133,7 @@ export default function PermissionsPage() {
       "write:meetings": "Écriture Réunions",
       "read:finances": "Lecture Finances",
       "write:finances": "Écriture Finances",
-      "manage:roles": "Gestion Rôles & Permissions"
+      "manage:roles": "Gestion Rôles & Permissions",
     };
     return labels[key] || `${action} ${resource}`;
   };
@@ -125,11 +142,13 @@ export default function PermissionsPage() {
     <DashboardLayout title="Permissions & Droits d'Accès">
       {/* Notifications */}
       {notification && (
-        <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-premium animate-fade-in ${
-          notification.type === "success" 
-            ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
-            : "bg-red-50 border-red-200 text-red-800"
-        }`}>
+        <div
+          className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-premium animate-fade-in ${
+            notification.type === "success"
+              ? "bg-emerald-50 border-emerald-200 text-emerald-800"
+              : "bg-red-50 border-red-200 text-red-800"
+          }`}
+        >
           <span className="text-sm font-semibold">{notification.message}</span>
         </div>
       )}
@@ -141,8 +160,13 @@ export default function PermissionsPage() {
             <Lock className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">Matrice d&apos;Autorisations (RBAC)</h3>
-            <p className="text-xs font-medium text-slate-500 mt-1">Configurez les droits d&apos;accès granulaires pour chaque profil utilisateur de ChurchFlow.</p>
+            <h3 className="text-base font-bold text-slate-900">
+              Matrice d&apos;Autorisations (RBAC)
+            </h3>
+            <p className="text-xs font-medium text-slate-500 mt-1">
+              Configurez les droits d&apos;accès granulaires pour chaque profil
+              utilisateur de ChurchFlow.
+            </p>
           </div>
         </div>
 
@@ -163,7 +187,9 @@ export default function PermissionsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
           <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
-          <p className="text-sm font-semibold text-slate-500">Chargement de la matrice d&apos;autorisations...</p>
+          <p className="text-sm font-semibold text-slate-500">
+            Chargement de la matrice d&apos;autorisations...
+          </p>
         </div>
       ) : (
         /* RBAC Table Matrix */
@@ -174,7 +200,10 @@ export default function PermissionsPage() {
                 <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-600 text-xs font-bold uppercase tracking-wider">
                   <th className="py-5 px-6 min-w-[240px]">Profils / Rôles</th>
                   {permissions.map((p) => (
-                    <th key={p.id} className="py-5 px-4 text-center text-[10px] font-bold tracking-wider max-w-[120px]">
+                    <th
+                      key={p.id}
+                      className="py-5 px-4 text-center text-xs font-bold tracking-wider max-w-[120px]"
+                    >
                       {getPermissionLabel(p.action, p.resource)}
                     </th>
                   ))}
@@ -182,18 +211,29 @@ export default function PermissionsPage() {
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
                 {roles.map((row) => (
-                  <tr key={row.id} className="hover:bg-slate-50/30 transition-colors">
+                  <tr
+                    key={row.id}
+                    className="hover:bg-slate-50/30 transition-colors"
+                  >
                     <td className="py-5 px-6 font-semibold text-slate-900 flex items-center space-x-3.5">
                       <UserCheck className="w-5 h-5 text-slate-400" />
                       <span>{row.name}</span>
                     </td>
-                    
+
                     {permissions.map((perm) => {
                       const isGranted = isPermissionGranted(row.id, perm.id);
                       return (
                         <td key={perm.id} className="py-5 px-4 text-center">
                           <button
-                            onClick={() => handleTogglePermission(row.id, perm.id, row.name, perm.action, perm.resource)}
+                            onClick={() =>
+                              handleTogglePermission(
+                                row.id,
+                                perm.id,
+                                row.name,
+                                perm.action,
+                                perm.resource,
+                              )
+                            }
                             className={`w-7 h-7 rounded-lg inline-flex items-center justify-center transition-all ${
                               isGranted
                                 ? "bg-primary/10 border border-primary/20 text-primary shadow-sm scale-105"

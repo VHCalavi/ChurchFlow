@@ -31,11 +31,11 @@ interface RawMeeting {
 
 // Couleurs pour les types de rencontres
 const TYPE_COLORS: Record<MeetingType, string> = {
-  CULTE: "#006C69",           // Vert VH
+  CULTE: "#006C69", // Vert VH
   TEMPS_DE_PRIERE: "#CEAD1E", // Gold
-  REPETITION: "#527EDB",     // Bleu
-  AGAPE: "#12BC7E",          // Vert sarcelle clair
-  AUTRE: "#D6D1CE",          // Warm Grey
+  REPETITION: "#527EDB", // Bleu
+  AGAPE: "#12BC7E", // Vert sarcelle clair
+  AUTRE: "#D6D1CE", // Warm Grey
 };
 
 const TYPE_LABELS: Record<MeetingType, string> = {
@@ -49,7 +49,9 @@ const TYPE_LABELS: Record<MeetingType, string> = {
 export function MeetingsAttendanceChart() {
   const [allMeetings, setAllMeetings] = useState<RawMeeting[]>([]);
   const [filteredMeetings, setFilteredMeetings] = useState<RawMeeting[]>([]);
-  const [filteredTypes, setFilteredTypes] = useState<MeetingType[]>(Object.keys(TYPE_COLORS) as MeetingType[]);
+  const [filteredTypes, setFilteredTypes] = useState<MeetingType[]>(
+    Object.keys(TYPE_COLORS) as MeetingType[],
+  );
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
   const [filteredTags, setFilteredTags] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
@@ -61,8 +63,8 @@ export function MeetingsAttendanceChart() {
   // Extraire tous les tags uniques
   useEffect(() => {
     const tagSet = new Set<string>();
-    allMeetings.forEach(meeting => {
-      meeting.tags.forEach(tag => tagSet.add(tag));
+    allMeetings.forEach((meeting) => {
+      meeting.tags.forEach((tag) => tagSet.add(tag));
     });
     setAllTags(Array.from(tagSet));
   }, [allMeetings]);
@@ -87,7 +89,12 @@ export function MeetingsAttendanceChart() {
         const groupsData = await groupsRes.json();
 
         if (groupsData.success && Array.isArray(groupsData.data)) {
-          setGroups(groupsData.data.map((g: { id: string; name: string }) => ({ id: g.id, name: g.name })));
+          setGroups(
+            groupsData.data.map((g: { id: string; name: string }) => ({
+              id: g.id,
+              name: g.name,
+            })),
+          );
         }
 
         setAllMeetings(meetingsData.data as RawMeeting[]);
@@ -103,32 +110,35 @@ export function MeetingsAttendanceChart() {
   }, []);
 
   // Appliquer les filtres
-  const applyFilters = useCallback((meetings: RawMeeting[]) => {
-    let filtered = meetings;
+  const applyFilters = useCallback(
+    (meetings: RawMeeting[]) => {
+      let filtered = meetings;
 
-    // Filtre par type
-    if (filteredTypes.length > 0) {
-      filtered = filtered.filter(m => filteredTypes.includes(m.type));
-    }
+      // Filtre par type
+      if (filteredTypes.length > 0) {
+        filtered = filtered.filter((m) => filteredTypes.includes(m.type));
+      }
 
-    // Filtre par groupe
-    if (selectedGroup !== "all") {
-      filtered = filtered.filter(m =>
-        m.attendees.some(a =>
-          a.member.groups.some(g => g.groupId === selectedGroup)
-        )
-      );
-    }
+      // Filtre par groupe
+      if (selectedGroup !== "all") {
+        filtered = filtered.filter((m) =>
+          m.attendees.some((a) =>
+            a.member.groups.some((g) => g.groupId === selectedGroup),
+          ),
+        );
+      }
 
-    // Filtre par tags
-    if (filteredTags.length > 0) {
-      filtered = filtered.filter(m =>
-        filteredTags.some(tag => m.tags.includes(tag))
-      );
-    }
+      // Filtre par tags
+      if (filteredTags.length > 0) {
+        filtered = filtered.filter((m) =>
+          filteredTags.some((tag) => m.tags.includes(tag)),
+        );
+      }
 
-    setFilteredMeetings(filtered);
-  }, [filteredTypes, selectedGroup, filteredTags]);
+      setFilteredMeetings(filtered);
+    },
+    [filteredTypes, selectedGroup, filteredTags],
+  );
 
   useEffect(() => {
     applyFilters(allMeetings);
@@ -136,15 +146,18 @@ export function MeetingsAttendanceChart() {
 
   // Générer les données pour le graphique
   const generateChartData = () => {
-    const dataByType: Record<MeetingType, DataPoint[]> = {} as Record<MeetingType, DataPoint[]>;
+    const dataByType: Record<MeetingType, DataPoint[]> = {} as Record<
+      MeetingType,
+      DataPoint[]
+    >;
 
     // Initialiser
-    Object.keys(TYPE_COLORS).forEach(type => {
+    Object.keys(TYPE_COLORS).forEach((type) => {
       dataByType[type as MeetingType] = [];
     });
 
     // Calculer pour chaque rencontre
-    filteredMeetings.forEach(meeting => {
+    filteredMeetings.forEach((meeting) => {
       // Filtrer par type
       if (!filteredTypes.includes(meeting.type)) return;
 
@@ -152,14 +165,19 @@ export function MeetingsAttendanceChart() {
       if (selectedGroup !== "all") {
         const groupMembers = new Set(
           meeting.attendees
-            .filter(a => a.member.groups.some(g => g.groupId === selectedGroup))
-            .map(a => a.memberId)
+            .filter((a) =>
+              a.member.groups.some((g) => g.groupId === selectedGroup),
+            )
+            .map((a) => a.memberId),
         );
         if (groupMembers.size === 0) return;
       }
 
       // Filtrer par tags
-      if (filteredTags.length > 0 && !meeting.tags.some(tag => filteredTags.includes(tag))) {
+      if (
+        filteredTags.length > 0 &&
+        !meeting.tags.some((tag) => filteredTags.includes(tag))
+      ) {
         return;
       }
 
@@ -169,8 +187,8 @@ export function MeetingsAttendanceChart() {
 
       if (selectedGroup !== "all") {
         // Compter seulement les membres du groupe sélectionné
-        meeting.attendees.forEach(a => {
-          if (a.member.groups.some(g => g.groupId === selectedGroup)) {
+        meeting.attendees.forEach((a) => {
+          if (a.member.groups.some((g) => g.groupId === selectedGroup)) {
             totalCount++;
             if (a.isPresent) presentCount++;
           }
@@ -178,13 +196,17 @@ export function MeetingsAttendanceChart() {
       } else {
         // Compter tous les participants
         totalCount = meeting.attendees.length;
-        presentCount = meeting.attendees.filter(a => a.isPresent).length;
+        presentCount = meeting.attendees.filter((a) => a.isPresent).length;
       }
 
       // Créer le point de données
       const date = new Date(meeting.date);
-      const label = date.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
-      const value = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
+      const label = date.toLocaleDateString("fr-FR", {
+        day: "2-digit",
+        month: "short",
+      });
+      const value =
+        totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
 
       dataByType[meeting.type].push({
         label,
@@ -196,11 +218,12 @@ export function MeetingsAttendanceChart() {
     });
 
     // Trier par date (du plus ancien au plus récent) et prendre les 10 derniers
-    Object.keys(dataByType).forEach(type => {
-      dataByType[type as MeetingType].sort((a, b) =>
-        new Date(a.date).getTime() - new Date(b.date).getTime()
+    Object.keys(dataByType).forEach((type) => {
+      dataByType[type as MeetingType].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       );
-      dataByType[type as MeetingType] = dataByType[type as MeetingType].slice(-10);
+      dataByType[type as MeetingType] =
+        dataByType[type as MeetingType].slice(-10);
     });
 
     return dataByType;
@@ -214,14 +237,14 @@ export function MeetingsAttendanceChart() {
       Object.values(chartData)
         .flat()
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .map(d => [d.label, d])
-    ).values()
-  ).map(d => d.label);
+        .map((d) => [d.label, d]),
+    ).values(),
+  ).map((d) => d.label);
 
   // Helper functions
   const toggleType = (type: MeetingType) => {
     if (filteredTypes.includes(type)) {
-      setFilteredTypes(filteredTypes.filter(t => t !== type));
+      setFilteredTypes(filteredTypes.filter((t) => t !== type));
     } else {
       setFilteredTypes([...filteredTypes, type]);
     }
@@ -229,7 +252,7 @@ export function MeetingsAttendanceChart() {
 
   const toggleTag = (tag: string) => {
     if (filteredTags.includes(tag)) {
-      setFilteredTags(filteredTags.filter(t => t !== tag));
+      setFilteredTags(filteredTags.filter((t) => t !== tag));
     } else {
       setFilteredTags([...filteredTags, tag]);
     }
@@ -246,7 +269,7 @@ export function MeetingsAttendanceChart() {
   };
 
   const removeFilterTag = (tag: string) => {
-    setFilteredTags(filteredTags.filter(t => t !== tag));
+    setFilteredTags(filteredTags.filter((t) => t !== tag));
   };
 
   // Live Statistics Calculations
@@ -254,11 +277,11 @@ export function MeetingsAttendanceChart() {
   let totalExpectedSum = 0;
   let maxAttendanceRate = 0;
 
-  filteredMeetings.forEach(m => {
+  filteredMeetings.forEach((m) => {
     let mTotal = 0;
     let mPresent = 0;
 
-    m.attendees.forEach(a => {
+    m.attendees.forEach((a) => {
       mTotal++;
       if (a.isPresent) mPresent++;
     });
@@ -274,7 +297,10 @@ export function MeetingsAttendanceChart() {
     }
   });
 
-  const avgAttendance = totalExpectedSum > 0 ? Math.round((totalPresentSum / totalExpectedSum) * 100) : 0;
+  const avgAttendance =
+    totalExpectedSum > 0
+      ? Math.round((totalPresentSum / totalExpectedSum) * 100)
+      : 0;
 
   // Donut chart distribution calculations
   const typeCounts: Record<MeetingType, number> = {
@@ -285,7 +311,7 @@ export function MeetingsAttendanceChart() {
     AUTRE: 0,
   };
 
-  filteredMeetings.forEach(m => {
+  filteredMeetings.forEach((m) => {
     if (typeCounts[m.type] !== undefined) {
       typeCounts[m.type]++;
     }
@@ -296,14 +322,14 @@ export function MeetingsAttendanceChart() {
       type: type as MeetingType,
       label: TYPE_LABELS[type as MeetingType],
       color: TYPE_COLORS[type as MeetingType],
-      count
+      count,
     }))
-    .filter(item => item.count > 0);
+    .filter((item) => item.count > 0);
 
   const totalCount = distribution.reduce((sum, item) => sum + item.count, 0);
 
   let accumulatedPercent = 0;
-  const segments = distribution.map(item => {
+  const segments = distribution.map((item) => {
     const percent = totalCount > 0 ? (item.count / totalCount) * 100 : 0;
     const dashArray = `${percent} ${100 - percent}`;
     const dashOffset = (100 - accumulatedPercent + 25) % 100;
@@ -312,7 +338,7 @@ export function MeetingsAttendanceChart() {
       ...item,
       percent,
       dashArray,
-      dashOffset
+      dashOffset,
     };
   });
 
@@ -326,7 +352,9 @@ export function MeetingsAttendanceChart() {
   const chartWidth = width - paddingLeft - paddingRight;
   const chartHeight = height - paddingTop - paddingBottom;
 
-  const allValues = Object.values(chartData).flat().map(d => d.value);
+  const allValues = Object.values(chartData)
+    .flat()
+    .map((d) => d.value);
   const minVal = Math.max(0, Math.min(...allValues, 0) - 10);
   const maxVal = Math.min(100, Math.max(...allValues, 100) + 5);
 
@@ -339,7 +367,9 @@ export function MeetingsAttendanceChart() {
     return paddingLeft + (index / (allLabels.length - 1 || 1)) * chartWidth;
   };
 
-  const yGridLevels = [0, 25, 50, 75, 100].filter(l => l >= minVal && l <= maxVal);
+  const yGridLevels = [0, 25, 50, 75, 100].filter(
+    (l) => l >= minVal && l <= maxVal,
+  );
 
   return (
     <div className="space-y-6">
@@ -349,14 +379,17 @@ export function MeetingsAttendanceChart() {
           Statistiques de Présences
         </h3>
         <p className="text-xs font-medium text-slate-555">
-          Filtrer par type de rencontre, groupe et tags pour analyser les présences
+          Filtrer par type de rencontre, groupe et tags pour analyser les
+          présences
         </p>
 
         {/* Filtres */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pt-6 border-t border-slate-100">
           {/* Types de rencontres */}
           <div className="md:col-span-2 space-y-2.5">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Types de rencontres</h4>
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Types de rencontres
+            </h4>
             <div className="flex flex-wrap gap-2">
               {Object.entries(TYPE_LABELS).map(([type, label]) => (
                 <button
@@ -374,7 +407,10 @@ export function MeetingsAttendanceChart() {
                   }}
                 >
                   {filteredTypes.includes(type as MeetingType) && (
-                    <Check className="w-3 h-3 animate-[scale-in_0.15s_ease-out]" strokeWidth={3} />
+                    <Check
+                      className="w-3 h-3 animate-[scale-in_0.15s_ease-out]"
+                      strokeWidth={3}
+                    />
                   )}
                   <span>{label}</span>
                 </button>
@@ -384,14 +420,16 @@ export function MeetingsAttendanceChart() {
 
           {/* Sélecteur de groupe */}
           <div className="space-y-2.5">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">Groupe</h4>
+            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Groupe
+            </h4>
             <select
               value={selectedGroup}
               onChange={(e) => setSelectedGroup(e.target.value)}
               className="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <option value="all">Tous les groupes</option>
-              {groups.map(group => (
+              {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
                 </option>
@@ -407,7 +445,7 @@ export function MeetingsAttendanceChart() {
             Filtrer par Tags
           </h4>
           <div className="flex flex-wrap gap-2 mb-3">
-            {allTags.map(tag => (
+            {allTags.map((tag) => (
               <button
                 key={tag}
                 onClick={() => toggleTag(tag)}
@@ -417,7 +455,9 @@ export function MeetingsAttendanceChart() {
                     : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                 }`}
                 style={{
-                  backgroundColor: filteredTags.includes(tag) ? "#12BC7E" : undefined,
+                  backgroundColor: filteredTags.includes(tag)
+                    ? "#12BC7E"
+                    : undefined,
                 }}
               >
                 {tag}
@@ -446,13 +486,16 @@ export function MeetingsAttendanceChart() {
           {/* Tags sélectionnés */}
           {filteredTags.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
-              {filteredTags.map(tag => (
+              {filteredTags.map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold"
                 >
                   {tag}
-                  <button onClick={() => removeFilterTag(tag)} className="hover:text-primary/70">
+                  <button
+                    onClick={() => removeFilterTag(tag)}
+                    className="hover:text-primary/70"
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -466,7 +509,9 @@ export function MeetingsAttendanceChart() {
       {loading && (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-100">
           <Loader2 className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-sm font-semibold text-slate-700">Chargement des rencontres...</p>
+          <p className="text-sm font-semibold text-slate-700">
+            Chargement des rencontres...
+          </p>
         </div>
       )}
 
@@ -482,27 +527,51 @@ export function MeetingsAttendanceChart() {
           {/* Chiffres en haut (Stat Boxes) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Rencontres</span>
-              <h4 className="text-3xl font-black text-slate-900 mt-1">{filteredMeetings.length}</h4>
-              <p className="text-[10px] font-semibold text-slate-400 mt-1.5">Rencontres filtrées</p>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                Rencontres
+              </span>
+              <h4 className="text-3xl font-black text-slate-900 mt-1">
+                {filteredMeetings.length}
+              </h4>
+              <p className="text-xs font-semibold text-slate-400 mt-1.5">
+                Rencontres filtrées
+              </p>
             </div>
-            
+
             <div className="p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Présence Moyenne</span>
-              <h4 className="text-3xl font-black text-slate-900 mt-1">{avgAttendance}%</h4>
-              <p className="text-[10px] font-semibold text-slate-400 mt-1.5">Taux de présence global</p>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                Présence Moyenne
+              </span>
+              <h4 className="text-3xl font-black text-slate-900 mt-1">
+                {avgAttendance}%
+              </h4>
+              <p className="text-xs font-semibold text-slate-400 mt-1.5">
+                Taux de présence global
+              </p>
             </div>
-            
+
             <div className="p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Présents Cumulés</span>
-              <h4 className="text-3xl font-black text-slate-900 mt-1">{totalPresentSum}</h4>
-              <p className="text-[10px] font-semibold text-slate-400 mt-1.5">Émargements enregistrés</p>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                Présents Cumulés
+              </span>
+              <h4 className="text-3xl font-black text-slate-900 mt-1">
+                {totalPresentSum}
+              </h4>
+              <p className="text-xs font-semibold text-slate-400 mt-1.5">
+                Émargements enregistrés
+              </p>
             </div>
-            
+
             <div className="p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:scale-[1.01] transition-all duration-300">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Record Affluence</span>
-              <h4 className="text-3xl font-black text-[#006C69] mt-1">{maxAttendanceRate}%</h4>
-              <p className="text-[10px] font-semibold text-slate-400 mt-1.5">Taux max sur une rencontre</p>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                Record Affluence
+              </span>
+              <h4 className="text-3xl font-black text-[#006C69] mt-1">
+                {maxAttendanceRate}%
+              </h4>
+              <p className="text-xs font-semibold text-slate-400 mt-1.5">
+                Taux max sur une rencontre
+              </p>
             </div>
           </div>
 
@@ -511,18 +580,34 @@ export function MeetingsAttendanceChart() {
             {/* Graphe en cercle (Circle/Donut Chart Case) */}
             <div className="lg:col-span-2 p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] flex flex-col justify-between items-center min-h-[380px]">
               <div className="w-full text-left">
-                <h4 className="text-sm font-extrabold text-slate-950 tracking-tight">Distribution par Type</h4>
-                <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Répartition des types de rencontres</p>
+                <h4 className="text-sm font-extrabold text-slate-950 tracking-tight">
+                  Distribution par Type
+                </h4>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                  Répartition des types de rencontres
+                </p>
               </div>
 
               {totalCount === 0 ? (
                 <div className="flex-grow flex items-center justify-center">
-                  <span className="text-xs text-slate-400">Aucune donnée de type</span>
+                  <span className="text-xs text-slate-400">
+                    Aucune donnée de type
+                  </span>
                 </div>
               ) : (
                 <div className="relative w-44 h-44 flex items-center justify-center my-4">
-                  <svg viewBox="0 0 42 42" className="w-full h-full transform -rotate-90">
-                    <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#f1f5f9" strokeWidth="4.2" />
+                  <svg
+                    viewBox="0 0 42 42"
+                    className="w-full h-full transform -rotate-90"
+                  >
+                    <circle
+                      cx="21"
+                      cy="21"
+                      r="15.91549430918954"
+                      fill="transparent"
+                      stroke="#f1f5f9"
+                      strokeWidth="4.2"
+                    />
                     {segments.map((seg, idx) => (
                       <circle
                         key={idx}
@@ -539,8 +624,12 @@ export function MeetingsAttendanceChart() {
                     ))}
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-black text-slate-900">{totalCount}</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total</span>
+                    <span className="text-2xl font-black text-slate-900">
+                      {totalCount}
+                    </span>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                      Total
+                    </span>
                   </div>
                 </div>
               )}
@@ -548,12 +637,20 @@ export function MeetingsAttendanceChart() {
               {/* Légendes par type */}
               <div className="w-full space-y-1.5 mt-2 pt-4 border-t border-slate-50">
                 {segments.map((seg, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                  <div
+                    key={idx}
+                    className="flex items-center justify-between text-xs font-semibold text-slate-700"
+                  >
                     <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: seg.color }} />
+                      <div
+                        className="w-2.5 h-2.5 rounded-full"
+                        style={{ backgroundColor: seg.color }}
+                      />
                       <span>{seg.label}</span>
                     </div>
-                    <span className="text-slate-500 font-bold">{seg.count} ({Math.round(seg.percent)}%)</span>
+                    <span className="text-slate-500 font-bold">
+                      {seg.count} ({Math.round(seg.percent)}%)
+                    </span>
                   </div>
                 ))}
               </div>
@@ -562,24 +659,51 @@ export function MeetingsAttendanceChart() {
             {/* Graphe en diagramme (Diagram/Line Chart Case) */}
             <div className="lg:col-span-3 p-6 rounded-xl border border-slate-150 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] flex flex-col justify-between min-h-[380px]">
               <div className="w-full text-left">
-                <h4 className="text-sm font-extrabold text-slate-950 tracking-tight">Évolution des Présences</h4>
-                <p className="text-[11px] font-semibold text-slate-400 mt-0.5">Taux de présence sur les 10 dernières rencontres</p>
+                <h4 className="text-sm font-extrabold text-slate-950 tracking-tight">
+                  Évolution des Présences
+                </h4>
+                <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                  Taux de présence sur les 10 dernières rencontres
+                </p>
               </div>
 
               {/* Diagramme Line Chart SVG */}
               <div className="relative w-full overflow-hidden my-4">
-                <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
+                <svg
+                  viewBox={`0 0 ${width} ${height}`}
+                  className="w-full h-auto overflow-visible"
+                >
                   {/* Définitions des dégradés */}
                   {Object.entries(TYPE_COLORS).map(([type, color]) => {
                     const gradientId = `gradient-${type}`;
                     const lineGradientId = `line-gradient-${type}`;
                     return (
                       <defs key={type}>
-                        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={color} stopOpacity="0.18" />
-                          <stop offset="100%" stopColor={color} stopOpacity="0.00" />
+                        <linearGradient
+                          id={gradientId}
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor={color}
+                            stopOpacity="0.18"
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor={color}
+                            stopOpacity="0.00"
+                          />
                         </linearGradient>
-                        <linearGradient id={lineGradientId} x1="0" y1="0" x2="1" y2="0">
+                        <linearGradient
+                          id={lineGradientId}
+                          x1="0"
+                          y1="0"
+                          x2="1"
+                          y2="0"
+                        >
                           <stop offset="0%" stopColor={color} />
                           <stop offset="100%" stopColor={color} />
                         </linearGradient>
@@ -591,12 +715,22 @@ export function MeetingsAttendanceChart() {
                   {yGridLevels.map((level) => (
                     <g key={level} className="opacity-40">
                       <line
-                        x1={paddingLeft} y1={getY(level)}
-                        x2={width - paddingRight} y2={getY(level)}
-                        stroke="#E2E8F0" strokeWidth="1" strokeDasharray="4,4"
+                        x1={paddingLeft}
+                        y1={getY(level)}
+                        x2={width - paddingRight}
+                        y2={getY(level)}
+                        stroke="#E2E8F0"
+                        strokeWidth="1"
+                        strokeDasharray="4,4"
                       />
-                      <text x={paddingLeft - 10} y={getY(level) + 4}
-                        textAnchor="end" fontSize="9" fontWeight="700" fill="#94a3b8">
+                      <text
+                        x={paddingLeft - 10}
+                        y={getY(level) + 4}
+                        textAnchor="end"
+                        fontSize="9"
+                        fontWeight="700"
+                        fill="#94a3b8"
+                      >
                         {level}%
                       </text>
                     </g>
@@ -624,9 +758,10 @@ export function MeetingsAttendanceChart() {
                     }
 
                     // Remplissage
-                    const fillPath = data.length > 0
-                      ? `${linePath} L ${getX(data.length - 1)} ${paddingTop + chartHeight} L ${getX(0)} ${paddingTop + chartHeight} Z`
-                      : "";
+                    const fillPath =
+                      data.length > 0
+                        ? `${linePath} L ${getX(data.length - 1)} ${paddingTop + chartHeight} L ${getX(0)} ${paddingTop + chartHeight} Z`
+                        : "";
 
                     return (
                       <g key={type}>
@@ -634,8 +769,14 @@ export function MeetingsAttendanceChart() {
                           <path d={fillPath} fill={`url(#gradient-${type})`} />
                         )}
                         {linePath && (
-                          <path d={linePath} fill="none" stroke={`url(#line-gradient-${type})`}
-                            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          <path
+                            d={linePath}
+                            fill="none"
+                            stroke={`url(#line-gradient-${type})`}
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
                         )}
                         {/* Points de données */}
                         {data.map((point, index) => {
@@ -643,8 +784,22 @@ export function MeetingsAttendanceChart() {
                           const y = getY(point.value);
                           return (
                             <g key={index}>
-                              <circle cx={x} cy={y} r="3" fill={color} stroke="white" strokeWidth="1" />
-                              <text x={x} y={height - 8} textAnchor="middle" fontSize="8" fontWeight="600" fill="#64748b">
+                              <circle
+                                cx={x}
+                                cy={y}
+                                r="3"
+                                fill={color}
+                                stroke="white"
+                                strokeWidth="1"
+                              />
+                              <text
+                                x={x}
+                                y={height - 8}
+                                textAnchor="middle"
+                                fontSize="8"
+                                fontWeight="600"
+                                fill="#64748b"
+                              >
                                 {point.label}
                               </text>
                             </g>
@@ -664,9 +819,13 @@ export function MeetingsAttendanceChart() {
                     <div key={type} className="flex items-center gap-2">
                       <div
                         className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: TYPE_COLORS[type as MeetingType] }}
+                        style={{
+                          backgroundColor: TYPE_COLORS[type as MeetingType],
+                        }}
                       />
-                      <span className="text-[11px] font-semibold text-slate-500">{label}</span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        {label}
+                      </span>
                     </div>
                   );
                 })}
@@ -679,8 +838,12 @@ export function MeetingsAttendanceChart() {
       {!loading && !error && filteredMeetings.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-100 text-center">
           <Users className="w-12 h-12 text-slate-355 mb-4" />
-          <p className="text-sm font-bold text-slate-800">Aucune donnée disponible</p>
-          <p className="text-xs text-slate-500 mt-1">Aucune rencontre ne correspond aux critères de sélection.</p>
+          <p className="text-sm font-bold text-slate-800">
+            Aucune donnée disponible
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            Aucune rencontre ne correspond aux critères de sélection.
+          </p>
         </div>
       )}
     </div>

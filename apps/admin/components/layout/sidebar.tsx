@@ -147,15 +147,15 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   /* ─── Horizon UI Exact Color Values ─────────────────────────── */
   const isDark = currentTheme === "DARK";
   /* Sidebar container */
-  const sidebarBg   = isDark ? "#111c44"  : "#ffffff";  /* navy.800 / white */
+  const sidebarBg = isDark ? "#111c44" : "#ffffff"; /* navy.800 / white */
   const sidebarShadow = "14px 17px 40px 4px rgba(112,144,176,0.08)";
   /* Text colours matching secondaryGray tokens */
-  const textActive   = isDark ? "#ffffff"  : "#1B2559";  /* gray.700 / white */
-  const textInactive = "#A3AED0";                          /* secondaryGray.600 */
+  const textActive = isDark ? "#ffffff" : "#1B2559"; /* gray.700 / white */
+  const textInactive = "#A3AED0"; /* secondaryGray.600 */
   /* Icon colours */
-  const iconActive   = isDark ? "#ffffff"  : "#422AFB";  /* brand.500 */
+  const iconActive = isDark ? "#ffffff" : "#422AFB"; /* brand.500 */
   /* Active bar */
-  const barColor     = isDark ? "#7551FF"  : "#422AFB";  /* brand.400 / brand.500 */
+  const barColor = isDark ? "#7551FF" : "#422AFB"; /* brand.400 / brand.500 */
 
   return (
     <aside
@@ -171,7 +171,9 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         <Link href="/dashboard" className="flex items-center gap-2.5 mb-8">
           <div
             className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #006C69 0%, #09B5AF 100%)" }}
+            style={{
+              background: "linear-gradient(135deg, #006C69 0%, #09B5AF 100%)",
+            }}
           >
             <span className="font-extrabold text-sm text-white">CF</span>
           </div>
@@ -183,7 +185,10 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               >
                 Church<span style={{ color: iconActive }}>Flow</span>
               </span>
-              <span className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: textInactive }}>
+              <span
+                className="text-[9px] font-bold uppercase tracking-widest mt-0.5"
+                style={{ color: textInactive }}
+              >
                 Vase d&apos;Honneur
               </span>
             </div>
@@ -209,13 +214,20 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 <button
                   key={index}
                   type="button"
-                  onClick={() => triggerToast(`Le module ${item.title} est en cours de développement.`)}
+                  onClick={() =>
+                    triggerToast(
+                      `Le module ${item.title} est en cours de développement.`,
+                    )
+                  }
                   className="w-full flex items-center py-[5px] ps-[10px] cursor-not-allowed opacity-40"
                   style={{ gap: "26px" }}
                 >
                   <span style={{ color: textInactive }}>{item.icon}</span>
                   {!isCollapsed && (
-                    <span className="text-sm flex-1 text-left" style={{ color: textInactive }}>
+                    <span
+                      className="text-sm flex-1 text-left"
+                      style={{ color: textInactive }}
+                    >
                       {item.title}
                     </span>
                   )}
@@ -233,7 +245,10 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 {/* Icon */}
                 <span
                   className="flex items-center justify-center transition-colors duration-150 flex-shrink-0"
-                  style={{ color: isActive ? iconActive : textInactive, marginRight: "18px" }}
+                  style={{
+                    color: isActive ? iconActive : textInactive,
+                    marginRight: "18px",
+                  }}
                 >
                   {item.icon}
                 </span>
@@ -283,7 +298,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         >
           {!isCollapsed && (
             <span
-              className="text-[10px] font-bold uppercase tracking-wider"
+              className="text-xs font-bold uppercase tracking-wider"
               style={{ color: textInactive }}
             >
               Mode Sombre
@@ -297,7 +312,11 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               color: isDark ? "#FFB547" : textInactive,
             }}
           >
-            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {isDark ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
           </button>
         </div>
 
