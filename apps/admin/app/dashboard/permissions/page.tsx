@@ -154,16 +154,16 @@ export default function PermissionsPage() {
       )}
 
       {/* Intro visual header */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-6 mb-8 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-6 mb-8 horizon-card">
         <div className="flex items-center space-x-3.5">
-          <div className="p-3 rounded-lg bg-primary/5 text-primary border border-primary/10">
+          <div className="p-3 rounded-full bg-primary/10 text-primary border border-primary/20">
             <Lock className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-base font-bold text-foreground">
               Matrice d&apos;Autorisations (RBAC)
             </h3>
-            <p className="text-sm font-medium text-slate-500 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Configurez les droits d&apos;accès granulaires pour chaque profil
               utilisateur de ChurchFlow.
             </p>
@@ -173,7 +173,7 @@ export default function PermissionsPage() {
         <button
           onClick={handleSaveMatrix}
           disabled={loading || saving}
-          className="flex items-center justify-center space-x-2 px-6 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium w-full md:w-auto disabled:opacity-50"
+          className="btn-horizon btn-horizon-primary w-full md:w-auto"
         >
           {saving ? (
             <Loader2 className="w-4.5 h-4.5 animate-spin" />
@@ -186,37 +186,36 @@ export default function PermissionsPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
-          <p className="text-sm font-semibold text-slate-500">
+          <Loader2 className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-sm font-semibold text-muted-foreground">
             Chargement de la matrice d&apos;autorisations...
           </p>
         </div>
       ) : (
-        /* RBAC Table Matrix */
-        <div className="rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] overflow-hidden">
+        <div className="horizon-card !p-0 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-600 text-sm font-bold uppercase tracking-wider">
+                <tr className="border-b border-border text-muted-foreground text-sm font-medium">
                   <th className="py-5 px-6 min-w-[240px]">Profils / Rôles</th>
                   {permissions.map((p) => (
                     <th
                       key={p.id}
-                      className="py-5 px-4 text-center text-sm font-bold tracking-wider max-w-[120px]"
+                      className="py-5 px-4 text-center text-sm font-medium max-w-[120px]"
                     >
                       {getPermissionLabel(p.action, p.resource)}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+              <tbody className="divide-y divide-border text-sm font-medium text-muted-foreground">
                 {roles.map((row) => (
                   <tr
                     key={row.id}
-                    className="hover:bg-slate-50/30 transition-colors"
+                    className="hover:bg-background/60 transition-colors"
                   >
-                    <td className="py-5 px-6 font-semibold text-slate-900 flex items-center space-x-3.5">
-                      <UserCheck className="w-5 h-5 text-slate-400" />
+                    <td className="py-5 px-6 font-bold text-foreground flex items-center space-x-3.5">
+                      <UserCheck className="w-5 h-5 text-muted-foreground" />
                       <span>{row.name}</span>
                     </td>
 
@@ -234,16 +233,16 @@ export default function PermissionsPage() {
                                 perm.resource,
                               )
                             }
-                            className={`w-7 h-7 rounded-lg inline-flex items-center justify-center transition-all ${
+                            className={`w-7 h-7 rounded-full inline-flex items-center justify-center transition-all ${
                               isGranted
-                                ? "bg-primary/10 border border-primary/20 text-primary shadow-sm scale-105"
-                                : "bg-slate-50 border border-slate-200 text-slate-500 hover:border-slate-400 hover:bg-slate-100/50"
+                                ? "bg-primary border border-primary text-white shadow-sm"
+                                : "bg-background border border-border text-muted-foreground hover:border-border"
                             }`}
                           >
                             {isGranted ? (
-                              <Check className="w-4.5 h-4.5 stroke-[3]" />
+                              <Check className="w-4 h-4 stroke-[3]" />
                             ) : (
-                              <X className="w-3.5 h-3.5 text-slate-400" />
+                              <X className="w-3.5 h-3.5" />
                             )}
                           </button>
                         </td>
