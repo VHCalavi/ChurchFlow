@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, LogIn, AlertCircle } from "lucide-react";
+import { Mail, Lock, LogIn, AlertCircle, Building, Shield } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -118,120 +118,158 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0d0d15] text-slate-200 selection:bg-primary selection:text-white px-4">
-      {/* Background elegant abstract gradients */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 rounded-full bg-secondary/15 blur-[150px] pointer-events-none" />
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      {/* Background subtle gradients */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-[#CEAD1E]/5 blur-3xl" />
+      </div>
 
-      {/* Main glassmorphic login card */}
-      <div className="w-full max-w-md p-8 md:p-10 rounded-2xl border border-white/5 bg-[#151521]/60 backdrop-blur-xl shadow-2xl relative">
-        <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary to-secondary shadow-lg mb-4">
-            <span className="font-extrabold text-2xl text-white">CF</span>
+      {/* Main login card */}
+      <div className="relative w-full max-w-md">
+        {/* Decorative elements */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-primary/10 blur-2xl" />
+        <div className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full bg-[#CEAD1E]/10 blur-2xl" />
+
+        <div className="relative horizon-card p-8 shadow-horizon-xl">
+          <div className="flex flex-col items-center mb-8">
+            {/* Logo */}
+            <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-emerald-600 shadow-lg mb-6">
+              <span className="font-extrabold text-xl text-white">CF</span>
+            </div>
+
+            {/* Title and subtitle */}
+            <div className="text-center mb-2">
+              <h1 className="text-2xl font-bold text-foreground mb-2">
+                Connexion Administration
+              </h1>
+              <p className="text-sm font-medium text-muted-foreground">
+                ChurchFlow Management Dashboard
+              </p>
+            </div>
+
+            {/* Security badge */}
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+              <Shield className="w-3 h-3" />
+              <span>Sécurisé</span>
+            </div>
           </div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-white">Connexion Admin</h2>
-          <p className="text-xs font-semibold text-slate-500 mt-2 uppercase tracking-widest text-center">
-            ChurchFlow Management Dashboard
-          </p>
+
+          {/* Error message */}
+          {error && (
+            <div className="flex items-start space-x-3 p-4 rounded-xl border border-[#CD3C14]/20 bg-[#CD3C14]/10 text-[#CD3C14] text-sm font-semibold mb-6 animate-fade-in">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Login form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email input */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Adresse e-mail *
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <Mail className="w-4 h-4" />
+                </span>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@churchflow.com"
+                  className="w-full pl-12 pr-4 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Password input */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Mot de passe *
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <Lock className="w-4 h-4" />
+                </span>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full pl-12 pr-4 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-horizon btn-horizon-primary flex items-center justify-center space-x-2 w-full py-3.5 disabled:opacity-50"
+            >
+              {loading ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <span>Se connecter</span>
+                  <LogIn className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Info text */}
+          <div className="mt-8 text-center">
+            <p className="text-xs font-medium text-muted-foreground">
+              <Building className="w-3 h-3 inline mr-1" />
+              Accès sécurisé réservé aux administrateurs de la communauté.
+            </p>
+          </div>
         </div>
 
-        {error && (
-          <div className="flex items-start space-x-3 p-4 rounded-xl border border-red-500/20 bg-red-500/5 text-red-400 text-sm font-semibold mb-6 animate-fade-in">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-              Adresse e-mail
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-                <Mail className="w-5 h-5" />
-              </span>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ex. admin@churchflow.com"
-                className="w-full pl-12 pr-4 py-3 text-sm font-semibold rounded-xl border border-white/5 bg-[#1e1e2d]/60 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-200"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-              Mot de passe
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">
-                <Lock className="w-5 h-5" />
-              </span>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
-                className="w-full pl-12 pr-4 py-3 text-sm font-semibold rounded-xl border border-white/5 bg-[#1e1e2d]/60 text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all duration-200"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center space-x-2 py-3.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-xl transition-all duration-200 shadow-lg shadow-primary/20 disabled:opacity-50 mt-8 cursor-pointer group"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <span>Se connecter</span>
-                <LogIn className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-              </>
-            )}
-          </button>
-        </form>
-
+        {/* Additional branding elements */}
         <div className="mt-8 text-center">
-          <p className="text-xs text-slate-600 font-medium">
-            Accès sécurisé réservé aux administrateurs de la communauté.
+          <p className="text-xs text-muted-foreground">
+            © 2026 ChurchFlow - Vase d'Honneur Calavi
           </p>
         </div>
       </div>
 
       {/* First Connection Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4 animate-fade-in">
-          <div className="w-full max-w-md p-8 rounded-2xl border border-white/10 bg-[#151521]/95 shadow-2xl relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md p-6 horizon-card shadow-horizon-xl">
             <div className="flex flex-col items-center mb-6">
-              <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-green-500 to-emerald-600 shadow-lg shadow-emerald-500/20 mb-4">
-                <Lock className="w-5 h-5 text-white" />
+              <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 shadow-lg shadow-emerald-500/20 mb-4">
+                <Lock className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white text-center">Première Connexion</h3>
-              <p className="text-sm text-slate-400 text-center mt-2">
+              <h3 className="text-xl font-bold text-foreground text-center mb-2">
+                Première Connexion
+              </h3>
+              <p className="text-sm text-muted-foreground text-center">
                 Votre adresse e-mail correspond à un membre enregistré. Définissez votre mot de passe pour activer votre accès.
               </p>
             </div>
 
             {regError && (
-              <div className="flex items-start space-x-2 p-3 rounded-lg border border-red-500/20 bg-red-500/5 text-red-400 text-xs font-semibold mb-4">
+              <div className="flex items-start space-x-3 p-3 rounded-xl border border-[#CD3C14]/20 bg-[#CD3C14]/10 text-[#CD3C14] text-xs font-semibold mb-4">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                 <span>{regError}</span>
               </div>
             )}
 
             <form onSubmit={handleRegisterFirstConnection} className="space-y-4">
+              {/* New password */}
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                  Nouveau mot de passe
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Nouveau mot de passe *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                     <Lock className="w-4 h-4" />
                   </span>
                   <input
@@ -240,17 +278,18 @@ export default function LoginPage() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Au moins 6 caractères"
-                    className="w-full pl-10 pr-4 py-2.5 text-sm font-semibold rounded-lg border border-white/5 bg-[#1e1e2d] text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full pl-12 pr-4 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                   />
                 </div>
               </div>
 
+              {/* Confirm password */}
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">
-                  Confirmer le mot de passe
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Confirmer le mot de passe *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                     <Lock className="w-4 h-4" />
                   </span>
                   <input
@@ -259,23 +298,24 @@ export default function LoginPage() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirmer le mot de passe"
-                    className="w-full pl-10 pr-4 py-2.5 text-sm font-semibold rounded-lg border border-white/5 bg-[#1e1e2d] text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full pl-12 pr-4 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                   />
                 </div>
               </div>
 
-              <div className="flex space-x-3 pt-4">
+              {/* Action buttons */}
+              <div className="flex gap-3 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="w-1/2 py-2.5 text-sm font-bold text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all"
+                  className="btn-horizon btn-horizon-secondary flex-1"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={regLoading}
-                  className="w-1/2 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg shadow-lg shadow-primary/20 disabled:opacity-50 transition-all flex items-center justify-center space-x-1"
+                  className="btn-horizon btn-horizon-primary flex-1 disabled:opacity-50"
                 >
                   {regLoading ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
