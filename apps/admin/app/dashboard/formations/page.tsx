@@ -229,11 +229,11 @@ export default function FormationsPage() {
       case "BAPTEME":
         return <BookOpen className="w-6 h-6 text-emerald-600" />;
       case "PORTEURS_DE_VIE":
-        return <Award className="w-6 h-6 text-secondary" />;
+        return <Award className="w-6 h-6 text-[#CEAD1E]" />;
       case "ECOLE_DES_BERGERS":
-        return <Layers className="w-6 h-6 text-teal-650" />;
+        return <Layers className="w-6 h-6 text-primary" />;
       default:
-        return <GraduationCap className="w-6 h-6" />;
+        return <GraduationCap className="w-6 h-6 text-primary" />;
     }
   };
 
@@ -242,25 +242,25 @@ export default function FormationsPage() {
       {/* Under Construction Overlay */}
       <div className="relative w-full min-h-[600px] rounded-xl overflow-hidden">
         <div className="absolute inset-0 z-20 flex pt-48 justify-center p-6 bg-slate-900/5 backdrop-blur-[2px]">
-          <div className="max-w-md h-min w-full p-8 rounded-2xl border border-slate-150 bg-white/95 shadow-premium text-center flex flex-col items-center transition-all duration-300 hover:scale-[1.01]">
+          <div className="max-w-md h-min w-full p-8 rounded-2xl border border-border bg-card shadow-horizon-xl text-center flex flex-col items-center transition-all duration-300 hover:scale-[1.01]">
             <div className="w-16 h-16 rounded-2xl bg-[#0EA5E9]/10 border border-[#0EA5E9]/20 flex items-center justify-center text-[#0EA5E9] mb-6 animate-pulse">
               <Construction className="w-8 h-8" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2.5">
+            <h2 className="text-xl font-bold text-foreground mb-2.5">
               Module en Construction
             </h2>
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-              Le module Formations &amp; Écoles est en cours de développement.
+            <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+              Le module Formations & Écoles est en cours de développement.
               Il centralisera la gestion des écoles de croissance chrétienne de
               votre communauté.
             </p>
-            <div className="w-full bg-slate-100 rounded-full h-1.5 mb-6 overflow-hidden">
+            <div className="w-full bg-background rounded-full h-1.5 mb-6 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-[#0EA5E9] to-[#006C69] h-1.5 rounded-full"
+                className="bg-gradient-to-r from-[#0EA5E9] to-primary h-1.5 rounded-full"
                 style={{ width: "40%" }}
               />
             </div>
-            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
               40% — En cours
             </span>
           </div>
@@ -271,10 +271,10 @@ export default function FormationsPage() {
           {/* Notifications */}
           {notification && (
             <div
-              className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-premium animate-fade-in ${
+              className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-horizon-xl animate-fade-in ${
                 notification.type === "success"
                   ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                  : "bg-red-50 border-red-200 text-red-800"
+                  : "bg-[#CD3C14]/10 border-[#CD3C14]/20 text-[#CD3C14]"
               }`}
             >
               <span className="text-sm font-semibold">
@@ -284,18 +284,18 @@ export default function FormationsPage() {
           )}
 
           {/* Intro info */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-6 mb-8 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-6 mb-8 rounded-xl border border-border bg-card shadow-sm">
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-foreground">
                 Écoles de Croissance Chrétienne
               </h3>
-              <p className="text-sm font-medium text-slate-500 mt-1">
+              <p className="text-sm font-medium text-muted-foreground mt-1">
                 Supervision des 4 parcours de formation biblique de la charte.
               </p>
             </div>
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center space-x-2 px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium w-full md:w-auto"
+              className="btn-horizon btn-horizon-primary flex items-center justify-center space-x-2 w-full md:w-auto"
             >
               <Plus className="w-4.5 h-4.5" />
               <span>Lancer une session</span>
@@ -303,9 +303,9 @@ export default function FormationsPage() {
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-slate-100">
+            <div className="flex flex-col items-center justify-center py-20 bg-card rounded-xl border border-border">
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-sm font-semibold text-slate-700">
+              <p className="text-sm font-semibold text-muted-foreground">
                 Chargement des sessions...
               </p>
             </div>
@@ -314,35 +314,35 @@ export default function FormationsPage() {
               {formations.map((session) => (
                 <div
                   key={session.id}
-                  className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] hover:shadow-premium transition-all"
+                  className="p-6 rounded-xl border border-border bg-card shadow-sm hover:shadow-horizon-xl transition-all"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3.5">
-                      <div className="p-3 rounded-lg bg-slate-50 border border-slate-100">
+                      <div className="p-3 rounded-lg bg-background border border-border">
                         {getTypeIcon(session.type)}
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-slate-500 font-semibold">
+                        <h4 className="text-sm font-bold text-muted-foreground">
                           {getTypeName(session.type)}
                         </h4>
-                        <h3 className="text-base font-bold text-slate-900 mt-1">
+                        <h3 className="text-base font-bold text-foreground mt-1">
                           {session.name}
                         </h3>
                       </div>
                     </div>
-                    <span className="text-sm font-bold tracking-wider px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
                       ACTIF
                     </span>
                   </div>
 
-                  <p className="text-sm font-medium text-slate-600 mt-4 h-10 line-clamp-2">
+                  <p className="text-sm font-medium text-muted-foreground mt-4 h-10 line-clamp-2">
                     {session.description ||
                       "Aucune description de cours renseignée."}
                   </p>
 
-                  <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-100 text-sm font-semibold text-slate-700">
+                  <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-border text-sm font-semibold text-muted-foreground">
                     <div className="flex items-center space-x-1.5">
-                      <Calendar className="w-4 h-4 text-slate-500" />
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
                       <span>
                         Du{" "}
                         {session.startDate
@@ -353,7 +353,7 @@ export default function FormationsPage() {
                       </span>
                     </div>
                     <div className="text-right">
-                      <span className="text-primary font-bold text-sm">
+                      <span className="text-primary font-bold text-xs">
                         {session._count?.members || 0}
                       </span>{" "}
                       étudiants enregistrés
@@ -367,14 +367,14 @@ export default function FormationsPage() {
           {/* Modal launch session */}
           {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-              <div className="w-full max-w-lg p-6 bg-white rounded-xl border border-slate-100 shadow-premium">
-                <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
-                  <h3 className="text-base font-bold text-slate-900">
+              <div className="w-full max-w-lg p-6 bg-card rounded-[20px] shadow-horizon-xl">
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-border">
+                  <h3 className="text-base font-bold text-foreground">
                     Lancer une Nouvelle Session
                   </h3>
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -382,7 +382,7 @@ export default function FormationsPage() {
 
                 <form onSubmit={handleCreateFormation} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Catégorie d&apos;École *
                     </label>
                     <select
@@ -396,7 +396,7 @@ export default function FormationsPage() {
                             | "ECOLE_DES_BERGERS",
                         )
                       }
-                      className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                      className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
                     >
                       <option value="ACADEMIE">
                         Académie des Disciples (Croissance générale)
@@ -414,7 +414,7 @@ export default function FormationsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Nom de la Session *
                     </label>
                     <input
@@ -423,59 +423,59 @@ export default function FormationsPage() {
                       placeholder="Ex: Promotion Alpha 2026, Session de Printemps..."
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                      className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Description / Contenu
                     </label>
                     <textarea
                       placeholder="Thématiques enseignées..."
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all h-20"
+                      className="w-full px-5 py-3 text-sm font-semibold rounded-2xl border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all h-20"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                      <label className="block text-sm font-medium text-foreground mb-1.5">
                         Date de Début
                       </label>
                       <input
                         type="date"
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                        className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                      <label className="block text-sm font-medium text-foreground mb-1.5">
                         Date de Fin
                       </label>
                       <input
                         type="date"
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                        className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
                     <button
                       type="button"
                       onClick={() => setIsModalOpen(false)}
-                      className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all"
+                      className="btn-horizon btn-horizon-secondary"
                     >
                       Annuler
                     </button>
                     <button
                       type="submit"
                       disabled={submitting}
-                      className="px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium disabled:opacity-50"
+                      className="btn-horizon btn-horizon-primary disabled:opacity-50"
                     >
                       {submitting ? "Création..." : "Enregistrer"}
                     </button>

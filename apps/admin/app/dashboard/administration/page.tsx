@@ -176,9 +176,9 @@ export default function AdministrationPage() {
       case "MAUVAIS":
         return "bg-amber-50 text-amber-700 border border-amber-200";
       case "EN_PANNE":
-        return "bg-red-50 text-red-700 border border-red-200";
+        return "bg-[#CD3C14]/10 text-[#CD3C14] border border-[#CD3C14]/20";
       default:
-        return "bg-slate-50 text-slate-800 border border-slate-200";
+        return "bg-background text-muted-foreground border border-border";
     }
   };
 
@@ -187,25 +187,25 @@ export default function AdministrationPage() {
       {/* Under Construction Overlay */}
       <div className="relative w-full min-h-[600px] rounded-xl overflow-hidden">
         <div className="absolute inset-0 z-20 flex pt-48 justify-center p-6 bg-slate-900/5 backdrop-blur-[2px]">
-          <div className="max-w-md h-min w-full p-8 rounded-2xl border border-slate-150 bg-white/95 shadow-premium text-center flex flex-col items-center transition-all duration-300 hover:scale-[1.01]">
+          <div className="max-w-md h-min w-full p-8 rounded-2xl border border-border bg-card shadow-horizon-xl text-center flex flex-col items-center transition-all duration-300 hover:scale-[1.01]">
             <div className="w-16 h-16 rounded-2xl bg-[#F59E0B]/10 border border-[#F59E0B]/20 flex items-center justify-center text-[#F59E0B] mb-6 animate-pulse">
               <Construction className="w-8 h-8" />
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2.5">
+            <h2 className="text-xl font-bold text-foreground mb-2.5">
               Module en Construction
             </h2>
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+            <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
               Le module Administration est en cours de développement. Il
               regroupera la gestion du patrimoine matériel et des prestataires
               de la communauté.
             </p>
-            <div className="w-full bg-slate-100 rounded-full h-1.5 mb-6 overflow-hidden">
+            <div className="w-full bg-background rounded-full h-1.5 mb-6 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-[#F59E0B] to-[#006C69] h-1.5 rounded-full"
+                className="bg-gradient-to-r from-[#F59E0B] to-primary h-1.5 rounded-full"
                 style={{ width: "25%" }}
               />
             </div>
-            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
               25% — En cours
             </span>
           </div>
@@ -216,10 +216,10 @@ export default function AdministrationPage() {
           {/* Notifications */}
           {notification && (
             <div
-              className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-premium animate-fade-in ${
+              className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-horizon-xl animate-fade-in ${
                 notification.type === "success"
                   ? "bg-emerald-50 border-emerald-200 text-emerald-800"
-                  : "bg-red-50 border-red-200 text-red-800"
+                  : "bg-[#CD3C14]/10 border-[#CD3C14]/20 text-[#CD3C14]"
               }`}
             >
               <span className="text-sm font-semibold">
@@ -229,7 +229,7 @@ export default function AdministrationPage() {
           )}
 
           {/* Tabs */}
-          <div className="flex border-b border-slate-100 mb-8 space-x-6 text-sm font-bold">
+          <div className="flex border-b border-border mb-8 space-x-6 text-sm font-medium">
             <button
               onClick={() => {
                 setActiveTab("EQUIPMENT");
@@ -238,7 +238,7 @@ export default function AdministrationPage() {
               className={`pb-4 transition-all ${
                 activeTab === "EQUIPMENT"
                   ? "text-primary border-b-2 border-primary font-bold"
-                  : "text-slate-500 hover:text-primary transition-colors"
+                  : "text-muted-foreground hover:text-primary transition-colors"
               }`}
             >
               Patrimoine & Équipements
@@ -251,7 +251,7 @@ export default function AdministrationPage() {
               className={`pb-4 transition-all ${
                 activeTab === "PROVIDERS"
                   ? "text-primary border-b-2 border-primary font-bold"
-                  : "text-slate-500 hover:text-primary transition-colors"
+                  : "text-muted-foreground hover:text-primary transition-colors"
               }`}
             >
               Prestataires & Maintenance
@@ -259,9 +259,9 @@ export default function AdministrationPage() {
           </div>
 
           {/* Control bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 mb-8 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 mb-8 rounded-xl border border-border bg-card shadow-sm">
             <div className="relative w-full md:w-96">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-700" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground" />
               <input
                 type="text"
                 placeholder={
@@ -271,13 +271,13 @@ export default function AdministrationPage() {
                 }
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-700/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                className="w-full pl-10 pr-4 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
               />
             </div>
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center space-x-2 px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium w-full md:w-auto"
+              className="btn-horizon btn-horizon-primary flex items-center justify-center space-x-2 w-full md:w-auto"
             >
               <Plus className="w-4.5 h-4.5" />
               <span>
@@ -290,11 +290,11 @@ export default function AdministrationPage() {
 
           {/* Main lists */}
           {activeTab === "EQUIPMENT" ? (
-            <div className="rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] overflow-hidden">
+            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-600 text-sm font-bold uppercase tracking-wider">
+                    <tr className="border-b border-border text-muted-foreground text-sm font-medium">
                       <th className="py-4 px-6">Nom de l&apos;Équipement</th>
                       <th className="py-4 px-6">Catégorie</th>
                       <th className="py-4 px-6">Quantité</th>
@@ -302,7 +302,7 @@ export default function AdministrationPage() {
                       <th className="py-4 px-6">Valeur Estimée</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                  <tbody className="divide-y divide-border">
                     {equipmentList
                       .filter((e) =>
                         e.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -310,26 +310,26 @@ export default function AdministrationPage() {
                       .map((item) => (
                         <tr
                           key={item.id}
-                          className="hover:bg-slate-50/30 transition-colors"
+                          className="hover:bg-background/60 transition-colors"
                         >
-                          <td className="py-4 px-6 font-semibold text-slate-900 flex items-center space-x-3.5">
-                            <Package className="w-5 h-5 text-slate-400" />
+                          <td className="py-4 px-6 font-bold text-foreground flex items-center space-x-3.5">
+                            <Package className="w-5 h-5 text-muted-foreground" />
                             <span>{item.name}</span>
                           </td>
-                          <td className="py-4 px-6 text-slate-500 text-sm font-semibold uppercase">
+                          <td className="py-4 px-6 text-sm font-semibold text-muted-foreground">
                             {item.category}
                           </td>
-                          <td className="py-4 px-6 text-slate-800 font-semibold">
+                          <td className="py-4 px-6 font-bold text-foreground">
                             {item.quantity}
                           </td>
                           <td className="py-4 px-6">
                             <span
-                              className={`inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-bold tracking-wider ${getStatusColor(item.status)}`}
+                              className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${getStatusColor(item.status)}`}
                             >
                               {item.status}
                             </span>
                           </td>
-                          <td className="py-4 px-6 text-primary font-semibold">
+                          <td className="py-4 px-6 font-bold text-primary">
                             {item.value}
                           </td>
                         </tr>
@@ -339,18 +339,18 @@ export default function AdministrationPage() {
               </div>
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] overflow-hidden">
+            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-600 text-sm font-bold uppercase tracking-wider">
+                    <tr className="border-b border-border text-muted-foreground text-sm font-medium">
                       <th className="py-4 px-6">Nom du Prestataire</th>
                       <th className="py-4 px-6">Service Fourni</th>
                       <th className="py-4 px-6">Téléphone</th>
                       <th className="py-4 px-6">Statut Contrat</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                  <tbody className="divide-y divide-border">
                     {providerList
                       .filter((p) =>
                         p.name.toLowerCase().includes(searchTerm.toLowerCase()),
@@ -358,24 +358,24 @@ export default function AdministrationPage() {
                       .map((provider) => (
                         <tr
                           key={provider.id}
-                          className="hover:bg-slate-50/30 transition-colors"
+                          className="hover:bg-background/60 transition-colors"
                         >
-                          <td className="py-4 px-6 font-semibold text-slate-900 flex items-center space-x-3.5">
-                            <Users className="w-5 h-5 text-slate-400" />
+                          <td className="py-4 px-6 font-bold text-foreground flex items-center space-x-3.5">
+                            <Users className="w-5 h-5 text-muted-foreground" />
                             <span>{provider.name}</span>
                           </td>
-                          <td className="py-4 px-6 text-slate-800 font-semibold">
+                          <td className="py-4 px-6 font-bold text-foreground">
                             {provider.service}
                           </td>
-                          <td className="py-4 px-6 text-slate-500 text-sm font-semibold">
+                          <td className="py-4 px-6 text-sm font-semibold text-muted-foreground">
                             {provider.phone}
                           </td>
                           <td className="py-4 px-6">
                             <span
-                              className={`inline-flex items-center px-2.5 py-1 rounded-lg text-sm font-bold tracking-wider ${
+                              className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${
                                 provider.status === "ACTIF"
-                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                  : "bg-slate-100 text-slate-700 border border-slate-200"
+                                  ? getStatusColor("EXCELLENT")
+                                  : "bg-muted/10 text-muted-foreground border border-border"
                               }`}
                             >
                               {provider.status}
@@ -392,16 +392,16 @@ export default function AdministrationPage() {
           {/* Modals Add */}
           {isModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-              <div className="w-full max-w-lg p-6 bg-white rounded-xl border border-slate-100 shadow-premium">
-                <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
-                  <h3 className="text-base font-bold text-slate-900">
+              <div className="w-full max-w-lg p-6 bg-card rounded-[20px] shadow-horizon-xl">
+                <div className="flex items-center justify-between mb-5 pb-3 border-b border-border">
+                  <h3 className="text-base font-bold text-foreground">
                     {activeTab === "EQUIPMENT"
                       ? "Ajouter un Équipement"
                       : "Ajouter un Prestataire"}
                   </h3>
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-colors"
+                    className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -410,7 +410,7 @@ export default function AdministrationPage() {
                 {activeTab === "EQUIPMENT" ? (
                   <form onSubmit={handleAddEquipment} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                      <label className="block text-sm font-medium text-foreground mb-1.5">
                         Nom de l&apos;Équipement *
                       </label>
                       <input
@@ -419,19 +419,19 @@ export default function AdministrationPage() {
                         placeholder="Console, Chaises, Projecteur..."
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                        className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                        <label className="block text-sm font-medium text-foreground mb-1.5">
                           Catégorie *
                         </label>
                         <select
                           value={category}
                           onChange={(e) => setCategory(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                          className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
                         >
                           <option value="SONORISATION">Sonorisation</option>
                           <option value="MULTIMEDIA">Multimédia</option>
@@ -443,7 +443,7 @@ export default function AdministrationPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                        <label className="block text-sm font-medium text-foreground mb-1.5">
                           Quantité *
                         </label>
                         <input
@@ -452,14 +452,14 @@ export default function AdministrationPage() {
                           min={1}
                           value={quantity}
                           onChange={(e) => setQuantity(Number(e.target.value))}
-                          className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                          className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                        <label className="block text-sm font-medium text-foreground mb-1.5">
                           État Général *
                         </label>
                         <select
@@ -473,7 +473,7 @@ export default function AdministrationPage() {
                                 | "EN_PANNE",
                             )
                           }
-                          className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                          className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
                         >
                           <option value="EXCELLENT">Excellent</option>
                           <option value="BON">Bon état</option>
@@ -482,7 +482,7 @@ export default function AdministrationPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                        <label className="block text-sm font-medium text-foreground mb-1.5">
                           Valeur estimée *
                         </label>
                         <input
@@ -491,22 +491,22 @@ export default function AdministrationPage() {
                           placeholder="Ex: 500 000 F..."
                           value={value}
                           onChange={(e) => setValue(e.target.value)}
-                          className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                          className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                         />
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
                       <button
                         type="button"
                         onClick={() => setIsModalOpen(false)}
-                        className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all"
+                        className="btn-horizon btn-horizon-secondary"
                       >
                         Annuler
                       </button>
                       <button
                         type="submit"
-                        className="px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium"
+                        className="btn-horizon btn-horizon-primary"
                       >
                         Enregistrer
                       </button>
@@ -515,7 +515,7 @@ export default function AdministrationPage() {
                 ) : (
                   <form onSubmit={handleAddProvider} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                      <label className="block text-sm font-medium text-foreground mb-1.5">
                         Nom de l&apos;Entreprise prestataire *
                       </label>
                       <input
@@ -524,12 +524,12 @@ export default function AdministrationPage() {
                         placeholder="Nom du prestataire..."
                         value={providerName}
                         onChange={(e) => setProviderName(e.target.value)}
-                        className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                        className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                      <label className="block text-sm font-medium text-foreground mb-1.5">
                         Service fourni *
                       </label>
                       <input
@@ -538,12 +538,12 @@ export default function AdministrationPage() {
                         placeholder="Ex: Maintenance électricité, Nettoyage..."
                         value={service}
                         onChange={(e) => setService(e.target.value)}
-                        className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                        className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                      <label className="block text-sm font-medium text-foreground mb-1.5">
                         Téléphone *
                       </label>
                       <input
@@ -552,21 +552,21 @@ export default function AdministrationPage() {
                         placeholder="+229 ..."
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                        className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                       />
                     </div>
 
-                    <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+                    <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
                       <button
                         type="button"
                         onClick={() => setIsModalOpen(false)}
-                        className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all"
+                        className="btn-horizon btn-horizon-secondary"
                       >
                         Annuler
                       </button>
                       <button
                         type="submit"
-                        className="px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium"
+                        className="btn-horizon btn-horizon-primary"
                       >
                         Enregistrer
                       </button>
