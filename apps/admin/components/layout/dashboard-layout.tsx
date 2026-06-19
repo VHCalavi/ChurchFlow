@@ -30,21 +30,21 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] bg-gradient-premium">
+    <div className="min-h-screen bg-background">
       {/* Sidebar (fixed, passing collapse props) */}
       <Sidebar isCollapsed={isCollapsed} onToggle={handleToggle} />
 
       {/* Main Content Area (padding-left adjusts smoothly) */}
       <div 
         className={`flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
-          mounted && isCollapsed ? "pl-20" : "pl-72"
+          mounted && isCollapsed ? "pl-[90px]" : "pl-[290px]"
         }`}
       >
         {/* Topbar (sticky) */}
         <Topbar title={title} />
 
         {/* Content Wrapper */}
-        <main className="flex-grow p-8 flex flex-col justify-between overflow-y-auto">
+        <main className="flex-grow pt-[120px] px-8 pb-8 flex flex-col justify-between overflow-y-auto">
           <div className="flex-grow pb-8">
             {children}
           </div>

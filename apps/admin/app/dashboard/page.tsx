@@ -1,8 +1,27 @@
 import React from "react";
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { auth } from "@churchflow/auth";
 import { redirect } from "next/navigation";
 import { DashboardLayout } from "../../components/layout/dashboard-layout";
+import { StatCard } from "../../components/ui/stat-card";
+import { HorizonCard } from "../../components/ui/horizon-card";
+import { AttendanceTrendChart } from "../../components/dashboard/AttendanceTrendChart";
+
+import {
+  Users,
+  User,
+  Network,
+  GraduationCap,
+  TrendingDown,
+  Clock,
+  ArrowRight,
+  ShieldAlert,
+  CalendarCheck,
+  CalendarDays,
+  FileText,
+  DollarSign
+} from "lucide-react";
 
 interface ApiMember {
   id: string;
@@ -27,22 +46,6 @@ interface ApiMeeting {
   date: string;
   location: string | null;
 }
-
-import { AttendanceTrendChart } from "../../components/dashboard/AttendanceTrendChart";
-
-import {
-  Users,
-  Network,
-  GraduationCap,
-  TrendingUp,
-  TrendingDown,
-  Clock,
-  ArrowRight,
-  ShieldAlert,
-  HelpCircle,
-  CalendarCheck,
-  Construction
-} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -101,47 +104,12 @@ export default async function DashboardHome() {
     fetchError = true;
   }
 
-  // Format real-time statistics
-  const stats = [
-    {
-      title: "MEMBRES ACTIFS",
-      value: fetchError ? "—" : membersList.length.toString(),
-      change: fetchError ? "Données non disponibles" : `+${membersList.length} au total`,
-      isPositive: true,
-      isPending: false,
-      icon: <Users className="w-5 h-5 text-[#006C69]" />,
-      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-100"
-    },
-    {
-      title: "GROUPES & GEM",
-      value: fetchError ? "—" : groupsList.length.toString(),
-      change: fetchError ? "Données non disponibles" : `${groupsList.filter(g => g.type === "GEM").length} GEM actifs`,
-      isPositive: true,
-      isPending: false,
-      icon: <Network className="w-5 h-5 text-[#EC8001]" />,
-      badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-100"
-    },
-    {
-      title: "FORMATIONS",
-      value: "Bientôt",
-      change: "Module en développement",
-      isPositive: true,
-      isPending: true,
-      icon: <GraduationCap className="w-5 h-5 text-slate-400" />,
-      badgeClass: "bg-slate-100 text-slate-500 border-slate-200"
-    },
-    {
-      title: "FINANCES (SOLDE)",
-      value: "Bientôt",
-      change: "Module en développement",
-      isPositive: false,
-      isPending: true,
-      icon: <TrendingDown className="w-5 h-5 text-slate-400" />,
-      badgeClass: "bg-slate-100 text-slate-500 border-slate-200"
-    }
-  ];
+  // Format statistics
+  const activeMembersCount = membersList.length.toString();
+  const activeGroupsCount = groupsList.length.toString();
+  const gemCount = groupsList.filter(g => g.type === "GEM").length.toString();
 
-  // Dynamic members mapping — no mock fallback
+  // Dynamic members mapping
   const displayMembers = membersList.slice(0, 4).map(m => {
     const joinDate = new Date(m.createdAt);
     const dateFormatted = joinDate.toLocaleDateString("fr-FR", {
@@ -157,7 +125,7 @@ export default async function DashboardHome() {
     };
   });
 
-  // Dynamic meetings mapping — no mock fallback
+  // Dynamic meetings mapping
   const displayMeetings = meetingsList.slice(0, 3).map(mt => {
     const meetingDate = new Date(mt.date);
     const dateFormatted = meetingDate.toLocaleDateString("fr-FR", {
@@ -175,206 +143,307 @@ export default async function DashboardHome() {
 
   return (
     <DashboardLayout title="Tableau de Bord Global">
-      <div className="relative w-full min-h-[600px] rounded-xl overflow-hidden">
-        {/* Under Construction Overlay */}
-        <div className="absolute inset-0 z-20 flex pt-48 justify-center p-6 bg-slate-900/5 backdrop-blur-[2px]">
-          <div className="max-w-md h-min w-full p-8 rounded-2xl border border-slate-150 bg-white/95 shadow-premium text-center flex flex-col items-center transition-all duration-300 hover:scale-[1.01]">
-            <div className="w-16 h-16 rounded-2xl bg-[#006C69]/10 border border-[#006C69]/20 flex items-center justify-center text-[#006C69] mb-6 animate-pulse">
-              <Construction className="w-8 h-8" />
-            </div>
-            
-            <h2 className="text-xl font-bold text-slate-900 mb-2.5">Espace en Construction</h2>
-            
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-              Le tableau de bord global est actuellement en cours de développement. Cet espace centralisera bientôt toutes les statistiques clés et indicateurs de performance de votre communauté.
-            </p>
-            
-            {/* Progress bar visual */}
-            <div className="w-full bg-slate-100 rounded-full h-1.5 mb-6 overflow-hidden">
-              <div 
-                className="bg-gradient-to-r from-[#006C69] to-[#EC8001] h-1.5 rounded-full" 
-                style={{ width: "65%" }}
-              />
-            </div>
-            
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-widest flex items-center space-x-2">
-              <span>ChurchFlow</span>
-              <span className="text-slate-300">&bull;</span>
-              <span>Module Dashboard</span>
-            </div>
+      <div className="flex flex-col gap-6 animate-fade-in-up">
+        {/* API Error Notification */}
+        {fetchError && (
+          <div className="flex items-center space-x-3 p-4 rounded-2xl border border-red-200 bg-red-50 text-red-600 text-xs font-bold">
+            <ShieldAlert className="w-4 h-4 flex-shrink-0" />
+            <span>Impossible de joindre l&apos;API ChurchFlow. Utilisation de données hors ligne.</span>
           </div>
+        )}
+
+        {/* Welcome Banner - Horizon Marketplace Style */}
+        <div className="horizon-hero-banner p-8 text-white flex flex-col justify-center min-h-[160px] shadow-horizon-md animate-fade-in-up">
+          <span className="text-xs font-bold uppercase tracking-wider bg-white/20 w-fit px-3 py-1 rounded-full mb-3">
+            Portail Administration
+          </span>
+          <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl leading-tight">
+            Bonjour, {session?.user?.name || "Administrateur"} 👋
+          </h2>
+          <p className="text-sm font-semibold text-white/85 mt-2 max-w-xl">
+            Bienvenue sur le tableau de bord de ChurchFlow. Suivez l&apos;évolution des membres, la gestion des cellules et l&apos;organisation des cultes en temps réel.
+          </p>
         </div>
 
-        {/* Blurred Content */}
-        <div className="filter blur-[6px] opacity-35 pointer-events-none select-none">
-          {fetchError && (
-            <div className="flex items-center space-x-3 p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-600 dark:text-amber-400 text-sm font-semibold mb-6">
-              <ShieldAlert className="w-5 h-5 flex-shrink-0" />
-              <span>Mode déconnecté activé : Impossible de joindre l&apos;API ChurchFlow. Données simulées affichées.</span>
-            </div>
-          )}
+        {/* 4 Columns Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+          <StatCard
+            title="Membres Actifs"
+            value={fetchError ? "—" : activeMembersCount}
+            change={fetchError ? undefined : `+${activeMembersCount} enregistrés`}
+            isPositive={true}
+            icon={<Users className="w-5 h-5 text-[#006C69]" />}
+            iconBg="bg-[#006C69]/10"
+          />
+          <StatCard
+            title="Groupes & GEM"
+            value={fetchError ? "—" : activeGroupsCount}
+            change={fetchError ? undefined : `${gemCount} GEM actives`}
+            isPositive={true}
+            icon={<Network className="w-5 h-5 text-[#EC8001]" />}
+            iconBg="bg-[#EC8001]/10"
+            iconColorClass="text-[#EC8001]"
+          />
+          <StatCard
+            title="Formations"
+            value="Bientôt"
+            change="Module en développement"
+            isPending={true}
+            icon={<GraduationCap className="w-5 h-5 text-[#0EA7D5]" />}
+            iconBg="bg-[#0EA7D5]/10"
+            iconColorClass="text-[#0EA7D5]"
+          />
+          <StatCard
+            title="Finances"
+            value="Bientôt"
+            change="Module en développement"
+            isPending={true}
+            icon={<DollarSign className="w-5 h-5 text-[#10B981]" />}
+            iconBg="bg-[#10B981]/10"
+            iconColorClass="text-[#10B981]"
+          />
+        </div>
 
-          {/* Overview stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, i) => (
-              <div
-                key={i}
-                className={`p-6 rounded-xl border bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] transition-all duration-300 hover:scale-[1.01] hover:shadow-premium ${
-                  stat.isPending ? "border-slate-100 opacity-80" : "border-slate-150"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold text-slate-500 tracking-wider uppercase">{stat.title}</span>
-                  <div className={`p-2.5 rounded-lg border ${stat.isPending ? "bg-slate-50 border-slate-100" : "bg-slate-50 border-slate-100"}`}>
-                    {stat.icon}
-                  </div>
-                </div>
-                <h3 className={`text-2xl font-bold tracking-tight ${stat.isPending ? "text-slate-400 font-medium" : "text-slate-900"}`}>
-                  {stat.value}
-                </h3>
-                <div className="flex items-center mt-3.5 space-x-1.5">
-                  {stat.isPending ? (
-                    <HelpCircle className="w-3.5 h-3.5 text-slate-400" />
-                  ) : stat.isPositive ? (
-                    <TrendingUp className="w-3.5 h-3.5 text-emerald-650" />
-                  ) : (
-                    <TrendingDown className="w-3.5 h-3.5 text-red-650" />
-                  )}
-                  <span className={`text-xs font-semibold ${stat.isPending ? "text-slate-400" : stat.isPositive ? "text-emerald-600" : "text-red-600"}`}>
-                    {stat.change}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-
+        {/* Main Charts & Meetings Section */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
           {/* Attendance Trend Chart */}
-          <div className="mb-8">
+          <div className="xl:col-span-2">
             <AttendanceTrendChart />
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            {/* Recent Members Panel */}
-            <div className="xl:col-span-2 p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+          {/* Next Meetings Section */}
+          <HorizonCard className="flex flex-col h-full justify-between">
+            <div>
+              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-navy-700">
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 tracking-tight">Membres Récemment Enregistrés</h3>
-                  <p className="text-xs font-medium text-slate-500 mt-1">Derniers enregistrements administratifs</p>
+                  <h3 className="text-base font-extrabold text-slate-800 dark:text-white">
+                    Prochaines Réunions
+                  </h3>
+                  <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1">
+                    Rencontres officielles et cultes
+                  </p>
                 </div>
-                <button className="flex items-center text-xs font-bold text-primary hover:text-primary/80 transition-colors space-x-1">
-                  <span>Voir tout</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                <Link
+                  href="/dashboard/meetings"
+                  className="p-1.5 rounded-lg bg-slate-50 dark:bg-navy-900 hover:bg-slate-100 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                >
+                  <CalendarDays className="w-4 h-4" />
+                </Link>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-slate-500 text-xs font-bold tracking-wider uppercase">
-                      <th className="pb-4">Nom complet</th>
-                      <th className="pb-4">Statut</th>
-                      <th className="pb-4">Grade & Échelon</th>
-                      <th className="pb-4">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50 text-sm font-medium text-slate-700">
-                    {displayMembers.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="py-12 text-center text-sm text-slate-400 font-medium">
-                          {fetchError ? "Impossible de joindre l'API. Veuillez vérifier la connexion." : "Aucun membre enregistré pour le moment."}
-                        </td>
-                      </tr>
-                    ) : (
-                      displayMembers.map((member, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="py-4 text-slate-900 font-semibold">{member.name}</td>
-                          <td className="py-4">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold tracking-wider ${
-                              member.status === "RESPONSABLE"
-                                ? "bg-primary/10 text-primary border border-primary/20"
-                                : member.status === "MEMBRE"
-                                ? "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20"
-                                : "bg-slate-100 text-slate-700 border border-slate-200"
-                            }`}>
-                              {member.status}
-                            </span>
-                          </td>
-                          <td className="py-4">
-                            {member.grade ? (
-                              <div className="flex items-center space-x-2">
-                                <span className="text-xs px-2 py-0.5 bg-slate-50 rounded border border-slate-100 font-semibold text-primary">
-                                  {member.grade}
-                                </span>
-                                <span className="text-xs px-2 py-0.5 bg-slate-50 rounded border border-slate-100 font-semibold text-secondary">
-                                  {member.echelon}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-400 text-xs">-</span>
-                            )}
-                          </td>
-                          <td className="py-4 text-slate-500 text-xs flex items-center space-x-1.5">
-                            <Clock className="w-3.5 h-3.5 text-slate-400" />
-                            <span>{member.date}</span>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Next meetings Panel */}
-            <div className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
-              <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 tracking-tight">Prochaines Réunions</h3>
-                  <p className="text-xs font-medium text-slate-500 mt-1">Rencontres officielles et cultes</p>
-                </div>
-                <button className="flex items-center text-xs font-bold text-primary hover:text-primary/80 transition-colors space-x-1">
-                  <span>Calendrier</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {displayMeetings.length === 0 ? (
-                  <div className="py-10 text-center text-sm text-slate-400 font-medium">
-                    {fetchError ? "Impossible de joindre l'API." : "Aucune réunion planifiée."}
+                  <div className="py-12 text-center text-xs font-bold text-slate-400 dark:text-slate-500">
+                    Aucune réunion planifiée pour le moment.
                   </div>
                 ) : (
                   displayMeetings.map((meeting, idx) => (
                     <div
                       key={idx}
-                      className="flex flex-col p-4 rounded-lg border-l-4 border-y border-r border-slate-100 bg-slate-50/20 hover:bg-slate-50 transition-all duration-300"
+                      className="p-3.5 rounded-xl border border-slate-100/80 dark:border-navy-700 bg-slate-50/20 dark:bg-navy-950/20 hover:bg-slate-50 dark:hover:bg-navy-900 transition-all flex flex-col gap-2"
                       style={{
+                        borderLeftWidth: "4px",
                         borderLeftColor: meeting.type === "CULTE" ? "#006C69" : meeting.type === "REPETITION" ? "#CEAD1E" : "#94A3B8"
                       }}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${
+                      <div className="flex items-center justify-between">
+                        <span className={`text-[9px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded ${
                           meeting.type === "CULTE"
-                            ? "bg-primary/10 text-primary"
+                            ? "bg-[#006C69]/10 text-[#006C69]"
                             : meeting.type === "REPETITION"
-                            ? "bg-secondary/10 text-secondary"
-                            : "bg-slate-100 text-slate-700"
+                            ? "bg-[#CEAD1E]/10 text-[#CEAD1E]"
+                            : "bg-slate-100 dark:bg-navy-700 text-slate-600 dark:text-slate-300"
                         }`}>
                           {meeting.type}
                         </span>
-                        <span className="text-[11px] font-semibold text-slate-500 flex items-center">
-                          <CalendarCheck className="w-3.5 h-3.5 mr-1 text-slate-400" />
+                        <span className="text-[10px] font-semibold text-slate-450 dark:text-slate-500 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
                           {meeting.date}
                         </span>
                       </div>
-                      <h4 className="text-sm font-bold text-slate-900">{meeting.title}</h4>
-                      <p className="text-xs font-medium text-slate-500 mt-1">{meeting.location}</p>
+                      <h4 className="text-xs font-bold text-slate-800 dark:text-white">
+                        {meeting.title}
+                      </h4>
+                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                        {meeting.location}
+                      </span>
                     </div>
                   ))
                 )}
               </div>
             </div>
-          </div>
+
+            <Link
+              href="/dashboard/meetings"
+              className="mt-6 flex items-center justify-center gap-1.5 w-full py-3 rounded-xl bg-slate-50 dark:bg-navy-900 hover:bg-slate-100/80 dark:hover:bg-navy-700/80 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors"
+            >
+              <span>Voir le calendrier complet</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </HorizonCard>
+        </div>
+
+        {/* Lower Members Table & Quick Navigation Actions */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Members Table */}
+          <HorizonCard className="xl:col-span-2">
+            <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-navy-700">
+              <div>
+                <h3 className="text-base font-extrabold text-slate-800 dark:text-white">
+                  Membres Récemment Enregistrés
+                </h3>
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1">
+                  Derniers enregistrements administratifs
+                </p>
+              </div>
+              <Link
+                href="/dashboard/members"
+                className="flex items-center gap-1 text-xs font-extrabold text-[#006C69] hover:underline"
+              >
+                <span>Voir tout</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-navy-700 text-slate-400 dark:text-slate-500 text-[10px] font-extrabold tracking-wider uppercase">
+                    <th className="pb-3 pr-4">Membre</th>
+                    <th className="pb-3 pr-4">Statut</th>
+                    <th className="pb-3 pr-4">Grade & Échelon</th>
+                    <th className="pb-3">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50 dark:divide-navy-750 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  {displayMembers.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-12 text-center text-xs font-bold text-slate-400 dark:text-slate-500">
+                        {fetchError
+                          ? "Impossible de charger les membres."
+                          : "Aucun membre enregistré récemment."}
+                      </td>
+                    </tr>
+                  ) : (
+                    displayMembers.map((member, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-navy-900/50 transition-colors">
+                        <td className="py-3.5 pr-4 flex items-center gap-3">
+                          {/* Avatar Circle with initials */}
+                          <div className="w-8 h-8 rounded-full bg-[#006C69]/10 text-[#006C69] font-extrabold flex items-center justify-center text-[10px]">
+                            {member.name.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase()}
+                          </div>
+                          <span className="font-extrabold text-slate-800 dark:text-white">
+                            {member.name}
+                          </span>
+                        </td>
+                        <td className="py-3.5 pr-4">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-extrabold tracking-wider uppercase ${
+                            member.status === "RESPONSABLE"
+                              ? "bg-[#006C69]/10 text-[#006C69]"
+                              : member.status === "MEMBRE"
+                              ? "bg-emerald-500/10 text-emerald-700"
+                              : "bg-slate-100 dark:bg-navy-700 text-slate-600 dark:text-slate-350"
+                          }`}>
+                            {member.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 pr-4">
+                          {member.grade ? (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] px-2 py-0.5 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700 rounded font-bold text-[#006C69]">
+                                {member.grade}
+                              </span>
+                              <span className="text-[10px] px-2 py-0.5 bg-slate-50 dark:bg-navy-900 border border-slate-100 dark:border-navy-700 rounded font-bold text-[#EC8001]">
+                                {member.echelon}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 dark:text-slate-650">—</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 text-slate-450 dark:text-slate-500 font-semibold">
+                          {member.date}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </HorizonCard>
+
+          {/* Quick Actions / Shortcuts Panel */}
+          <HorizonCard className="flex flex-col justify-between">
+            <div>
+              <div className="pb-4 mb-4 border-b border-slate-100 dark:border-navy-700">
+                <h3 className="text-base font-extrabold text-slate-800 dark:text-white">
+                  Raccourcis Administrateur
+                </h3>
+                <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mt-1">
+                  Accès rapides aux actions fréquentes
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-2.5">
+                <Link
+                  href="/dashboard/members?action=create"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-navy-700 bg-slate-50/30 hover:bg-slate-50 dark:hover:bg-navy-900 transition-all cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#006C69]/10 text-[#006C69] flex items-center justify-center font-bold text-xs">
+                    +
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-[#006C69] transition-colors">
+                      Ajouter un membre
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                      Enregistrer un nouveau fidèle
+                    </span>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/dashboard/groups"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-navy-700 bg-slate-50/30 hover:bg-slate-50 dark:hover:bg-navy-900 transition-all cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#EC8001]/10 text-[#EC8001] flex items-center justify-center font-bold text-xs">
+                    G
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-[#EC8001] transition-colors">
+                      Gérer les GEMs
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                      Assignations et rapports de cellule
+                    </span>
+                  </div>
+                </Link>
+
+                <Link
+                  href="/dashboard/profile"
+                  className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 dark:border-navy-700 bg-slate-50/30 hover:bg-slate-50 dark:hover:bg-navy-900 transition-all cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 text-[#8B5CF6] flex items-center justify-center">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-750 dark:text-slate-200 group-hover:text-[#8B5CF6] transition-colors">
+                      Paramètres profil
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                      Rôles, identifiants et accès
+                    </span>
+                  </div>
+                </Link>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-2">
+              <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 text-center">
+                Système ChurchFlow v1.0
+              </span>
+            </div>
+          </HorizonCard>
         </div>
       </div>
     </DashboardLayout>

@@ -17,12 +17,28 @@ const config: Config = {
       },
     },
     extend: {
+      boxShadow: {
+        glass: "0 8px 32px 0 rgba(0, 0, 0, 0.05)",
+        card: "0px 8px 24px rgba(0, 0, 0, 0.04)",
+        premium: "0px 10px 40px rgba(0, 108, 105, 0.06)",
+        "horizon-xs": "0px 3px 4px rgba(0, 0, 0, 0.03)",
+        "horizon-sm": "14px 17px 40px 4px rgba(112, 144, 176, 0.08)",
+        "horizon-md": "0px 18px 40px rgba(112, 144, 176, 0.12)",
+        "horizon-xl": "0px 25px 50px -12px rgba(112, 144, 176, 0.18)",
+        "horizon-card": "0px 3px 20px rgba(0, 108, 105, 0.05)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        navy: {
+          900: "#11153d",
+          800: "#1B2559",
+          700: "#24307a",
+          600: "#3652ba",
+        },
         primary: {
           DEFAULT: "#006C69", // Vert VH
           foreground: "#FFFFFF",
@@ -81,14 +97,8 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      fontFamily: {
-        sans: ["var(--font-inter)", "sans-serif"],
-      },
-      boxShadow: {
-        glass: "0 8px 32px 0 rgba(0, 0, 0, 0.05)",
-        card: "0px 8px 24px rgba(0, 0, 0, 0.04)",
-        premium: "0px 10px 40px rgba(0, 108, 105, 0.06)",
+        xl: "16px",
+        "2xl": "20px",
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

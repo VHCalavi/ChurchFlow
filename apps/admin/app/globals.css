@@ -2,37 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
+/* DM Sans — Police principale de Horizon UI */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&display=swap');
+
 @layer base {
   :root {
-    --background: 0 0% 100%; /* Pure White Background */
-    --foreground: 220 38% 3%; /* Deep Sleek Black Slate */
-    
-    --card: 0 0% 100%; /* White cards */
-    --card-foreground: 220 38% 3%;
-    
+    --background: 220 70% 97.8%;          /* #F4F7FE - Gris Horizon Light */
+    --foreground: 228 52% 22.4%;          /* #1B2559 - Bleu foncé Horizon */
+
+    --card: 0 0% 100%;                    /* Blanc pur */
+    --card-foreground: 228 52% 22.4%;     /* #1B2559 */
+
     --popover: 0 0% 100%;
-    --popover-foreground: 220 38% 3%;
-    
-    --primary: 178.6 100% 21.2%; /* Vert VH #006C69 */
+    --popover-foreground: 228 52% 22.4%;
+
+    --primary: 178.6 100% 21.2%;          /* #006C69 Vert VH */
     --primary-foreground: 0 0% 100%;
-    
-    --secondary: 49.3 89.2% 46.5%; /* Gold #CEAD1E */
+
+    --secondary: 49.3 89.2% 46.5%;        /* #CEAD1E Gold */
     --secondary-foreground: 178.6 100% 21.2%;
-    
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 220 20% 20%; /* Rich Slate instead of faded grey */
-    
-    --accent: 210 40% 96.1%;
+
+    --muted: 220 22% 72.9%;               /* #A3AED0 - Muted Gray Horizon */
+    --muted-foreground: 220 22% 72.9%;
+
+    --accent: 220 70% 97.8%;
     --accent-foreground: 178.6 100% 21.2%;
-    
-    --destructive: 8.8 82.2% 43.9%; /* System Error #CD3C14 */
+
+    --destructive: 8.8 82.2% 43.9%;
     --destructive-foreground: 210 40% 98%;
-    
-    --border: 214.3 31.8% 91.4%; /* Light Warm grey borders */
-    --input: 214.3 31.8% 91.4%;
+
+    --border: 224 43% 94.3%;              /* #E9EDF7 - Bordure Horizon */
+    --input: 224 43% 94.3%;
     --ring: 178.6 100% 21.2%;
-    
+
     --radius: 0.75rem;
+
+    /* ── Horizon UI Shadow Tokens (Exact template settings) ── */
+    --shadow-horizon-xs: 0px 3px 4px rgba(0, 0, 0, 0.02);
+    --shadow-horizon-sm: 14px 17px 40px 4px rgba(112, 144, 176, 0.08);
+    --shadow-horizon-md: 0px 18px 40px rgba(112, 144, 176, 0.12);
+    --shadow-horizon-xl: 0px 25px 50px -12px rgba(112, 144, 176, 0.18);
+    --shadow-horizon-card: 14px 17px 40px 4px rgba(112, 144, 176, 0.08);
+  }
+
+  .dark {
+    --background: 229 67% 12.7%;          /* #0b1437 - Navy 900 */
+    --foreground: 0 0% 100%;              /* Blanc */
+
+    --card: 229 60% 17%;                  /* #111c44 - Navy 800 */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 229 60% 17%;
+    --popover-foreground: 0 0% 100%;
+
+    --muted: 220 22% 72.9%;               /* #A3AED0 */
+    --muted-foreground: 220 22% 72.9%;
+
+    --accent: 229 60% 17%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 229 33% 25%;                /* #1b254b - Navy 700 style */
+    --input: 229 33% 25%;
+    --ring: 155 83% 41%;                  /* #12BC7E */
+
+    --primary: 155 83% 41%;               /* #12BC7E */
+    --primary-foreground: 229 67% 12.7%;
+
+    --shadow-horizon-xs: 0px 3px 4px rgba(0, 0, 0, 0.05);
+    --shadow-horizon-sm: 14px 17px 40px 4px rgba(112, 144, 176, 0.06);
+    --shadow-horizon-md: 0px 18px 40px rgba(0, 0, 0, 0.2);
+    --shadow-horizon-xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.3);
+    --shadow-horizon-card: 14px 17px 40px 4px rgba(112, 144, 176, 0.06);
   }
 }
 
@@ -42,24 +82,122 @@
   }
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-family: 'DM Sans', 'Inter', sans-serif;
+    letter-spacing: -0.5px;
   }
 }
 
-/* Custom premium styles */
-.glassmorphism {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(214, 209, 206, 0.3);
+/* ============================================================
+   HORIZON UI — Utility Classes & Components
+   ============================================================ */
+
+/* Horizon UI Card Component (Without hard borders, using soft shadow) */
+.horizon-card {
+  background: hsl(var(--card));
+  border-radius: 20px;
+  box-shadow: var(--shadow-horizon-card);
+  padding: 1.5rem;
+  border: none;
+  transition: box-shadow 0.25s ease;
+}
+.horizon-card:hover {
+  box-shadow: var(--shadow-horizon-md);
 }
 
-.text-gradient {
-  @apply bg-gradient-to-r from-primary via-primary-dark to-[#075E54] bg-clip-text text-transparent;
+/* Icon Box — Horizon UI */
+.horizon-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* Rounded full like Horizon UI */
+  flex-shrink: 0;
 }
 
-.bg-gradient-premium {
-  background: radial-gradient(100% 100% at 50% 0%, rgba(0, 108, 105, 0.04) 0%, rgba(206, 173, 30, 0.02) 50%, rgba(255, 255, 255, 0) 100%);
+/* Primary/Secondary Buttons in Horizon UI theme */
+.btn-horizon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
 }
 
+.btn-horizon-primary {
+  background-color: #006C69;
+  color: white;
+  box-shadow: 0px 4px 12px rgba(0, 108, 105, 0.1);
+}
+.dark .btn-horizon-primary {
+  background-color: #12BC7E;
+  color: #0b1437;
+  box-shadow: 0px 4px 12px rgba(18, 188, 126, 0.15);
+}
+.btn-horizon-primary:hover {
+  opacity: 0.95;
+  transform: translateY(-0.5px);
+}
 
+.btn-horizon-secondary {
+  background-color: #F4F7FE;
+  color: #1B2559;
+}
+.dark .btn-horizon-secondary {
+  background-color: #1b254b;
+  color: white;
+}
+.btn-horizon-secondary:hover {
+  background-color: #E9EDF7;
+}
+.dark .btn-horizon-secondary:hover {
+  background-color: #24307a;
+}
+
+/* Hero Banner dégradé VH — style Horizon marketplace banner */
+.horizon-hero-banner {
+  background: linear-gradient(135deg, #006C69 0%, #09B5AF 50%, #12BC7E 100%);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.horizon-hero-banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -8%;
+  width: 280px;
+  height: 280px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.horizon-hero-banner::after {
+  content: '';
+  position: absolute;
+  bottom: -35%;
+  right: 12%;
+  width: 180px;
+  height: 180px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Trend indicators — style Horizon */
+.horizon-trend-up   { color: #01B574; }
+.horizon-trend-down { color: #EE5D50; }
+
+/* Scrollbar masquée — style Horizon custom scrollbar */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Animation ──────────────────────────────────────────── */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up  { animation: fade-in-up 0.3s ease-out both; }

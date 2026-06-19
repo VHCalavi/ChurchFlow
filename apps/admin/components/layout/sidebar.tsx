@@ -24,7 +24,6 @@ interface SidebarItem {
   title: string;
   icon: React.ReactNode;
   href: string;
-  color: string;
   isDisabled?: boolean;
   requiredPermission?: string;
 }
@@ -37,7 +36,6 @@ interface SidebarProps {
 export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname() || "";
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [sidebarTheme, setSidebarTheme] = useState<"LIGHT" | "DARK">("LIGHT");
   const [mounted, setMounted] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -48,7 +46,6 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     return () => clearTimeout(timer);
   };
 
-  // Read theme securely from localStorage on mount
   useEffect(() => {
     setMounted(true);
     try {
@@ -66,8 +63,6 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     setSidebarTheme(nextTheme);
     try {
       localStorage.setItem("sidebar-theme", nextTheme);
-
-      // Also apply theme immediately as a global class or trigger a sync if needed
       document.dispatchEvent(
         new CustomEvent("sidebar-theme-changed", { detail: nextTheme }),
       );
@@ -79,63 +74,54 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const menuItems: SidebarItem[] = [
     {
       title: "Tableau de Bord",
-      icon: <LayoutDashboard className="w-5.5 h-5.5" />,
+      icon: <LayoutDashboard className="w-5 h-5" />,
       href: "/dashboard",
-      color: "#06A7B5",
     },
     {
       title: "Membres",
-      icon: <Users className="w-5.5 h-5.5" />,
+      icon: <Users className="w-5 h-5" />,
       href: "/dashboard/members",
-      color: "#006C69",
       requiredPermission: "read:members",
     },
     {
       title: "Groupes & GEM",
-      icon: <Network className="w-5.5 h-5.5" />,
+      icon: <Network className="w-5 h-5" />,
       href: "/dashboard/groups",
-      color: "#EC8001",
       requiredPermission: "read:groups",
     },
     {
       title: "Rencontres",
-      icon: <CalendarDays className="w-5.5 h-5.5" />,
+      icon: <CalendarDays className="w-5 h-5" />,
       href: "/dashboard/meetings",
-      color: "#8B5CF6",
       requiredPermission: "read:meetings",
     },
     {
       title: "Formations & Écoles",
-      icon: <GraduationCap className="w-5.5 h-5.5" />,
+      icon: <GraduationCap className="w-5 h-5" />,
       href: "/dashboard/formations",
-      color: "#0EA5E9",
     },
     {
       title: "Finances",
-      icon: <Wallet className="w-5.5 h-5.5" />,
+      icon: <Wallet className="w-5 h-5" />,
       href: "/dashboard/finances",
-      color: "#10B981",
       requiredPermission: "read:finances",
     },
     {
       title: "Administration",
-      icon: <Settings className="w-5.5 h-5.5" />,
+      icon: <Settings className="w-5 h-5" />,
       href: "/dashboard/administration",
-      color: "#F59E0B",
       requiredPermission: "manage:roles",
     },
     {
       title: "Permissions",
-      icon: <ShieldCheck className="w-5.5 h-5.5" />,
+      icon: <ShieldCheck className="w-5 h-5" />,
       href: "/dashboard/permissions",
-      color: "#EF4444",
       requiredPermission: "manage:roles",
     },
     {
       title: "Mon Profil",
-      icon: <UserCircle className="w-5.5 h-5.5" />,
+      icon: <UserCircle className="w-5 h-5" />,
       href: "/dashboard/profile",
-      color: "#A855F7",
     },
   ];
 
@@ -156,299 +142,225 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       })
     : [];
 
-  // Instantly read theme synchronously if on client to prevent FOUC / transition flash
-  let currentTheme = sidebarTheme;
-  if (mounted && typeof window !== "undefined") {
-    try {
-      const saved = localStorage.getItem("sidebar-theme");
-      if (saved === "DARK") {
-        currentTheme = "DARK";
-      } else if (saved === "LIGHT") {
-        currentTheme = "LIGHT";
-      }
-    } catch {}
-  }
+  const currentTheme = mounted ? sidebarTheme : "LIGHT";
+
+  /* ─── Horizon UI Exact Color Values ─────────────────────────── */
+  const isDark = currentTheme === "DARK";
+  /* Sidebar container */
+  const sidebarBg   = isDark ? "#111c44"  : "#ffffff";  /* navy.800 / white */
+  const sidebarShadow = "14px 17px 40px 4px rgba(112,144,176,0.08)";
+  /* Text colours matching secondaryGray tokens */
+  const textActive   = isDark ? "#ffffff"  : "#1B2559";  /* gray.700 / white */
+  const textInactive = "#A3AED0";                          /* secondaryGray.600 */
+  /* Icon colours */
+  const iconActive   = isDark ? "#ffffff"  : "#422AFB";  /* brand.500 */
+  /* Active bar */
+  const barColor     = isDark ? "#7551FF"  : "#422AFB";  /* brand.400 / brand.500 */
 
   return (
     <aside
       suppressHydrationWarning={true}
-      className={`fixed inset-y-0 left-0 z-20 flex flex-col h-screen border-r shadow-sm transition-all duration-300 ease-in-out ${
-        isCollapsed ? "w-20" : "w-72"
-      } ${
-        currentTheme === "DARK"
-          ? "bg-[#151521] border-[#1f1f2e] shadow-[0_0_30px_rgba(0,0,0,0.2)]"
-          : "bg-white border-slate-100"
+      style={{ background: sidebarBg, boxShadow: sidebarShadow }}
+      className={`fixed inset-y-0 left-0 z-35 flex flex-col h-screen transition-all duration-300 ease-in-out overflow-x-hidden ${
+        isCollapsed ? "w-[90px]" : "w-[300px]"
       }`}
     >
-      {/* Metronic-style Floating Toggle Button on Border */}
-      <button
-        onClick={onToggle}
-        className="absolute top-7 -right-3.5 z-30 flex items-center justify-center w-7 h-7 rounded-full border bg-white border-slate-200 text-slate-800 hover:bg-slate-50 hover:text-primary transition-all duration-300 shadow-md cursor-pointer focus:outline-none"
-        title={isCollapsed ? "Déplier le menu" : "Plier le menu"}
-      >
-        <ChevronLeft
-          className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`}
-        />
-      </button>
-
-      {/* Brand Header */}
-      <div
-        className={`flex items-center h-20 border-b transition-all duration-300 ${
-          isCollapsed ? "px-0 justify-center" : "px-6 justify-start space-x-3.5"
-        } ${currentTheme === "DARK" ? "border-[#1f1f2e]" : "border-slate-100"}`}
-      >
-        <Link href="/dashboard" className="flex items-center space-x-3">
-          <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-tr from-primary to-secondary shadow-sm flex-shrink-0">
-            <span className="font-extrabold text-lg text-white">CF</span>
+      {/* ── Brand ──────────────────────────────────────────────── */}
+      {/* Horizon: Flex column, logo centré, puis HSeparator */}
+      <div className="flex flex-col items-center pt-8 pb-5 px-4">
+        <Link href="/dashboard" className="flex items-center gap-2.5 mb-8">
+          <div
+            className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #006C69 0%, #09B5AF 100%)" }}
+          >
+            <span className="font-extrabold text-sm text-white">CF</span>
           </div>
           {!isCollapsed && (
-            <span
-              className={`font-extrabold text-lg tracking-tight transition-opacity duration-300 ${
-                currentTheme === "DARK" ? "text-white" : "text-primary"
-              }`}
-            >
-              ChurchFlow
-            </span>
+            <div className="flex flex-col">
+              <span
+                className="font-extrabold text-lg tracking-wide leading-none uppercase font-sans"
+                style={{ color: textActive }}
+              >
+                Church<span style={{ color: iconActive }}>Flow</span>
+              </span>
+              <span className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: textInactive }}>
+                Vase d&apos;Honneur
+              </span>
+            </div>
           )}
         </Link>
+
+        {/* HSeparator — ligne horizontale fine */}
+        <div
+          className="w-full h-[1px] mb-5"
+          style={{ background: isDark ? "rgba(255,255,255,0.1)" : "#E0E5F2" }}
+        />
       </div>
 
-      {/* Main Navigation */}
-      <nav
-        className={`flex-1 py-6 space-y-2 overflow-y-auto scrollbar-none transition-all duration-300 ${
-          isCollapsed ? "px-2" : "px-4"
-        }`}
-      >
-        {filteredMenuItems.map((item, index) => {
-          const isActive = pathname === item.href;
-          const isHovered = hoveredIndex === index;
-          const isDisabled = item.isDisabled;
+      {/* ── Navigation Links ───────────────────────────────────── */}
+      {/* Horizon: ps=20px, pe=16px, spacing 22/26px, py=5px, ps=10px par lien */}
+      <nav className="flex-1 overflow-y-auto scrollbar-none px-5">
+        <div className="flex flex-col gap-0.5">
+          {filteredMenuItems.map((item, index) => {
+            const isActive = pathname === item.href;
 
-          // Compute custom colored styles for a beautiful, premium, color-themed Metronic active/hover effect
-          let linkStyle: React.CSSProperties = {};
+            if (item.isDisabled) {
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => triggerToast(`Le module ${item.title} est en cours de développement.`)}
+                  className="w-full flex items-center py-[5px] ps-[10px] cursor-not-allowed opacity-40"
+                  style={{ gap: "26px" }}
+                >
+                  <span style={{ color: textInactive }}>{item.icon}</span>
+                  {!isCollapsed && (
+                    <span className="text-sm flex-1 text-left" style={{ color: textInactive }}>
+                      {item.title}
+                    </span>
+                  )}
+                </button>
+              );
+            }
 
-          if (isDisabled) {
-            linkStyle = {
-              backgroundColor: "transparent",
-              color: currentTheme === "DARK" ? "#4f5366" : "#cbd5e1",
-              borderColor: "transparent",
-              cursor: "not-allowed",
-            };
-          } else if (isActive) {
-            linkStyle = {
-              backgroundColor: `${item.color}15`, // 15% opacity hex alpha
-              color: item.color,
-              borderColor: `${item.color}25`, // 25% opacity hex alpha
-            };
-          } else if (isHovered) {
-            linkStyle = {
-              backgroundColor: `${item.color}08`, // 5% opacity hex alpha
-              color: item.color,
-              borderColor: "transparent",
-            };
-          } else {
-            linkStyle = {
-              backgroundColor: "transparent",
-              color: currentTheme === "DARK" ? "#a1a5b7" : "#475569", // Metronic silver vs slate-600
-              borderColor: "transparent",
-            };
-          }
-
-          const content = (
-            <div
-              className={`flex items-center w-full ${isCollapsed ? "justify-center" : "justify-between"}`}
-            >
-              <div
-                className={`flex items-center ${isCollapsed ? "justify-center" : "space-x-3.5"}`}
+            return (
+              <Link
+                key={index}
+                href={item.href}
+                className="flex items-center py-[5px] ps-[10px] w-full"
+                style={{ gap: isActive ? "22px" : "26px" }}
               >
+                {/* Icon */}
                 <span
-                  className={`transition-transform duration-200 flex items-center justify-center ${!isDisabled ? "group-hover:scale-105" : ""}`}
-                  style={{ color: isDisabled ? undefined : item.color }}
+                  className="flex items-center justify-center transition-colors duration-150 flex-shrink-0"
+                  style={{ color: isActive ? iconActive : textInactive, marginRight: "18px" }}
                 >
                   {item.icon}
                 </span>
+
+                {/* Label */}
                 {!isCollapsed && (
                   <span
-                    className={`text-sm tracking-wide transition-all duration-200 ${
-                      isActive ? "font-semibold" : "font-medium"
-                    }`}
+                    className="text-sm flex-1 text-left transition-colors duration-150"
                     style={{
-                      color: isDisabled
-                        ? currentTheme === "DARK"
-                          ? "#4f5366"
-                          : "#94a3b8"
-                        : isActive || isHovered
-                          ? item.color
-                          : currentTheme === "DARK"
-                            ? "#a1a5b7"
-                            : "#334155",
+                      color: isActive ? textActive : textInactive,
+                      fontWeight: isActive ? "700" : "400",
                     }}
                   >
                     {item.title}
                   </span>
                 )}
-              </div>
 
-              {!isCollapsed && (
-                <>
-                  {isDisabled && (
-                    <span className="text-[9px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded bg-slate-50 dark:bg-[#1a1a24] text-slate-400 dark:text-slate-500 border border-slate-200/60 dark:border-slate-800">
-                      Bientôt
-                    </span>
-                  )}
-                  {!isDisabled && isActive && (
-                    <div
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: item.color }}
-                    />
-                  )}
-                </>
-              )}
-            </div>
-          );
-
-          if (isDisabled) {
-            return (
-              <div key={index} className="relative">
-                <button
-                  type="button"
-                  title={
-                    isCollapsed
-                      ? `${item.title} (Bientôt disponible)`
-                      : undefined
-                  }
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  onClick={() =>
-                    triggerToast(
-                      `Le module ${item.title} est en cours de développement.`,
-                    )
-                  }
-                  style={linkStyle}
-                  className={`flex items-center rounded-xl transition-all duration-200 group border w-full ${
-                    isCollapsed ? "justify-center p-3" : "px-4 py-3"
-                  }`}
-                >
-                  {content}
-                </button>
-              </div>
-            );
-          }
-
-          return (
-            <div key={index} className="relative">
-              <Link
-                href={item.href || "#"}
-                title={isCollapsed ? item.title : undefined}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                style={linkStyle}
-                className={`flex items-center rounded-xl transition-all duration-200 group border ${
-                  isCollapsed
-                    ? "justify-center p-3"
-                    : "justify-between px-4 py-3"
-                }`}
-              >
-                {content}
+                {/* Active Bar — Horizon right border indicator */}
+                <div
+                  className="rounded-l-md flex-shrink-0 transition-all duration-200"
+                  style={{
+                    height: "36px",
+                    width: "4px",
+                    background: isActive ? barColor : "transparent",
+                    borderRadius: "5px",
+                  }}
+                />
               </Link>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </nav>
 
-      {/* Sidebar Footer Theme Switcher & User Info */}
-      <div className="flex flex-col flex-shrink-0">
-        {/* Rounded interactive Light/Dark toggle bar */}
+      {/* ── Footer ─────────────────────────────────────────────── */}
+      <div className="mt-auto">
+        {/* HSeparator */}
         <div
-          className={`flex items-center border-t py-3 transition-all duration-300 ${
-            isCollapsed ? "p-3 justify-center" : "px-6 py-3.5 justify-between"
-          } ${
-            currentTheme === "DARK" ? "border-[#1f1f2e]" : "border-slate-100"
+          className="mx-4 h-[1px] mb-4"
+          style={{ background: isDark ? "rgba(255,255,255,0.1)" : "#E0E5F2" }}
+        />
+
+        {/* Theme Toggle Row */}
+        <div
+          className={`flex items-center py-3 transition-all duration-300 ${
+            isCollapsed ? "px-4 justify-center" : "px-8 justify-between"
           }`}
         >
           {!isCollapsed && (
             <span
-              className={`text-[10px] font-extrabold uppercase tracking-widest ${
-                currentTheme === "DARK" ? "text-slate-400" : "text-slate-500"
-              }`}
+              className="text-[10px] font-bold uppercase tracking-wider"
+              style={{ color: textInactive }}
             >
               Mode Sombre
             </span>
           )}
           <button
             onClick={toggleTheme}
-            className={`p-2 rounded-xl border transition-all cursor-pointer ${
-              currentTheme === "DARK"
-                ? "bg-[#1e1e2d] border-[#2b2b40] text-amber-400 hover:bg-[#2b2b40] hover:text-amber-300 shadow-sm"
-                : "bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-700 shadow-xs"
-            }`}
-            title={
-              currentTheme === "DARK"
-                ? "Activer le Mode Clair"
-                : "Activer le Mode Sombre"
-            }
+            className="p-2 rounded-xl transition-all duration-200 cursor-pointer"
+            style={{
+              background: isDark ? "#0b1437" : "#F4F7FE",
+              color: isDark ? "#FFB547" : textInactive,
+            }}
           >
-            {currentTheme === "DARK" ? (
-              <Sun className="w-4 h-4" />
-            ) : (
-              <Moon className="w-4 h-4" />
-            )}
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
         </div>
 
-        {/* Sidebar Footer User Info */}
-        <div
-          className={`border-t transition-all duration-300 ${
-            isCollapsed ? "p-3" : "p-4"
-          } ${
-            currentTheme === "DARK"
-              ? "border-[#1f1f2e] bg-[#1a1a24]/30"
-              : "border-slate-100 bg-slate-50/50"
-          }`}
-        >
+        {/* User Info / Logout */}
+        <div className="p-4 pb-6">
           <div
-            className={`flex justify-center items-center rounded-xl ${isCollapsed ? "flex-col gap-2 justify-center" : "space-x-3 p-1"}`}
+            className={`flex items-center gap-3 rounded-2xl p-2 ${
+              isCollapsed ? "justify-center" : ""
+            }`}
+            style={{ background: isDark ? "#0b1437" : "#F4F7FE" }}
           >
-            {/* <div
-              className={`flex items-center justify-center w-10 h-10 rounded-xl border flex-shrink-0 shadow-sm ${
-                currentTheme === "DARK"
-                  ? "bg-[#1e1e2d] border-[#2b2b40]"
-                  : "bg-white border-slate-100"
-              }`}
+            {/* Collapse toggle */}
+            <button
+              onClick={onToggle}
+              className="p-1.5 rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer"
+              style={{ color: textInactive }}
+              title={isCollapsed ? "Développer" : "Réduire"}
             >
-              <UserCheck className="w-5 h-5 text-primary" />
-            </div> */}
+              <ChevronLeft
+                className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`}
+              />
+            </button>
+
             {!isCollapsed && (
-              <div className="flex-1 min-w-0"
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              >
+              <div className="flex-1 min-w-0">
                 <p
-                  className={`text-sm font-semibold truncate text-red-500`}
+                  className="text-xs font-bold truncate leading-tight"
+                  style={{ color: textActive }}
                 >
-                  Déconnexion
+                  {session?.user?.name || session?.user?.email || "Admin"}
+                </p>
+                <p
+                  className="text-[9px] font-semibold uppercase tracking-widest"
+                  style={{ color: textInactive }}
+                >
+                  Connecté
                 </p>
               </div>
             )}
-            {/* Logout Button */}
+
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              title="Se déconnecter"
-              className={`flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-xl border transition-all duration-200 cursor-pointer group ${
-                currentTheme === "DARK"
-                  ? "bg-[#1e1e2d] border-[#2b2b40] text-slate-500 hover:text-red-400 hover:border-red-500/30 hover:bg-red-500/10"
-                  : "bg-white border-slate-100 text-slate-400 hover:text-red-500 hover:border-red-100 hover:bg-red-50"
-              }`}
+              className="p-1.5 rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer"
+              style={{ color: "#EE5D50" }}
+              title="Déconnexion"
             >
-              <LogOut className="w-4 h-4 transition-transform duration-200 group-hover:-translate-x-0.5" />
+              <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Toast Notification for Disabled Modules */}
+      {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 left-6 z-50 flex items-center px-4 py-3 rounded-xl border border-amber-200 bg-amber-50 dark:bg-[#201d18] dark:border-amber-900/30 text-amber-800 dark:text-amber-300 text-sm font-semibold shadow-md animate-fade-in">
-          <ShieldCheck className="w-5 h-5 mr-2.5 flex-shrink-0 text-amber-500" />
+        <div
+          className="fixed bottom-6 left-6 z-50 flex items-center px-4 py-3 rounded-2xl text-xs font-bold shadow-lg animate-fade-in-up"
+          style={{
+            background: "#FFF6DA",
+            color: "#1B2559",
+            boxShadow: "14px 17px 40px 4px rgba(112,144,176,0.18)",
+          }}
+        >
+          <span className="w-2 h-2 rounded-full bg-amber-500 mr-2.5 animate-pulse" />
           <span>{toastMessage}</span>
         </div>
       )}

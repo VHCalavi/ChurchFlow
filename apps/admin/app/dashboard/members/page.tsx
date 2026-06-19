@@ -3,6 +3,9 @@
 import React, { useState, useEffect } from "react";
 import { MemberDetailsDrawer } from "../../../components/members/MemberDetailsDrawer";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
+import { StatCard } from "../../../components/ui/stat-card";
+import { HorizonCard } from "../../../components/ui/horizon-card";
+import { IconBox } from "../../../components/ui/icon-box";
 import { 
   Plus, 
   Search, 
@@ -283,71 +286,58 @@ export default function MembersPage() {
       <div className="w-full">
         {/* Notifications */}
       {notification && (
-        <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-premium animate-fade-in ${
+        <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-2xl shadow-horizon-sm animate-fade-in-up ${
           notification.type === "success" 
-            ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
-            : "bg-red-50 border-red-200 text-red-800"
+            ? "bg-[#E6FAF5] text-[#01B574]" 
+            : "bg-[#FEEFEE] text-[#EE5D50]"
         }`}>
-          <span className="text-sm font-semibold">{notification.message}</span>
+          <span className="text-sm font-bold">{notification.message}</span>
         </div>
       )}
 
       {/* Header Cards stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Registre</span>
-            <div className="p-2.5 rounded-lg bg-primary/5 text-primary border border-primary/10">
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-          <h3 className="text-3xl font-bold text-slate-900">{members.length}</h3>
-          <p className="text-xs font-medium text-slate-500 mt-1">Membres et sympathisants actifs</p>
-        </div>
+        <StatCard
+          title="Total Registre"
+          value={String(members.length)}
+          icon={<Users className="w-5 h-5" />}
+          iconBg="bg-[#F2EFFF] dark:bg-navy-700"
+          iconColorClass="text-[#422AFB] dark:text-white"
+        />
 
-        <div className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Responsables</span>
-            <div className="p-2.5 rounded-lg bg-secondary/5 text-secondary border border-secondary/10">
-              <ShieldAlert className="w-5 h-5" />
-            </div>
-          </div>
-          <h3 className="text-3xl font-bold text-slate-900">
-            {members.filter(m => m.status === "RESPONSABLE").length}
-          </h3>
-          <p className="text-xs font-medium text-slate-500 mt-1">Superviseurs, Serviteurs & Pasteurs</p>
-        </div>
+        <StatCard
+          title="Responsables"
+          value={String(members.filter(m => m.status === "RESPONSABLE").length)}
+          icon={<ShieldAlert className="w-5 h-5" />}
+          iconBg="bg-[#FFF6DA] dark:bg-navy-700"
+          iconColorClass="text-[#FFB547] dark:text-[#FFB547]"
+        />
 
-        <div className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Sympathisants</span>
-            <div className="p-2.5 rounded-lg bg-slate-50 text-slate-700 border border-slate-100">
-              <UserPlus className="w-5 h-5" />
-            </div>
-          </div>
-          <h3 className="text-3xl font-bold text-slate-900">
-            {members.filter(m => m.status === "SYMPATHISANT").length}
-          </h3>
-          <p className="text-xs font-medium text-slate-500 mt-1">Nouveaux arrivants et visiteurs</p>
-        </div>
+        <StatCard
+          title="Sympathisants"
+          value={String(members.filter(m => m.status === "SYMPATHISANT").length)}
+          icon={<UserPlus className="w-5 h-5" />}
+          iconBg="bg-[#E6FAF5] dark:bg-navy-700"
+          iconColorClass="text-[#01B574] dark:text-[#01B574]"
+        />
       </div>
 
       {/* Control bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-5 mb-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
+      <div className="horizon-card flex flex-col md:flex-row items-center justify-between gap-4 p-5 mb-6">
         <div className="relative w-full md:w-96">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-700" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A3AED0]" />
           <input
             type="text"
             placeholder="Rechercher par nom, email, tél..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-700/60 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+            className="w-full pl-11 pr-4 py-2.5 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
           />
         </div>
 
-        <div className="flex items-center space-x-3 w-full md:w-auto justify-end">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
           <div className="relative">
-            <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-700" />
+            <SlidersHorizontal className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#A3AED0]" />
             <select
               value={statusFilter}
               onChange={(e) => {
@@ -357,7 +347,7 @@ export default function MembersPage() {
                   setEchelonFilter("ALL");
                 }
               }}
-              className="pl-9 pr-8 py-2.5 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all"
+              className="pl-10 pr-8 py-2.5 text-xs font-bold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-card [&>option]:text-foreground"
             >
               <option value="ALL">Tous les Statuts</option>
               <option value="RESPONSABLE">Responsables</option>
@@ -372,7 +362,7 @@ export default function MembersPage() {
                 <select
                   value={gradeFilter}
                   onChange={(e) => setGradeFilter(e.target.value)}
-                  className="px-3 py-2.5 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all"
+                  className="px-4 py-2.5 text-xs font-bold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-card [&>option]:text-foreground"
                 >
                   <option value="ALL">Tous les Grades</option>
                   <option value="ASPIRANT">Aspirant</option>
@@ -388,7 +378,7 @@ export default function MembersPage() {
                 <select
                   value={echelonFilter}
                   onChange={(e) => setEchelonFilter(e.target.value)}
-                  className="px-3 py-2.5 text-sm font-bold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary cursor-pointer transition-all"
+                  className="px-4 py-2.5 text-xs font-bold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-card [&>option]:text-foreground"
                 >
                   <option value="ALL">Tous les Échelons</option>
                   <option value="C2">C2</option>
@@ -404,33 +394,33 @@ export default function MembersPage() {
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center space-x-2 px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium"
+            className="btn-horizon btn-horizon-primary flex items-center justify-center space-x-2 rounded-full !py-2.5 !px-5"
           >
-            <Plus className="w-4.5 h-4.5" />
+            <Plus className="w-4 h-4" />
             <span>Ajouter un membre</span>
           </button>
         </div>
       </div>
 
       {/* Members table */}
-      <div className="rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] overflow-hidden">
+      <div className="horizon-card overflow-hidden !p-0">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-sm font-semibold text-slate-700">Chargement du registre...</p>
+            <p className="text-sm font-semibold text-foreground">Chargement du registre...</p>
           </div>
         ) : filteredMembers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <Users className="w-12 h-12 text-slate-300 mb-4" />
-            <h4 className="text-base font-bold text-slate-900">Aucun membre trouvé</h4>
-            <p className="text-sm text-slate-500 mt-1">Essayez d&apos;ajuster vos critères de recherche ou de filtres.</p>
+            <Users className="w-12 h-12 text-muted-foreground mb-4" />
+            <h4 className="text-base font-bold text-foreground">Aucun membre trouvé</h4>
+            <p className="text-sm text-muted-foreground mt-1">Essayez d&apos;ajuster vos critères de recherche ou de filtres.</p>
           </div>
         ) : (
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                  <tr className="border-b border-border text-[#A3AED0] text-[11px] font-bold uppercase tracking-wider">
                     <th className="py-4 px-6">Nom Complet</th>
                     <th className="py-4 px-6">Statut</th>
                     <th className="py-4 px-6">Hiérarchie</th>
@@ -439,63 +429,63 @@ export default function MembersPage() {
                     <th className="py-4 px-6 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
+                <tbody className="divide-y divide-border text-sm font-medium text-foreground">
                   {paginatedMembers.map((member) => (
-                    <tr key={member.id} className="hover:bg-slate-50/30 transition-colors">
+                    <tr key={member.id} className="hover:bg-background/60 transition-colors">
                       <td className="py-4 px-6">
                         <div className="flex items-center space-x-3">
-                          <div className="w-9 h-9 rounded-lg bg-primary/5 flex items-center justify-center font-bold text-primary border border-primary/10">
+                          <div className="w-9 h-9 rounded-full bg-[#F2EFFF] dark:bg-navy-700 flex items-center justify-center font-bold text-sm text-[#422AFB] dark:text-white flex-shrink-0">
                             {member.firstName[0]}{member.lastName[0]}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-slate-900">{member.firstName} {member.lastName}</p>
-                            <p className="text-xs text-slate-500">{member.email || "Pas d'email"}</p>
+                            <p className="text-sm font-bold text-foreground leading-tight">{member.firstName} {member.lastName}</p>
+                            <p className="text-xs font-normal text-[#A3AED0] mt-0.5">{member.email || "Pas d'email"}</p>
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold tracking-wider ${
+                        <span className={`inline-flex items-center px-3.5 py-1.5 rounded-xl text-xs font-bold ${
                           member.status === "RESPONSABLE"
-                            ? "bg-primary/10 text-primary border border-primary/20"
+                            ? "bg-[#F2EFFF] text-[#422AFB] dark:bg-brand-400/10 dark:text-brand-400"
                             : member.status === "MEMBRE"
-                            ? "bg-emerald-500/10 text-emerald-700 border border-emerald-500/20"
-                            : "bg-slate-100 text-slate-700 border border-slate-200"
+                            ? "bg-[#E6FAF5] text-[#01B574] dark:bg-green-500/10 dark:text-green-500"
+                            : "bg-[#FFF6DA] text-[#FFB547] dark:bg-amber-500/10 dark:text-amber-500"
                         }`}>
                           {member.status}
                         </span>
                       </td>
                       <td className="py-4 px-6">
                         {member.status === "RESPONSABLE" && member.grade ? (
-                          <div className="flex items-center space-x-2">
-                            <span className="text-[11px] px-2 py-0.5 bg-slate-100 rounded font-semibold text-primary border border-slate-200">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="text-[11px] px-3 py-1 bg-[#F4F7FE] dark:bg-[#0B1437] text-foreground rounded-full font-bold">
                               {member.grade}
                             </span>
-                            <span className="text-[11px] px-2 py-0.5 bg-slate-100 rounded font-semibold text-secondary border border-slate-200">
+                            <span className="text-[11px] px-3 py-1 bg-primary/10 text-primary rounded-full font-bold">
                               {member.echelon}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-slate-400 text-xs">-</span>
+                          <span className="text-[#A3AED0] text-xs font-normal">—</span>
                         )}
                       </td>
-                      <td className="py-4 px-6 text-slate-800 text-xs font-semibold">{member.phone || "Non renseigné"}</td>
-                      <td className="py-4 px-6 text-slate-500 text-xs">
+                      <td className="py-4 px-6 text-foreground text-xs font-bold">{member.phone || "Non renseigné"}</td>
+                      <td className="py-4 px-6 text-[#A3AED0] text-xs font-normal">
                         {new Date(member.createdAt).toLocaleDateString("fr-FR")}
                       </td>
                       <td className="py-4 px-6">
-                        <div className="flex items-center justify-center space-x-2">
-                          <button onClick={() => setViewingMemberId(member.id)} className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-primary transition-all">
+                        <div className="flex items-center justify-center space-x-1">
+                          <button onClick={() => setViewingMemberId(member.id)} className="p-2 rounded-xl bg-transparent hover:bg-[#F2EFFF] dark:hover:bg-navy-700 text-[#A3AED0] hover:text-[#422AFB] dark:hover:text-white transition-all">
                             <Eye className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => openEditModal(member)}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 hover:text-secondary transition-all"
+                            className="p-2 rounded-xl bg-transparent hover:bg-[#FFF6DA] dark:hover:bg-navy-700 text-[#A3AED0] hover:text-[#FFB547] transition-all"
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => triggerArchiveMember(member)}
-                            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-red-600 transition-all"
+                            className="p-2 rounded-xl bg-transparent hover:bg-[#FEEFEE] dark:hover:bg-navy-700 text-[#A3AED0] hover:text-[#EE5D50] transition-all"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -509,22 +499,22 @@ export default function MembersPage() {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-                <span className="text-xs font-semibold text-slate-500">
+              <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+                <span className="text-xs font-semibold text-muted-foreground">
                   Page {currentPage} sur {totalPages} ({filteredMembers.length} membres)
                 </span>
                 <div className="flex items-center space-x-2">
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-50 transition-all cursor-pointer"
+                    className="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-background text-foreground hover:opacity-80 disabled:opacity-40 transition-all cursor-pointer"
                   >
                     Précédent
                   </button>
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    className="px-3.5 py-1.5 text-xs font-bold rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 disabled:opacity-50 transition-all cursor-pointer"
+                    className="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-primary text-white hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer"
                   >
                     Suivant
                   </button>
@@ -537,13 +527,13 @@ export default function MembersPage() {
 
       {/* Create Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg p-6 bg-white rounded-xl border border-slate-100 shadow-premium">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">Ajouter un Nouveau Membre</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg p-7 bg-card rounded-[20px] shadow-horizon-xl">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+              <h3 className="text-base font-extrabold text-foreground">Ajouter un Nouveau Membre</h3>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition-colors"
+                className="p-1.5 rounded-xl hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -552,54 +542,54 @@ export default function MembersPage() {
             <form onSubmit={handleCreateMember} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Prénom *</label>
+                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Prénom *</label>
                   <input
                     type="text"
                     required
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                    className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Nom de Famille *</label>
+                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Nom de Famille *</label>
                   <input
                     type="text"
                     required
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                    className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Email</label>
+                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                  className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Téléphone</label>
+                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Téléphone</label>
                 <input
                   type="tel"
                   placeholder="+229 ..."
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all"
+                  className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Statut Ecclésiastique *</label>
+                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Statut Ecclésiastique *</label>
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as "SYMPATHISANT" | "MEMBRE" | "RESPONSABLE")}
-                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                  className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all cursor-pointer [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white"
                 >
                   <option value="SYMPATHISANT">Sympathisant (Visiteur)</option>
                   <option value="MEMBRE">Membre (Fidèle)</option>
@@ -609,14 +599,14 @@ export default function MembersPage() {
 
               {/* Conditional Responsable Fields */}
               {status === "RESPONSABLE" && (
-                <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-primary/5 border border-primary/10 animate-fade-in">
+                <div className="grid grid-cols-2 gap-4 p-4 rounded-3xl bg-[#F4F7FE]/50 dark:bg-[#0B1437]/50 border border-[#E0E5F2] dark:border-white/5 animate-fade-in">
                   <div>
                     <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1.5">Grade *</label>
                     <select
                       value={grade}
                       onChange={(e) => setGrade(e.target.value)}
                       required
-                      className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                      className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all cursor-pointer [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white"
                     >
                       <option value="">Sélectionner...</option>
                       <option value="Aspirant">Aspirant</option>
@@ -633,7 +623,7 @@ export default function MembersPage() {
                       value={echelon}
                       onChange={(e) => setEchelon(e.target.value)}
                       required
-                      className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                      className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all cursor-pointer [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white"
                     >
                       <option value="">Sélectionner...</option>
                       <option value="C2">C2</option>
@@ -647,11 +637,11 @@ export default function MembersPage() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Rôle Système *</label>
+                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Rôle Système *</label>
                 <select
                   value={systemRole}
                   onChange={(e) => setSystemRole(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                  className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all cursor-pointer [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white"
                 >
                   <option value="MEMBRE">Membre (Fidèle)</option>
                   <option value="RESPONSABLE_GEM">Responsable de GEM</option>
@@ -661,18 +651,18 @@ export default function MembersPage() {
                 </select>
               </div>
 
-              <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-border mt-6">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all"
+                  className="btn-horizon btn-horizon-secondary"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium disabled:opacity-50"
+                  className="btn-horizon btn-horizon-primary disabled:opacity-50"
                 >
                   {submitting ? "Création..." : "Enregistrer"}
                 </button>
@@ -683,48 +673,48 @@ export default function MembersPage() {
       )}
       {/* Edit Modal */}
       {isEditModalOpen && editingMember && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-lg p-6 bg-white rounded-xl border border-slate-100 shadow-premium">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-900">Modifier — {editingMember.firstName} {editingMember.lastName}</h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="p-1.5 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg p-7 bg-card rounded-[20px] shadow-horizon-xl">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+              <h3 className="text-base font-extrabold text-foreground">Modifier — {editingMember.firstName} {editingMember.lastName}</h3>
+              <button onClick={() => setIsEditModalOpen(false)} className="p-1.5 rounded-xl hover:bg-background text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleEditMember} className="space-y-4">
+             <form onSubmit={handleEditMember} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Prénom *</label>
-                  <input type="text" required value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary" />
+                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Prénom *</label>
+                  <input type="text" required value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Nom *</label>
-                  <input type="text" required value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary" />
+                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Nom *</label>
+                  <input type="text" required value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Email</label>
-                  <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary" />
+                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
+                  <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Téléphone</label>
-                  <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary" />
+                  <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Téléphone</label>
+                  <input type="tel" value={editPhone} onChange={(e) => setEditPhone(e.target.value)} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Statut *</label>
-                <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as "SYMPATHISANT" | "MEMBRE" | "RESPONSABLE")} className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Statut *</label>
+                <select value={editStatus} onChange={(e) => setEditStatus(e.target.value as "SYMPATHISANT" | "MEMBRE" | "RESPONSABLE")} className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white">
                   <option value="SYMPATHISANT">Sympathisant</option>
                   <option value="MEMBRE">Membre</option>
                   <option value="RESPONSABLE">Responsable</option>
                 </select>
               </div>
               {editStatus === "RESPONSABLE" && (
-                <div className="grid grid-cols-2 gap-4 p-4 rounded-lg bg-primary/5 border border-primary/10">
+                <div className="grid grid-cols-2 gap-4 p-4 rounded-3xl bg-[#F4F7FE]/50 dark:bg-[#0B1437]/50 border border-[#E0E5F2] dark:border-white/5">
                   <div>
                     <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1.5">Grade *</label>
-                    <select value={editGrade} onChange={(e) => setEditGrade(e.target.value)} required className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                    <select value={editGrade} onChange={(e) => setEditGrade(e.target.value)} required className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white">
                       <option value="">Sélectionner...</option>
                       <option value="ASPIRANT">Aspirant</option>
                       <option value="SERVITEUR">Serviteur</option>
@@ -736,7 +726,7 @@ export default function MembersPage() {
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-primary uppercase tracking-wide mb-1.5">Échelon *</label>
-                    <select value={editEchelon} onChange={(e) => setEditEchelon(e.target.value)} required className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer">
+                    <select value={editEchelon} onChange={(e) => setEditEchelon(e.target.value)} required className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white">
                       <option value="">Sélectionner...</option>
                       <option value="C2">C2</option>
                       <option value="C5">C5</option>
@@ -749,11 +739,11 @@ export default function MembersPage() {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Rôle Système *</label>
+                <label className="block text-xs font-bold text-[#A3AED0] dark:text-gray-400 uppercase tracking-wider mb-1.5">Rôle Système *</label>
                 <select
                   value={editSystemRole}
                   onChange={(e) => setEditSystemRole(e.target.value)}
-                  className="w-full px-3.5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-slate-50 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all cursor-pointer"
+                  className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all cursor-pointer [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white"
                 >
                   <option value="MEMBRE">Membre (Fidèle)</option>
                   <option value="RESPONSABLE_GEM">Responsable de GEM</option>
@@ -762,9 +752,9 @@ export default function MembersPage() {
                   <option value="ADMIN">Administrateur</option>
                 </select>
               </div>
-              <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-100">
-                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all">Annuler</button>
-                <button type="submit" disabled={submitting} className="px-5 py-2.5 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all shadow-premium disabled:opacity-50">{submitting ? "Sauvegarde..." : "Enregistrer"}</button>
+              <div className="flex items-center justify-end space-x-3 pt-4 border-t border-border mt-6">
+                <button type="button" onClick={() => setIsEditModalOpen(false)} className="btn-horizon btn-horizon-secondary">Annuler</button>
+                <button type="submit" disabled={submitting} className="btn-horizon btn-horizon-primary disabled:opacity-50">{submitting ? "Sauvegarde..." : "Enregistrer"}</button>
               </div>
             </form>
           </div>
@@ -772,16 +762,16 @@ export default function MembersPage() {
       )}
       {/* Archive Confirmation Modal */}
       {isArchiveModalOpen && memberToArchive && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-md p-6 bg-white rounded-xl border border-slate-100 shadow-premium text-center flex flex-col items-center">
-            <div className="w-14 h-14 rounded-full bg-red-50 border border-red-100 flex items-center justify-center text-red-600 mb-4 animate-bounce">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md p-7 bg-card rounded-[20px] shadow-horizon-xl text-center flex flex-col items-center">
+            <div className="w-14 h-14 rounded-full bg-[#FEEFEE] flex items-center justify-center text-[#EE5D50] mb-5">
               <Trash2 className="w-6 h-6" />
             </div>
             
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Archiver le membre ?</h3>
+            <h3 className="text-lg font-extrabold text-foreground mb-2">Archiver le membre ?</h3>
             
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-              Êtes-vous sûr de vouloir archiver <span className="font-bold text-slate-800">{memberToArchive.firstName} {memberToArchive.lastName}</span> ? <br />
+            <p className="text-sm text-muted-foreground mb-7 leading-relaxed">
+              Êtes-vous sûr de vouloir archiver <span className="font-bold text-foreground">{memberToArchive.firstName} {memberToArchive.lastName}</span> ? <br />
               Cette action est réversible, mais il ne sera plus visible dans la liste active.
             </p>
 
@@ -792,7 +782,7 @@ export default function MembersPage() {
                   setIsArchiveModalOpen(false);
                   setMemberToArchive(null);
                 }}
-                className="flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition-all"
+                className="flex-1 btn-horizon btn-horizon-secondary"
               >
                 Annuler
               </button>
@@ -800,7 +790,7 @@ export default function MembersPage() {
                 type="button"
                 onClick={handleConfirmArchive}
                 disabled={archiving}
-                className="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-all shadow-premium disabled:opacity-50"
+                className="flex-1 btn-horizon bg-[#EE5D50] hover:opacity-90 text-white disabled:opacity-50"
               >
                 {archiving ? "Archivage..." : "Archiver"}
               </button>
