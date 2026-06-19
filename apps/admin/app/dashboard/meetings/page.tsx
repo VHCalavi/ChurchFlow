@@ -421,7 +421,7 @@ export default function MeetingsPage() {
         <div
           className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-2xl shadow-horizon-xl animate-fade-in ${
             notification.type === "success"
-              ? "bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20"
+              ? "bg-primary/10 text-primary border border-primary/20"
               : "bg-[#CD3C14]/10 text-[#CD3C14] border border-[#CD3C14]/20"
           }`}
         >
@@ -435,7 +435,7 @@ export default function MeetingsPage() {
           onClick={() => setActiveTab("stats")}
           className={`flex-1 flex items-center justify-center space-x-2 py-3 text-sm font-medium rounded-full transition-all duration-200 ${
             activeTab === "stats"
-              ? "bg-[#12BC7E] text-white shadow-horizon-xl"
+              ? "bg-primary text-white shadow-horizon-xl"
               : "text-muted-foreground hover:text-[#1B2559] hover:bg-[#F8F9FA]"
           }`}
         >
@@ -445,7 +445,7 @@ export default function MeetingsPage() {
           onClick={() => setActiveTab("manage")}
           className={`flex-1 flex items-center justify-center space-x-2 py-3 text-sm font-medium rounded-full transition-all duration-200 ${
             activeTab === "manage"
-              ? "bg-[#12BC7E] text-white shadow-horizon-xl"
+              ? "bg-primary text-white shadow-horizon-xl"
               : "text-muted-foreground hover:text-[#1B2559] hover:bg-[#F8F9FA]"
           }`}
         >
@@ -468,7 +468,7 @@ export default function MeetingsPage() {
                 placeholder="Rechercher une rencontre, culte..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                className="w-full pl-11 pr-4 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary transition-all"
               />
             </div>
 
@@ -504,7 +504,7 @@ export default function MeetingsPage() {
                       }}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
                         isSelected
-                          ? "bg-[#12BC7E] text-white shadow-sm"
+                          ? "bg-primary text-white shadow-sm"
                           : "bg-[#F4F7FE] text-[#1B2559] hover:bg-[#F8F9FA]"
                       }`}
                     >
@@ -526,7 +526,7 @@ export default function MeetingsPage() {
 
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-8 h-8 border-4 border-[#12BC7E] border-t-transparent rounded-full animate-spin mb-4" />
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
               <p className="text-sm font-bold text-foreground">
                 Chargement de l&apos;agenda...
               </p>
@@ -556,7 +556,7 @@ export default function MeetingsPage() {
                             meeting.type === "CULTE"
                               ? "bg-[#CEAD1E] text-white border border-[#CEAD1E]/20"
                               : meeting.type === "REPETITION"
-                                ? "bg-[#12BC7E] text-white border border-[#12BC7E]/20"
+                                ? "bg-primary text-white border border-primary/20"
                                 : "bg-[#A3AED0] text-[#1B2559] border border-[#A3AED0]/20"
                           }`}
                         >
@@ -568,7 +568,7 @@ export default function MeetingsPage() {
                           {meeting.tags.map((tag, index) => (
                             <span
                               key={index}
-                              className="inline-flex items-center px-2 py-0.5 text-sm font-medium rounded-full bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20"
+                              className="inline-flex items-center px-2 py-0.5 text-sm font-medium rounded-full bg-primary/10 text-primary border border-primary/20"
                             >
                               {tag}
                             </span>
@@ -620,7 +620,7 @@ export default function MeetingsPage() {
 
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:text-right">
                       <div className="flex items-center space-x-2 text-sm font-bold text-foreground">
-                        <MapPin className="w-4 h-4 text-[#12BC7E]" />
+                        <MapPin className="w-4 h-4 text-primary" />
                         <span>{meeting.location || "Temple principal"}</span>
                       </div>
 
@@ -643,7 +643,7 @@ export default function MeetingsPage() {
                         </Link>
                         <button
                           onClick={() => handleDuplicateMeeting(meeting)}
-                          className="p-2 rounded-full bg-transparent hover:bg-[#F4F7FE] text-muted-foreground hover:text-[#12BC7E] transition-all cursor-pointer"
+                          className="p-2 rounded-full bg-transparent hover:bg-[#F4F7FE] text-muted-foreground hover:text-primary transition-all cursor-pointer"
                           title="Dupliquer la rencontre"
                         >
                           <Copy className="w-3.5 h-3.5" />
@@ -697,7 +697,7 @@ export default function MeetingsPage() {
                   placeholder="Ex: Grand Culte Dominical, Rencontre des Bergers..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
 
@@ -709,7 +709,7 @@ export default function MeetingsPage() {
                   placeholder="Ordre du jour ou thématiques..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all h-20"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary transition-all h-20"
                 />
               </div>
 
@@ -730,7 +730,7 @@ export default function MeetingsPage() {
                           | "AUTRE",
                       )
                     }
-                    className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
+                    className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer transition-all"
                   >
                     <option value="CULTE">Culte de Célébration</option>
                     <option value="TEMPS_DE_PRIERE">
@@ -750,7 +750,7 @@ export default function MeetingsPage() {
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
+                    className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer transition-all"
                   />
                 </div>
               </div>
@@ -764,7 +764,7 @@ export default function MeetingsPage() {
                   placeholder="Ex: Temple principal, Salle Polyvalente, Zoom..."
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
 
@@ -777,7 +777,7 @@ export default function MeetingsPage() {
                   placeholder="Ex: Prédicateur externe, apportez des plats..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
 
@@ -841,7 +841,7 @@ export default function MeetingsPage() {
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
                     placeholder="Ajouter un tag..."
-                    className="flex-1 w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25 transition-all"
+                    className="flex-1 w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                     onKeyPress={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
@@ -958,7 +958,7 @@ export default function MeetingsPage() {
                   placeholder="Ex: Grand Culte Dominical, Rencontre des Bergers..."
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
 
@@ -970,7 +970,7 @@ export default function MeetingsPage() {
                   placeholder="Ordre du jour ou thématiques..."
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all h-20"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary transition-all h-20"
                 />
               </div>
 
@@ -991,7 +991,7 @@ export default function MeetingsPage() {
                           | "AUTRE",
                       )
                     }
-                    className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
+                    className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer transition-all"
                   >
                     <option value="CULTE">Culte de Célébration</option>
                     <option value="TEMPS_DE_PRIERE">
@@ -1011,7 +1011,7 @@ export default function MeetingsPage() {
                     required
                     value={editDate}
                     onChange={(e) => setEditDate(e.target.value)}
-                    className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
+                    className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer transition-all"
                   />
                 </div>
               </div>
@@ -1025,7 +1025,7 @@ export default function MeetingsPage() {
                   placeholder="Ex: Temple principal, Salle Polyvalente, Zoom..."
                   value={editLocation}
                   onChange={(e) => setEditLocation(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
 
@@ -1038,7 +1038,7 @@ export default function MeetingsPage() {
                   placeholder="Ex: Prédicateur externe, apportez des plats..."
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                 />
               </div>
 
@@ -1102,7 +1102,7 @@ export default function MeetingsPage() {
                     value={editNewTag}
                     onChange={(e) => setEditNewTag(e.target.value)}
                     placeholder="Ajouter un tag..."
-                    className="flex-1 w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25 transition-all"
+                    className="flex-1 w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                     onKeyPress={(e) => {
                       if (e.key === "Enter") {
                         e.preventDefault();
