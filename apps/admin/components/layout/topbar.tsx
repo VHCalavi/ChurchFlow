@@ -127,7 +127,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
           position: "fixed",
           top: "20px",
           right: "30px",
-          width: "calc(100vw - 350px)",
+          width: "calc(100vw - 380px)",
           zIndex: 10,
           minHeight: "75px",
           borderRadius: "16px",

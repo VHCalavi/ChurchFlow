@@ -161,7 +161,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     <aside
       suppressHydrationWarning={true}
       style={{ background: sidebarBg, boxShadow: sidebarShadow }}
-      className={`fixed inset-y-0 left-0 z-35 flex flex-col h-screen transition-all duration-300 ease-in-out overflow-x-hidden ${
+      className={`fixed inset-y-0 left-0 z-35 flex flex-col my-5 ml-4 rounded-2xl transition-all duration-300 ease-in-out overflow-x-hidden ${
         isCollapsed ? "w-[90px]" : "w-[300px]"
       }`}
     >
@@ -291,6 +291,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         />
 
         {/* Theme Toggle Row */}
+        {
+          false &&
         <div
           className={`flex items-center py-3 transition-all duration-300 ${
             isCollapsed ? "px-4 justify-center" : "px-8 justify-between"
@@ -319,6 +321,8 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             )}
           </button>
         </div>
+
+        }
 
         {/* User Info / Logout */}
         <div className="p-4 pb-6">

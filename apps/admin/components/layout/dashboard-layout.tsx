@@ -37,7 +37,7 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
       {/* Main Content Area (padding-left adjusts smoothly) */}
       <div 
         className={`flex flex-col min-h-screen transition-all duration-300 ease-in-out ${
-          mounted && isCollapsed ? "pl-[90px]" : "pl-[290px]"
+          mounted && isCollapsed ? "pl-[90px]" : "pl-[310px]"
         }`}
       >
         {/* Topbar (sticky) */}

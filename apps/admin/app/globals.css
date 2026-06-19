@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    --background: 220 70% 97.8%;          /* #F4F7FE - Gris Horizon Light */
+    --background: 220 70% 94.8%;          /* #F4F7FE - Gris Horizon Light */
     --foreground: 228 52% 22.4%;          /* #1B2559 - Bleu foncé Horizon */
 
     --card: 0 0% 100%;                    /* Blanc pur */
