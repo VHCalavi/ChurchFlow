@@ -59,6 +59,7 @@
 - `text-[taille fixe]` : **interdit** — toujours utiliser `text-sm`, `text-base`, `text-xl`, etc.
 - `uppercase` + `tracking-wider` : **interdit** — créer une hiérarchie avec les poids de police
 - `font-extrabold` (`800`) : **interdit** — toujours utiliser `font-bold` (`700`)
+- ❌ **À PROSCRIRE** : `text-[9px]`, `text-[10px]`, `text-[11px]`, `text-[12px]` — toujours utiliser `text-sm` minimum
 
 ### ✅ Exceptions autorisées (petits badges/tags uniquement)
 
