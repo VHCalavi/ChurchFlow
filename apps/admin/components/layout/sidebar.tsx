@@ -153,9 +153,9 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const textActive = isDark ? "#ffffff" : "#1B2559"; /* gray.700 / white */
   const textInactive = "#A3AED0"; /* secondaryGray.600 */
   /* Icon colours */
-  const iconActive = "#12BC7E"; /* Couleur primary VH */
+  const iconActive = "#006C69"; /* Couleur primary VH */
   /* Active bar */
-  const barColor = "#12BC7E"; /* Couleur primary VH */
+  const barColor = "#006C69"; /* Couleur primary VH */
 
   return (
     <aside
@@ -172,7 +172,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           <div
             className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
             style={{
-              background: "linear-gradient(135deg, #12BC7E 0%, #09B5AF 100%)",
+              background: "linear-gradient(135deg, #006C69 0%, #09B5AF 100%)",
             }}
           >
             <span className="font-extrabold text-sm text-white">CF</span>

@@ -114,6 +114,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
   const iconCls = isDark ? "text-white" : "text-[#A3AED0]"; // gray.400
   const textCls = isDark ? "text-white" : "text-[#1B2559]"; // navy.700
   const subTextCls = isDark ? "text-white/70" : "text-[#707EAE]"; // gray.700
+  const primaryColor = "#006C69"; // Couleur primaire VH
 
   return (
     <>
@@ -219,6 +220,8 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
           </button>
 
           {/* Theme toggle — IoMdMoon / IoMdSunny, me 10px */}
+          {
+false &&
           <button
             onClick={toggleTheme}
             className={`p-0 mr-[10px] ${iconCls} hover:opacity-70 transition-all`}
@@ -231,14 +234,15 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
               <Moon className="w-[18px] h-[18px]" />
             )}
           </button>
+          }
 
-          {/* Avatar — bg #11047A, 40×40, white, cursor pointer */}
+          {/* Avatar — bg primaryColor, 40×40, white, cursor pointer */}
           <div className="relative">
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
               className="flex items-center justify-center font-bold text-sm text-white transition-opacity hover:opacity-90 focus:outline-none"
               style={{
-                background: "#11047A",
+                background: primaryColor,
                 width: "40px",
                 height: "40px",
                 borderRadius: "50%",
@@ -297,18 +301,22 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
                         setIsProfileOpen(false);
                         signOut({ callbackUrl: "/login" });
                       }}
-                      className="flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium text-[#EE5D50] transition-all w-full text-left"
-                      style={{ borderRadius: "8px" }}
+                      className="flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition-all w-full text-left"
+                      style={{
+                        borderRadius: "8px",
+                        background: isDark ? "rgba(18,188,126,0.1)" : "#E6FAF5",
+                        color: primaryColor,
+                      }}
                       onMouseEnter={(e) =>
                         (e.currentTarget.style.background = isDark
-                          ? "rgba(238,93,80,0.1)"
-                          : "#FEEFEE")
+                          ? "rgba(18,188,126,0.2)"
+                          : "#D6FAF1")
                       }
                       onMouseLeave={(e) =>
-                        (e.currentTarget.style.background = "transparent")
+                        (e.currentTarget.style.background = isDark ? "rgba(18,188,126,0.1)" : "#E6FAF5")
                       }
                     >
-                      <LogOut className="w-4 h-4" />
+                      <LogOut className="w-4 h-4" style={{ color: primaryColor }} />
                       Se déconnecter
                     </button>
                   </div>
@@ -354,7 +362,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
             <h2 className={`text-base font-bold ${textCls}`}>Notifications</h2>
             <button
               className="text-xs font-semibold"
-              style={{ color: isDark ? "#7551FF" : "#422AFB" }}
+              style={{ color: primaryColor }}
             >
               Tout marquer comme lu
             </button>
@@ -388,8 +396,8 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
               className={`py-4 px-3 text-xs font-bold border-b-2 transition-all ${
                 activeNotifTab === tab
                   ? isDark
-                    ? "border-[#7551FF] text-[#7551FF]"
-                    : "border-[#422AFB] text-[#422AFB]"
+                    ? `border-${primaryColor} text-${primaryColor}`
+                    : `border-${primaryColor} text-${primaryColor}`
                   : `border-transparent ${iconCls} hover:opacity-70`
               }`}
             >
@@ -423,7 +431,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
             <div className="relative flex-shrink-0">
               <div
                 className="w-10 h-10 rounded-full text-white flex items-center justify-center font-bold text-xs"
-                style={{ background: "#11047A" }}
+                style={{ background: primaryColor }}
               >
                 JL
               </div>
@@ -438,7 +446,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
                 mentionné dans{" "}
                 <span
                   className="font-bold"
-                  style={{ color: isDark ? "#7551FF" : "#422AFB" }}
+                  style={{ color: primaryColor }}
                 >
                   Membres Actifs
                 </span>
@@ -465,7 +473,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
             style={{ borderTop: `1px solid ${borderColor}` }}
           >
             <div className="relative flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xs">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primaryColor to-emerald-600 text-white flex items-center justify-center font-bold text-xs">
                 LA
               </div>
             </div>
@@ -475,7 +483,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
                 jour{" "}
                 <span
                   className="font-bold"
-                  style={{ color: isDark ? "#7551FF" : "#422AFB" }}
+                  style={{ color: primaryColor }}
                 >
                   Permissions Équipe
                 </span>
@@ -487,8 +495,8 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
                 <span
                   className="text-[9px] font-bold px-2 py-0.5 rounded"
                   style={{
-                    background: isDark ? "rgba(117,81,255,0.15)" : "#F2EFFF",
-                    color: isDark ? "#7551FF" : "#422AFB",
+                    background: isDark ? `rgba(18,188,126,0.15)` : "#E6FAF5",
+                    color: primaryColor,
                   }}
                 >
                   Responsable
@@ -497,7 +505,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
                   className="text-[9px] font-bold px-2 py-0.5 rounded"
                   style={{
                     background: isDark ? "rgba(1,181,116,0.1)" : "#E6FAF5",
-                    color: "#01B574",
+                    color: primaryColor,
                   }}
                 >
                   GEM
@@ -527,7 +535,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
           <button
             onClick={() => setIsNotifOpen(false)}
             className="w-full py-3 text-xs font-bold text-white transition-all"
-            style={{ borderRadius: "16px", background: "#422AFB" }}
+            style={{ borderRadius: "16px", background: primaryColor }}
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
@@ -598,8 +606,8 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
                   className={`py-3.5 px-3 text-xs font-bold border-b-2 whitespace-nowrap transition-all ${
                     activeSearchTab === tab.id
                       ? isDark
-                        ? "border-[#7551FF] text-[#7551FF]"
-                        : "border-[#422AFB] text-[#422AFB]"
+                        ? `border-${primaryColor} text-${primaryColor}`
+                        : `border-${primaryColor} text-${primaryColor}`
                       : `border-transparent ${iconCls} hover:opacity-70`
                   }`}
                 >
@@ -630,15 +638,15 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
                       href: "/dashboard/profile",
                       icon: <User className="w-4 h-4" />,
                       label: "Mon profil",
-                      bg: "#F2EFFF",
-                      color: "#422AFB",
+                      bg: "#E6FAF5",
+                      color: primaryColor,
                     },
                     {
                       href: "/dashboard/administration",
                       icon: <Settings className="w-4 h-4" />,
                       label: "Configuration de l'application",
                       bg: "#E6FAF5",
-                      color: "#01B574",
+                      color: primaryColor,
                     },
                   ].map(({ href, icon, label, bg, color }) => (
                     <Link
