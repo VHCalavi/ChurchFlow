@@ -122,10 +122,10 @@ export default function AttendancePage() {
           {/* Meeting Info + Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2 p-5 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Réunion</p>
+              <p className="text-sm font-bold text-slate-500 uppercase tracking-wide mb-1">Réunion</p>
               <h2 className="text-lg font-bold text-slate-900">{meeting?.title}</h2>
               <p className="text-sm text-slate-500 mt-1">{meeting?.date ? new Date(meeting.date).toLocaleDateString("fr-FR", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) : ""}</p>
-              {meeting?.location && <p className="text-xs text-slate-400 mt-0.5">{meeting.location}</p>}
+              {meeting?.location && <p className="text-sm text-slate-400 mt-0.5">{meeting.location}</p>}
             </div>
             {[
               { label: "Présents (session)", value: presentCount, color: "text-emerald-600" },
@@ -133,7 +133,7 @@ export default function AttendancePage() {
               { label: "Taux (enregistré)", value: `${stats?.attendanceRate ?? 0}%`, color: "text-secondary" },
             ].map(s => (
               <div key={s.label} className="p-5 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] flex flex-col justify-between">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">{s.label}</p>
+                <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">{s.label}</p>
                 <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
               </div>
             ))}
@@ -146,9 +146,9 @@ export default function AttendancePage() {
               <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Rechercher un membre..." className="w-full pl-9 pr-4 py-2 text-sm rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-primary" />
             </div>
             <div className="flex items-center space-x-2">
-              <button onClick={() => markAll("PRESENT")} className="px-3 py-2 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all">Tout présent</button>
-              <button onClick={() => markAll("ABSENT")} className="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-all">Tout absent</button>
-              <button onClick={handleSave} disabled={saving} className="flex items-center space-x-2 px-4 py-2 text-xs font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all disabled:opacity-50">
+              <button onClick={() => markAll("PRESENT")} className="px-3 py-2 text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-all">Tout présent</button>
+              <button onClick={() => markAll("ABSENT")} className="px-3 py-2 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-all">Tout absent</button>
+              <button onClick={handleSave} disabled={saving} className="flex items-center space-x-2 px-4 py-2 text-sm font-bold text-white bg-primary hover:bg-primary/90 rounded-lg transition-all disabled:opacity-50">
                 <Save className="w-3.5 h-3.5" /><span>{saving ? "Enregistrement..." : "Enregistrer"}</span>
               </button>
             </div>
@@ -158,7 +158,7 @@ export default function AttendancePage() {
           <div className="rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)] overflow-hidden">
             <div className="px-6 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center space-x-2">
               <Users className="w-4 h-4 text-slate-400" />
-              <p className="text-xs font-bold text-slate-600 uppercase tracking-wide">{filtered.length} membre(s)</p>
+              <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">{filtered.length} membre(s)</p>
             </div>
             {filtered.length === 0 ? (
               <p className="text-center py-10 text-sm text-slate-500">Aucun résultat.</p>
@@ -172,7 +172,7 @@ export default function AttendancePage() {
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-slate-800">{row.firstName} {row.lastName}</p>
-                        <p className="text-xs text-slate-500">{row.status}{row.grade ? ` — ${row.grade}` : ""}</p>
+                        <p className="text-sm text-slate-500">{row.status}{row.grade ? ` — ${row.grade}` : ""}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">

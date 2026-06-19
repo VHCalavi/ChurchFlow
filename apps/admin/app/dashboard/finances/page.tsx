@@ -342,7 +342,7 @@ export default function FinancesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
         <div className="col-span-1 sm:col-span-2 xl:col-span-1 horizon-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider">
+            <span className="text-sm font-bold text-[#A3AED0] uppercase tracking-wider">
               Solde Global
             </span>
             <div className="p-2.5 rounded-full bg-[#12BC7E] text-white">
@@ -352,14 +352,14 @@ export default function FinancesPage() {
           <p className="text-2xl font-bold text-[#6D6E71]">
             {dashboard ? fmt(dashboard.solde) : "—"}
           </p>
-          <p className="text-xs font-normal text-[#A3AED0] mt-2">
+          <p className="text-sm font-normal text-[#A3AED0] mt-2">
             Trésorerie disponible
           </p>
         </div>
 
         <div className="horizon-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider">
+            <span className="text-sm font-bold text-[#A3AED0] uppercase tracking-wider">
               Entrées / mois
             </span>
             <div className="p-2.5 rounded-full bg-[#12BC7E] text-white">
@@ -369,14 +369,14 @@ export default function FinancesPage() {
           <p className="text-xl font-bold text-[#12BC7E]">
             {dashboard ? fmt(dashboard.entreesThisMois) : "—"}
           </p>
-          <p className="text-xs font-normal text-[#A3AED0] mt-2">
+          <p className="text-sm font-normal text-[#A3AED0] mt-2">
             Offrandes, dîmes, dons
           </p>
         </div>
 
         <div className="horizon-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider">
+            <span className="text-sm font-bold text-[#A3AED0] uppercase tracking-wider">
               Fonctionnement
             </span>
             <div className="p-2.5 rounded-full bg-[#CEAD1E] text-white">
@@ -386,14 +386,14 @@ export default function FinancesPage() {
           <p className="text-xl font-bold text-[#CEAD1E]">
             {dashboard ? fmt(dashboard.sortiesByFamily.FONCTIONNEMENT) : "—"}
           </p>
-          <p className="text-xs font-normal text-[#A3AED0] mt-2">
+          <p className="text-sm font-normal text-[#A3AED0] mt-2">
             Charges courantes
           </p>
         </div>
 
         <div className="horizon-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider">
+            <span className="text-sm font-bold text-[#A3AED0] uppercase tracking-wider">
               Investissement
             </span>
             <div className="p-2.5 rounded-full bg-[#707EAE] text-white">
@@ -403,14 +403,14 @@ export default function FinancesPage() {
           <p className="text-xl font-bold text-[#707EAE]">
             {dashboard ? fmt(dashboard.sortiesByFamily.INVESTISSEMENT) : "—"}
           </p>
-          <p className="text-xs font-normal text-[#A3AED0] mt-2">
+          <p className="text-sm font-normal text-[#A3AED0] mt-2">
             Équipements, sono…
           </p>
         </div>
 
         <div className="horizon-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider">
+            <span className="text-sm font-bold text-[#A3AED0] uppercase tracking-wider">
               Exceptionnel
             </span>
             <div className="p-2.5 rounded-full bg-[#1B2559] text-white">
@@ -420,7 +420,7 @@ export default function FinancesPage() {
           <p className="text-xl font-bold text-[#1B2559]">
             {dashboard ? fmt(dashboard.sortiesByFamily.EXCEPTIONNEL) : "—"}
           </p>
-          <p className="text-xs font-normal text-[#A3AED0] mt-2">
+          <p className="text-sm font-normal text-[#A3AED0] mt-2">
             CJSA, séminaires…
           </p>
         </div>
@@ -429,7 +429,7 @@ export default function FinancesPage() {
       {/* Chart 6 mois */}
       {dashboard && (
         <div className="horizon-card mb-6 p-6">
-          <h3 className="text-xs font-bold text-[#A3AED0] mb-4">
+          <h3 className="text-sm font-bold text-[#A3AED0] mb-4">
             Évolution mensuelle — 6 derniers mois
           </h3>
           <div className="flex items-end gap-3 h-32">
@@ -456,18 +456,18 @@ export default function FinancesPage() {
                     title={`Sorties: ${fmt(m.sorties)}`}
                   />
                 </div>
-                <span className="text-xs font-normal text-[#A3AED0] capitalize">
+                <span className="text-sm font-normal text-[#A3AED0] capitalize">
                   {m.label}
                 </span>
               </div>
             ))}
           </div>
           <div className="flex items-center gap-4 mt-2">
-            <span className="flex items-center gap-1.5 text-xs text-[#A3AED0]">
+            <span className="flex items-center gap-1.5 text-sm text-[#A3AED0]">
               <span className="w-3 h-3 rounded-sm bg-[#12BC7E]/80 inline-block" />{" "}
               Entrées
             </span>
-            <span className="flex items-center gap-1.5 text-xs text-[#A3AED0]">
+            <span className="flex items-center gap-1.5 text-sm text-[#A3AED0]">
               <span className="w-3 h-3 rounded-sm bg-[#CD3C14]/70 inline-block" />{" "}
               Sorties
             </span>
@@ -493,7 +493,7 @@ export default function FinancesPage() {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="pl-8 pr-3 py-2.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#006C69]"
+              className="pl-8 pr-3 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#006C69]"
             >
               <option value="ALL">Tous les flux</option>
               <option value="ENTREE">Entrées</option>
@@ -503,7 +503,7 @@ export default function FinancesPage() {
           <select
             value={filterFamily}
             onChange={(e) => setFilterFamily(e.target.value)}
-            className="px-3 py-2.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#006C69]"
+            className="px-3 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#006C69]"
           >
             <option value="ALL">Toutes familles</option>
             <option value="FONCTIONNEMENT">Fonctionnement</option>
@@ -513,7 +513,7 @@ export default function FinancesPage() {
           <select
             value={filterPayment}
             onChange={(e) => setFilterPayment(e.target.value)}
-            className="px-3 py-2.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#006C69]"
+            className="px-3 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#006C69]"
           >
             <option value="ALL">Tous modes</option>
             <option value="ESPECES">Espèces</option>
@@ -523,7 +523,7 @@ export default function FinancesPage() {
           </select>
           <button
             onClick={() => setCatPanelOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2.5 text-sm font-semibold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-colors"
           >
             <Settings2 className="w-3.5 h-3.5" /> Catégories
           </button>
@@ -553,7 +553,7 @@ export default function FinancesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/60 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <tr className="border-b border-slate-100 bg-slate-50/60 text-sm font-bold uppercase tracking-wider text-slate-500">
                   <th className="py-3 px-5">Libellé</th>
                   <th className="py-3 px-5">Catégorie</th>
                   <th className="py-3 px-5">Mode</th>
@@ -571,33 +571,33 @@ export default function FinancesPage() {
                     <td className="py-3.5 px-5">
                       <p className="font-semibold text-slate-900">{tx.label}</p>
                       {tx.donorName && (
-                        <p className="text-xs text-slate-400">{tx.donorName}</p>
+                        <p className="text-sm text-slate-400">{tx.donorName}</p>
                       )}
                     </td>
                     <td className="py-3.5 px-5">
                       <div className="flex flex-col gap-1">
                         {tx.expenseFamily ? (
                           <span
-                            className={`inline-flex px-2 py-0.5 rounded-md text-xs font-bold border w-fit ${FAMILY_COLORS[tx.expenseFamily]}`}
+                            className={`inline-flex px-2 py-0.5 rounded-md text-sm font-bold border w-fit ${FAMILY_COLORS[tx.expenseFamily]}`}
                           >
                             {FAMILY_LABELS[tx.expenseFamily]}
                           </span>
                         ) : (
-                          <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 w-fit">
+                          <span className="inline-flex px-2 py-0.5 rounded-md text-sm font-bold border bg-emerald-50 text-emerald-700 border-emerald-200 w-fit">
                             Entrée
                           </span>
                         )}
                         {tx.category && (
-                          <span className="text-xs text-slate-500">
+                          <span className="text-sm text-slate-500">
                             {tx.category.name}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="py-3.5 px-5 text-xs text-slate-500 font-medium">
+                    <td className="py-3.5 px-5 text-sm text-slate-500 font-medium">
                       {PAYMENT_LABELS[tx.paymentMethod]}
                     </td>
-                    <td className="py-3.5 px-5 text-xs text-slate-500">
+                    <td className="py-3.5 px-5 text-sm text-slate-500">
                       {new Date(tx.date).toLocaleDateString("fr-FR")}
                     </td>
                     <td
@@ -649,7 +649,7 @@ export default function FinancesPage() {
             <form onSubmit={handleSubmit} className="p-5 space-y-4">
               {/* Libellé */}
               <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1.5">
                   Libellé *
                 </label>
                 <input
@@ -664,7 +664,7 @@ export default function FinancesPage() {
 
               {/* Flux toggle */}
               <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1.5">
                   Type de flux *
                 </label>
                 <div className="flex rounded-lg border border-slate-200 overflow-hidden">
@@ -697,7 +697,7 @@ export default function FinancesPage() {
               {/* Famille (sorties) */}
               {form.type === "SORTIE" && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1.5">
                     Famille de dépense *
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -714,7 +714,7 @@ export default function FinancesPage() {
                         onClick={() =>
                           setForm({ ...form, expenseFamily: f, categoryId: "" })
                         }
-                        className={`py-2 px-2 text-xs font-bold rounded-lg border transition-colors ${
+                        className={`py-2 px-2 text-sm font-bold rounded-lg border transition-colors ${
                           form.expenseFamily === f
                             ? FAMILY_COLORS[f]
                             : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
@@ -730,7 +730,7 @@ export default function FinancesPage() {
               {/* Sous-catégorie */}
               {(form.type === "ENTREE" || form.expenseFamily) && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1.5">
                     Sous-catégorie
                   </label>
                   <div className="relative">
@@ -756,7 +756,7 @@ export default function FinancesPage() {
               {/* Montant + Date */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1.5">
                     Montant (F CFA) *
                   </label>
                   <input
@@ -771,7 +771,7 @@ export default function FinancesPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1.5">
                     Date *
                   </label>
                   <input
@@ -786,7 +786,7 @@ export default function FinancesPage() {
 
               {/* Mode paiement */}
               <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1.5">
                   Mode de règlement *
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -802,7 +802,7 @@ export default function FinancesPage() {
                       key={m}
                       type="button"
                       onClick={() => setForm({ ...form, paymentMethod: m })}
-                      className={`py-2 text-xs font-semibold rounded-lg border transition-colors ${
+                      className={`py-2 text-sm font-semibold rounded-lg border transition-colors ${
                         form.paymentMethod === m
                           ? "bg-[#006C69] text-white border-[#006C69]"
                           : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
@@ -817,7 +817,7 @@ export default function FinancesPage() {
               {/* Donateur */}
               {form.type === "ENTREE" && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1.5">
                     Donateur (optionnel)
                   </label>
                   <input
@@ -834,7 +834,7 @@ export default function FinancesPage() {
 
               {/* Notes */}
               <div>
-                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1.5">
                   Notes
                 </label>
                 <textarea
@@ -847,7 +847,7 @@ export default function FinancesPage() {
               </div>
 
               {formError && (
-                <p className="text-xs font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
+                <p className="text-sm font-semibold text-red-600 bg-red-50 px-3 py-2 rounded-lg border border-red-200">
                   {formError}
                 </p>
               )}
@@ -930,7 +930,7 @@ export default function FinancesPage() {
                 onSubmit={handleAddCategory}
                 className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3"
               >
-                <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">
                   Nouvelle catégorie
                 </p>
                 <input
@@ -945,7 +945,7 @@ export default function FinancesPage() {
                   <select
                     value={newCatFlow}
                     onChange={(e) => setNewCatFlow(e.target.value as FlowType)}
-                    className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#006C69] cursor-pointer"
+                    className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#006C69] cursor-pointer"
                   >
                     <option value="ENTREE">Entrée</option>
                     <option value="SORTIE">Sortie</option>
@@ -956,7 +956,7 @@ export default function FinancesPage() {
                       onChange={(e) =>
                         setNewCatFamily(e.target.value as ExpenseFamily)
                       }
-                      className="flex-1 px-3 py-2 text-xs rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#006C69] cursor-pointer"
+                      className="flex-1 px-3 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#006C69] cursor-pointer"
                     >
                       <option value="FONCTIONNEMENT">Fonctionnement</option>
                       <option value="INVESTISSEMENT">Investissement</option>
@@ -976,7 +976,7 @@ export default function FinancesPage() {
               {categories && (
                 <div className="space-y-5">
                   <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-2">
                       Entrées
                     </p>
                     <div className="space-y-1">
@@ -1010,7 +1010,7 @@ export default function FinancesPage() {
                   ).map((fam) => (
                     <div key={fam}>
                       <p
-                        className={`text-xs font-bold uppercase tracking-widest mb-2 px-2 py-0.5 rounded w-fit border ${FAMILY_COLORS[fam]}`}
+                        className={`text-sm font-bold uppercase tracking-widest mb-2 px-2 py-0.5 rounded w-fit border ${FAMILY_COLORS[fam]}`}
                       >
                         {FAMILY_LABELS[fam]}
                       </p>

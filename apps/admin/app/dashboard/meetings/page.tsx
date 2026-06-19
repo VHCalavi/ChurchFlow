@@ -433,7 +433,7 @@ export default function MeetingsPage() {
       <div className="horizon-card flex space-x-1.5 p-1 max-w-md mb-6">
         <button
           onClick={() => setActiveTab("stats")}
-          className={`flex-1 flex items-center justify-center space-x-2 py-3 text-xs font-bold rounded-full transition-all duration-200 ${
+          className={`flex-1 flex items-center justify-center space-x-2 py-3 text-sm font-bold rounded-full transition-all duration-200 ${
             activeTab === "stats"
               ? "bg-[#12BC7E] text-white shadow-horizon-xl"
               : "text-[#A3AED0] hover:text-[#1B2559] hover:bg-[#F8F9FA]"
@@ -443,7 +443,7 @@ export default function MeetingsPage() {
         </button>
         <button
           onClick={() => setActiveTab("manage")}
-          className={`flex-1 flex items-center justify-center space-x-2 py-3 text-xs font-bold rounded-full transition-all duration-200 ${
+          className={`flex-1 flex items-center justify-center space-x-2 py-3 text-sm font-bold rounded-full transition-all duration-200 ${
             activeTab === "manage"
               ? "bg-[#12BC7E] text-white shadow-horizon-xl"
               : "text-[#A3AED0] hover:text-[#1B2559] hover:bg-[#F8F9FA]"
@@ -468,7 +468,7 @@ export default function MeetingsPage() {
                 placeholder="Rechercher une rencontre, culte..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                className="w-full pl-11 pr-4 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
               />
             </div>
 
@@ -477,14 +477,14 @@ export default function MeetingsPage() {
               className="btn-horizon btn-horizon-primary flex items-center justify-center space-x-2 rounded-full !py-3 !px-6"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-xs font-bold">Planifier une rencontre</span>
+              <span className="text-sm font-bold">Planifier une rencontre</span>
             </button>
           </div>
 
           {/* Filtrage par groupe (comme dans les statistiques) */}
           {groups.length > 0 && (
             <div className="horizon-card mb-6 p-6">
-              <h4 className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider mb-3">
+              <h4 className="text-sm font-bold text-[#A3AED0] font-semibold mb-3">
                 Filtrer par Groupe invité
               </h4>
               <div className="flex flex-wrap gap-2">
@@ -502,7 +502,7 @@ export default function MeetingsPage() {
                           setFilterGroupIds([...filterGroupIds, group.id]);
                         }
                       }}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                      className={`px-3 py-1.5 rounded-full text-sm font-bold transition-all ${
                         isSelected
                           ? "bg-[#12BC7E] text-white shadow-sm"
                           : "bg-[#F4F7FE] text-[#1B2559] hover:bg-[#F8F9FA]"
@@ -515,7 +515,7 @@ export default function MeetingsPage() {
                 {filterGroupIds.length > 0 && (
                   <button
                     onClick={() => setFilterGroupIds([])}
-                    className="px-3 py-1.5 rounded-full text-xs font-bold bg-[#CD3C14] text-white hover:bg-[#FEEFEE] transition-all"
+                    className="px-3 py-1.5 rounded-full text-sm font-bold bg-[#CD3C14] text-white hover:bg-[#FEEFEE] transition-all"
                   >
                     Réinitialiser
                   </button>
@@ -527,17 +527,17 @@ export default function MeetingsPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <div className="w-8 h-8 border-4 border-[#12BC7E] border-t-transparent rounded-full animate-spin mb-4" />
-              <p className="text-xs font-bold text-[#6D6E71]">
+              <p className="text-sm font-bold text-[#6D6E71]">
                 Chargement de l&apos;agenda...
               </p>
             </div>
           ) : filteredMeetings.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <CalendarDays className="w-12 h-12 text-[#A3AED0] mb-4" />
-              <h4 className="text-xs font-bold text-[#6D6E71]">
+              <h4 className="text-sm font-bold text-[#6D6E71]">
                 Aucune rencontre trouvée
               </h4>
-              <p className="text-xs font-normal text-[#A3AED0] mt-1">
+              <p className="text-sm font-normal text-[#A3AED0] mt-1">
                 Aucune rencontre planifiée ne correspond à votre recherche.
               </p>
             </div>
@@ -552,7 +552,7 @@ export default function MeetingsPage() {
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center space-x-3.5">
                         <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase ${
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-sm font-bold tracking-wider uppercase ${
                             meeting.type === "CULTE"
                               ? "bg-[#CEAD1E] text-white border border-[#CEAD1E]/20"
                               : meeting.type === "REPETITION"
@@ -568,7 +568,7 @@ export default function MeetingsPage() {
                           {meeting.tags.map((tag, index) => (
                             <span
                               key={index}
-                              className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20"
+                              className="inline-flex items-center px-2 py-0.5 text-sm font-semibold rounded-full bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20"
                             >
                               {tag}
                             </span>
@@ -585,7 +585,7 @@ export default function MeetingsPage() {
                               return (
                                 <span
                                   key={gid}
-                                  className="inline-flex items-center px-2.5 py-0.5 text-xs font-bold rounded bg-[#CEAD1E]/10 text-[#CEAD1E] border border-[#CEAD1E]/20"
+                                  className="inline-flex items-center px-2.5 py-0.5 text-sm font-bold rounded bg-[#CEAD1E]/10 text-[#CEAD1E] border border-[#CEAD1E]/20"
                                 >
                                   {groupName}
                                 </span>
@@ -594,7 +594,7 @@ export default function MeetingsPage() {
                           </div>
                         )}
 
-                        <div className="flex items-center text-xs font-bold text-[#6D6E71] space-x-1.5">
+                        <div className="flex items-center text-sm font-bold text-[#6D6E71] space-x-1.5">
                           <Clock className="w-3.5 h-3.5 text-[#A3AED0]" />
                           <span>
                             {new Date(meeting.date).toLocaleString("fr-FR", {
@@ -609,23 +609,23 @@ export default function MeetingsPage() {
                         </div>
                       </div>
 
-                      <h3 className="text-xs font-bold text-[#6D6E71] mt-1">
+                      <h3 className="text-sm font-bold text-[#6D6E71] mt-1">
                         {meeting.title}
                       </h3>
-                      <p className="text-xs font-normal text-[#A3AED0]">
+                      <p className="text-sm font-normal text-[#A3AED0]">
                         {meeting.description ||
                           "Aucune description renseignée."}
                       </p>
                     </div>
 
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 lg:text-right">
-                      <div className="flex items-center space-x-2 text-xs font-bold text-[#6D6E71]">
+                      <div className="flex items-center space-x-2 text-sm font-bold text-[#6D6E71]">
                         <MapPin className="w-4 h-4 text-[#12BC7E]" />
                         <span>{meeting.location || "Temple principal"}</span>
                       </div>
 
                       {meeting.notes && (
-                        <div className="flex items-center space-x-2 text-xs font-bold text-[#6D6E71] border-t sm:border-t-0 sm:border-l border-[#D6D1CE] pt-2 sm:pt-0 sm:pl-4">
+                        <div className="flex items-center space-x-2 text-sm font-bold text-[#6D6E71] border-t sm:border-t-0 sm:border-l border-[#D6D1CE] pt-2 sm:pt-0 sm:pl-4">
                           <Notebook className="w-4 h-4 text-[#CEAD1E]" />
                           <span className="truncate max-w-[200px]">
                             {meeting.notes}
@@ -636,7 +636,7 @@ export default function MeetingsPage() {
                       <div className="flex items-center space-x-2 pt-2 sm:pt-0 sm:pl-4 border-t sm:border-t-0 sm:border-l border-[#D6D1CE]">
                         <Link
                           href={`/dashboard/meetings/${meeting.id}/attendance`}
-                          className="btn-horizon btn-horizon-primary flex items-center space-x-1.5 rounded-full !py-2 !px-4 text-xs font-bold"
+                          className="btn-horizon btn-horizon-primary flex items-center space-x-1.5 rounded-full !py-2 !px-4 text-sm font-bold"
                         >
                           <ClipboardList className="w-3.5 h-3.5" />
                           <span>Émargement</span>
@@ -688,7 +688,7 @@ export default function MeetingsPage() {
 
             <form onSubmit={handleCreateMeeting} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Titre de la Rencontre *
                 </label>
                 <input
@@ -697,25 +697,25 @@ export default function MeetingsPage() {
                   placeholder="Ex: Grand Culte Dominical, Rencontre des Bergers..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Description
                 </label>
                 <textarea
                   placeholder="Ordre du jour ou thématiques..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all h-20"
+                  className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all h-20"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider mb-1.5">
+                  <label className="text-sm font-bold text-[#A3AED0] font-semibold mb-1.5">
                     Type *
                   </label>
                   <select
@@ -730,7 +730,7 @@ export default function MeetingsPage() {
                           | "AUTRE",
                       )
                     }
-                    className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
                   >
                     <option value="CULTE">Culte de Célébration</option>
                     <option value="TEMPS_DE_PRIERE">
@@ -742,7 +742,7 @@ export default function MeetingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider mb-1.5">
+                  <label className="text-sm font-bold text-[#A3AED0] font-semibold mb-1.5">
                     Date et Heure *
                   </label>
                   <input
@@ -750,13 +750,13 @@ export default function MeetingsPage() {
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Lieu / Plateforme
                 </label>
                 <input
@@ -764,12 +764,12 @@ export default function MeetingsPage() {
                   placeholder="Ex: Temple principal, Salle Polyvalente, Zoom..."
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Notes internes
                 </label>
                 <input
@@ -777,18 +777,18 @@ export default function MeetingsPage() {
                   placeholder="Ex: Prédicateur externe, apportez des plats..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Tags
                 </label>
                 {/* Tags existants en suggestion */}
                 {allTags.length > 0 && (
                   <div className="mb-2">
-                    <p className="text-xs text-slate-500 mb-1">
+                    <p className="text-sm text-slate-500 mb-1">
                       Tags existants:
                     </p>
                     <div className="flex flex-wrap gap-1 mb-2">
@@ -804,7 +804,7 @@ export default function MeetingsPage() {
                                 setTags([...tags, tag]);
                               }
                             }}
-                            className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"
+                            className="text-sm px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"
                           >
                             {tag}
                           </button>
@@ -818,7 +818,7 @@ export default function MeetingsPage() {
                   {tags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary border border-primary/20"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20"
                     >
                       {tag}
                       <button
@@ -868,12 +868,12 @@ export default function MeetingsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 font-bold">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5 font-bold">
                   Groupes invités
                 </label>
                 <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg max-h-32 overflow-y-auto">
                   {groups.length === 0 ? (
-                    <p className="text-xs text-slate-500 italic">
+                    <p className="text-sm text-slate-500 italic">
                       Aucun groupe disponible.
                     </p>
                   ) : (
@@ -897,7 +897,7 @@ export default function MeetingsPage() {
                               ]);
                             }
                           }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                          className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all border ${
                             isInvited
                               ? "bg-primary border-primary text-white shadow-sm"
                               : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -915,14 +915,14 @@ export default function MeetingsPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="btn-horizon btn-horizon-secondary text-xs font-bold"
+                  className="btn-horizon btn-horizon-secondary text-sm font-bold"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-horizon btn-horizon-primary disabled:opacity-50 text-xs font-bold"
+                  className="btn-horizon btn-horizon-primary disabled:opacity-50 text-sm font-bold"
                 >
                   {submitting ? "Planification..." : "Enregistrer"}
                 </button>
@@ -949,7 +949,7 @@ export default function MeetingsPage() {
 
             <form onSubmit={handleEditMeeting} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Titre de la Rencontre *
                 </label>
                 <input
@@ -958,25 +958,25 @@ export default function MeetingsPage() {
                   placeholder="Ex: Grand Culte Dominical, Rencontre des Bergers..."
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Description
                 </label>
                 <textarea
                   placeholder="Ordre du jour ou thématiques..."
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all h-20"
+                  className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all h-20"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider mb-1.5">
+                  <label className="text-sm font-bold text-[#A3AED0] font-semibold mb-1.5">
                     Type *
                   </label>
                   <select
@@ -991,7 +991,7 @@ export default function MeetingsPage() {
                           | "AUTRE",
                       )
                     }
-                    className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
                   >
                     <option value="CULTE">Culte de Célébration</option>
                     <option value="TEMPS_DE_PRIERE">
@@ -1003,7 +1003,7 @@ export default function MeetingsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-[#A3AED0] uppercase tracking-wider mb-1.5">
+                  <label className="text-sm font-bold text-[#A3AED0] font-semibold mb-1.5">
                     Date et Heure *
                   </label>
                   <input
@@ -1011,13 +1011,13 @@ export default function MeetingsPage() {
                     required
                     value={editDate}
                     onChange={(e) => setEditDate(e.target.value)}
-                    className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
+                    className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] cursor-pointer transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Lieu / Plateforme
                 </label>
                 <input
@@ -1025,12 +1025,12 @@ export default function MeetingsPage() {
                   placeholder="Ex: Temple principal, Salle Polyvalente, Zoom..."
                   value={editLocation}
                   onChange={(e) => setEditLocation(e.target.value)}
-                  className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Notes internes
                 </label>
                 <input
@@ -1038,18 +1038,18 @@ export default function MeetingsPage() {
                   placeholder="Ex: Prédicateur externe, apportez des plats..."
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
-                  className="w-full px-5 py-3 text-xs font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
+                  className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#12BC7E] transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                   Tags
                 </label>
                 {/* Tags existants en suggestion */}
                 {allTags.length > 0 && (
                   <div className="mb-2">
-                    <p className="text-xs text-slate-500 mb-1">
+                    <p className="text-sm text-slate-500 mb-1">
                       Tags existants:
                     </p>
                     <div className="flex flex-wrap gap-1 mb-2">
@@ -1065,7 +1065,7 @@ export default function MeetingsPage() {
                                 setEditTags([...editTags, tag]);
                               }
                             }}
-                            className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"
+                            className="text-sm px-2 py-1 rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200"
                           >
                             {tag}
                           </button>
@@ -1079,7 +1079,7 @@ export default function MeetingsPage() {
                   {editTags.map((tag, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-primary/10 text-primary border border-primary/20"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-semibold rounded-full bg-primary/10 text-primary border border-primary/20"
                     >
                       {tag}
                       <button
@@ -1135,12 +1135,12 @@ export default function MeetingsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5 font-bold">
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5 font-bold">
                   Groupes invités
                 </label>
                 <div className="flex flex-wrap gap-2 p-3 bg-slate-50 border border-slate-200 rounded-lg max-h-32 overflow-y-auto">
                   {groups.length === 0 ? (
-                    <p className="text-xs text-slate-500 italic">
+                    <p className="text-sm text-slate-500 italic">
                       Aucun groupe disponible.
                     </p>
                   ) : (
@@ -1164,7 +1164,7 @@ export default function MeetingsPage() {
                               ]);
                             }
                           }}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                          className={`px-3 py-1.5 rounded-lg text-sm font-bold transition-all border ${
                             isInvited
                               ? "bg-primary border-primary text-white shadow-sm"
                               : "bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
@@ -1182,14 +1182,14 @@ export default function MeetingsPage() {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="btn-horizon btn-horizon-secondary text-xs font-bold"
+                  className="btn-horizon btn-horizon-secondary text-sm font-bold"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-horizon btn-horizon-primary disabled:opacity-50 text-xs font-bold"
+                  className="btn-horizon btn-horizon-primary disabled:opacity-50 text-sm font-bold"
                 >
                   {submitting ? "Sauvegarde..." : "Enregistrer"}
                 </button>
@@ -1207,7 +1207,7 @@ export default function MeetingsPage() {
               <AlertTriangle className="w-6 h-6" />
             </div>
 
-            <h3 className="text-lg font-extrabold text-[#6D6E71] mb-2">
+            <h3 className="text-lg font-bold text-[#6D6E71] mb-2">
               {confirmModal.title}
             </h3>
 
@@ -1218,13 +1218,13 @@ export default function MeetingsPage() {
             <div className="flex items-center justify-center space-x-3 w-full">
               <button
                 onClick={() => setConfirmModal((m) => ({ ...m, open: false }))}
-                className="flex-1 btn-horizon btn-horizon-secondary text-xs font-bold"
+                className="flex-1 btn-horizon btn-horizon-secondary text-sm font-bold"
               >
                 Annuler
               </button>
               <button
                 onClick={confirmModal.onConfirm}
-                className="flex-1 btn-horizon bg-[#CD3C14] hover:opacity-90 text-white disabled:opacity-50 text-xs font-bold"
+                className="flex-1 btn-horizon bg-[#CD3C14] hover:opacity-90 text-white disabled:opacity-50 text-sm font-bold"
               >
                 Confirmer l&apos;annulation
               </button>

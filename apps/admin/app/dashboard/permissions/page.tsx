@@ -163,7 +163,7 @@ export default function PermissionsPage() {
             <h3 className="text-base font-bold text-slate-900">
               Matrice d&apos;Autorisations (RBAC)
             </h3>
-            <p className="text-xs font-medium text-slate-500 mt-1">
+            <p className="text-sm font-medium text-slate-500 mt-1">
               Configurez les droits d&apos;accès granulaires pour chaque profil
               utilisateur de ChurchFlow.
             </p>
@@ -197,12 +197,12 @@ export default function PermissionsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-600 text-xs font-bold uppercase tracking-wider">
+                <tr className="border-b border-slate-100 bg-slate-50/50 text-slate-600 text-sm font-bold uppercase tracking-wider">
                   <th className="py-5 px-6 min-w-[240px]">Profils / Rôles</th>
                   {permissions.map((p) => (
                     <th
                       key={p.id}
-                      className="py-5 px-4 text-center text-xs font-bold tracking-wider max-w-[120px]"
+                      className="py-5 px-4 text-center text-sm font-bold tracking-wider max-w-[120px]"
                     >
                       {getPermissionLabel(p.action, p.resource)}
                     </th>

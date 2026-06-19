@@ -193,10 +193,10 @@ export default function GroupDetailPage() {
   return (
     <DashboardLayout title={group?.name || "Détail du Groupe"}>
       {notification && (
-        <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-premium animate-fade-in ${
+        <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-2xl shadow-horizon-xl animate-fade-in ${
           notification.type === "success"
-            ? "bg-green-50 border-green-200 text-green-800"
-            : "bg-red-50 border-red-200 text-red-800"
+            ? "bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20"
+            : "bg-[#CD3C14]/10 text-[#CD3C14] border border-[#CD3C14]/20"
         }`}>
           <span className="text-sm font-semibold">{notification.message}</span>
         </div>
@@ -226,24 +226,24 @@ export default function GroupDetailPage() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center space-x-3 mb-2">
-                  <h2 className="text-xl font-bold text-foreground">{group.name}</h2>
+                  <h2 className="text-xl font-semibold text-foreground">{group.name}</h2>
                   {/* Badge de type: ok de garder petit pour les badges */}
-                  <span className={`px-2.5 py-1 rounded-lg text-xs font-bold border ${typeColor}`}>{typeLabel}</span>
+                  <span className={`px-2.5 py-1 rounded-lg text-sm font-semibold border ${typeColor}`}>{typeLabel}</span>
                 </div>
                 {group.description && <p className="text-sm font-medium text-muted-foreground">{group.description}</p>}
                 {group.parent && (
                   <p className="text-sm font-medium text-muted-foreground mt-1">
-                    Sous-groupe de <span className="font-bold text-foreground">{group.parent.name}</span>
+                    Sous-groupe de <span className="font-semibold text-foreground">{group.parent.name}</span>
                   </p>
                 )}
               </div>
               <div className="flex items-center space-x-6 text-center">
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{group.members.length}</p>
+                  <p className="text-2xl font-semibold text-foreground">{group.members.length}</p>
                   <p className="text-sm font-medium text-muted-foreground">Membres</p>
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{group.children.length}</p>
+                  <p className="text-2xl font-semibold text-foreground">{group.children.length}</p>
                   <p className="text-sm font-medium text-muted-foreground">Sous-groupes</p>
                 </div>
               </div>
@@ -255,7 +255,7 @@ export default function GroupDetailPage() {
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
               <div className="flex items-center space-x-2">
                 <Users className="w-4 h-4 text-[#12BC7E]" />
-                <h3 className="text-sm font-bold text-foreground">Membres du Groupe</h3>
+                <h3 className="text-sm font-semibold text-foreground">Membres du Groupe</h3>
               </div>
               <button onClick={() => setShowAddPanel(!showAddPanel)} className="btn-horizon btn-horizon-primary">
                 <UserPlus className="w-3.5 h-3.5" /><span>Ajouter un membre</span>
@@ -273,13 +273,13 @@ export default function GroupDetailPage() {
                       value={searchQuery}
                       onChange={e => setSearchQuery(e.target.value)}
                       placeholder="Nom du fidèle..."
-                      className="w-full px-5 !pl-10 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25"
+                      className="w-full px-5 !pl-10 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25"
                     />
                   </div>
                   <select
                     value={selectedRole}
                     onChange={e => setSelectedRole(e.target.value)}
-                    className="px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25 [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white"
+                    className="px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25 [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white"
                   >
                     {ROLES.map(r => <option key={r}>{r}</option>)}
                   </select>
@@ -292,11 +292,11 @@ export default function GroupDetailPage() {
                         onClick={() => { setSelectedMember(m); setSearchQuery(`${m.firstName} ${m.lastName}`); setSearchResults([]); }}
                         className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-background border-b border-border last:border-0 transition-colors"
                       >
-                        <div className="w-8 h-8 rounded-full bg-[#12BC7E]/10 text-[#12BC7E] flex items-center justify-center text-sm font-bold">
+                        <div className="w-8 h-8 rounded-full bg-[#12BC7E]/10 text-[#12BC7E] flex items-center justify-center text-sm font-semibold">
                           {m.firstName[0]}{m.lastName[0]}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-foreground">{m.firstName} {m.lastName}</p>
+                          <p className="text-sm font-semibold text-foreground">{m.firstName} {m.lastName}</p>
                           <p className="text-sm font-medium text-muted-foreground">{m.status}</p>
                         </div>
                       </button>
@@ -305,7 +305,7 @@ export default function GroupDetailPage() {
                 )}
                 {selectedMember && (
                   <div className="flex items-center justify-between p-3 rounded-2xl bg-primary/5 border border-primary/10">
-                    <span className="text-sm font-semibold text-primary">
+                    <span className="text-sm font-medium text-primary">
                       {selectedMember.firstName} {selectedMember.lastName} — <span className="font-medium">{selectedRole}</span>
                     </span>
                     <div className="flex items-center space-x-2">
@@ -315,7 +315,7 @@ export default function GroupDetailPage() {
                       <button
                         onClick={handleAddMember}
                         disabled={addingMember}
-                        className="px-4 py-2 text-sm font-bold text-white bg-primary rounded-full disabled:opacity-50 hover:opacity-90 transition-all"
+                        className="px-4 py-2 text-sm font-semibold text-white bg-primary rounded-full disabled:opacity-50 hover:opacity-90 transition-all"
                       >
                         {addingMember ? "..." : "Confirmer"}
                       </button>
@@ -347,11 +347,11 @@ export default function GroupDetailPage() {
                   .map(mg => (
                   <div key={mg.memberId} className="flex items-center justify-between px-6 py-3.5 hover:bg-background/60 transition-colors">
                     <div className="flex items-center space-x-3">
-                      <div className="w-9 h-9 rounded-full bg-[#12BC7E]/10 text-[#12BC7E] flex items-center justify-center font-bold text-sm border border-[#12BC7E]/20">
+                      <div className="w-9 h-9 rounded-full bg-[#12BC7E]/10 text-[#12BC7E] flex items-center justify-center font-semibold text-sm border border-[#12BC7E]/20">
                         {mg.member.firstName[0]}{mg.member.lastName[0]}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-foreground">{mg.member.firstName} {mg.member.lastName}</p>
+                        <p className="text-sm font-semibold text-foreground">{mg.member.firstName} {mg.member.lastName}</p>
                         <p className="text-sm font-medium text-muted-foreground">{mg.member.status}</p>
                       </div>
                     </div>
@@ -387,7 +387,7 @@ export default function GroupDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm animate-fade-in">
           <div className="w-full max-w-md p-6 bg-card rounded-[20px] shadow-horizon-xl">
             <div className="flex items-center justify-between mb-5 pb-3 border-b border-border">
-              <h3 className="text-base font-bold text-foreground">Modifier le Groupe</h3>
+              <h3 className="text-base font-semibold text-foreground">Modifier le Groupe</h3>
               <button onClick={() => setIsEditOpen(false)} className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-5 h-5" />
               </button>
@@ -399,7 +399,7 @@ export default function GroupDetailPage() {
                   required
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25"
                 />
               </div>
               <div>
@@ -408,7 +408,7 @@ export default function GroupDetailPage() {
                   rows={3}
                   value={editDescription}
                   onChange={e => setEditDescription(e.target.value)}
-                  className="w-full px-5 py-3 text-sm font-semibold rounded-2xl border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25 resize-none"
+                  className="w-full px-5 py-3 text-sm font-medium rounded-2xl border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25 resize-none"
                 />
               </div>
               <div className="flex justify-end space-x-3 pt-2 border-t border-border">
@@ -436,7 +436,7 @@ export default function GroupDetailPage() {
                 }`} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className={`text-base font-bold ${
+                <h3 className={`text-base font-semibold ${
                   confirmModal.variant === "danger" ? "text-red-900 dark:text-red-300" : "text-amber-900 dark:text-amber-300"
                 }`}>{confirmModal.title}</h3>
               </div>
@@ -462,7 +462,7 @@ export default function GroupDetailPage() {
               <button
                 onClick={confirmModal.onConfirm}
                 className={`btn-horizon ${
-                  confirmModal.variant === "danger" ? "btn-horizon-danger" : "bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-full font-bold text-sm"
+                  confirmModal.variant === "danger" ? "btn-horizon-danger" : "bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-full font-semibold text-sm"
                 }`}
               >
                 {confirmModal.confirmLabel || "Confirmer"}

@@ -129,7 +129,7 @@ export default function ProfilePage() {
                     <h2 className="text-xl font-bold text-slate-900">{name}</h2>
                   </div>
 
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-2 text-xs font-semibold text-slate-500">
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-2 text-sm font-semibold text-slate-500">
                     <div className="flex items-center space-x-1.5">
                       <Building2 className="w-4 h-4 text-slate-400" />
                       <span>{role}</span>
@@ -146,15 +146,15 @@ export default function ProfilePage() {
               {/* <div className="flex items-center justify-center gap-4 mt-6 lg:mt-0">
               <div className="px-4 py-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
                 <span className="block text-sm font-bold text-slate-900">450+</span>
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Membres</span>
+                <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Membres</span>
               </div>
               <div className="px-4 py-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
                 <span className="block text-sm font-bold text-slate-900">12</span>
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">GEMs</span>
+                <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">GEMs</span>
               </div>
               <div className="px-4 py-3 rounded-lg bg-slate-50 border border-slate-100 text-center">
                 <span className="block text-sm font-bold text-slate-900">4</span>
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Écoles</span>
+                <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Écoles</span>
               </div>
             </div> */}
             </div>
@@ -205,7 +205,7 @@ export default function ProfilePage() {
             <div className="space-y-8 lg:col-span-1">
               {/* Community Badges Card */}
               <div className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-5">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-5">
                   Community Badges
                 </h3>
 
@@ -231,11 +231,11 @@ export default function ProfilePage() {
 
               {/* About Card */}
               <div className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-5">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-5">
                   About
                 </h3>
 
-                <div className="space-y-4 text-xs">
+                <div className="space-y-4 text-sm">
                   <div className="flex items-center">
                     <span className="w-24 text-slate-400 font-bold">Age:</span>
                     <span className="text-slate-800 font-semibold">45</span>
@@ -298,13 +298,13 @@ export default function ProfilePage() {
                   <h3 className="text-base font-bold text-slate-900">
                     Débloquez l&apos;Évangélisation Digitale avec ChurchFlow
                   </h3>
-                  <p className="text-xs text-slate-500 font-medium mt-2.5 leading-relaxed max-w-xl">
+                  <p className="text-sm text-slate-500 font-medium mt-2.5 leading-relaxed max-w-xl">
                     Explorez de nouvelles opportunités de croissance spirituelle
                     et de suivi grâce à nos outils de pilotage connectés pour
                     les Tribus et les GEMs. Invitez vos bergers à intégrer leurs
                     rapports.
                   </p>
-                  <button className="text-xs font-bold text-primary hover:underline flex items-center mt-5">
+                  <button className="text-sm font-bold text-primary hover:underline flex items-center mt-5">
                     <span>Commencer</span>
                     <span className="ml-1">→</span>
                   </button>
@@ -322,10 +322,10 @@ export default function ProfilePage() {
               {/* Media Uploads / Live Stats SVG Curved Line Chart */}
               <div className="p-6 rounded-xl border border-slate-100 bg-white shadow-[0px_3px_4px_0px_rgba(0,0,0,0.03)]">
                 <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">
                     Croissance de l&apos;Audience Mensuelle
                   </h3>
-                  <div className="flex items-center space-x-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                  <div className="flex items-center space-x-2 text-sm font-bold text-slate-400 uppercase tracking-wider">
                     <span className="w-2.5 h-2.5 rounded-full bg-primary" />
                     <span>Nouveaux Enregistrements</span>
                   </div>
@@ -454,7 +454,7 @@ export default function ProfilePage() {
             <form onSubmit={handleSaveSettings} className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                     Nom complet *
                   </label>
                   <input
@@ -467,7 +467,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                     Adresse E-mail *
                   </label>
                   <input
@@ -480,7 +480,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                     Numéro de Téléphone *
                   </label>
                   <input
@@ -493,7 +493,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Rôle / Fonction *</label>
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Rôle / Fonction *</label>
                 <input
                   type="text"
                   required
@@ -504,7 +504,7 @@ export default function ProfilePage() {
               </div> */}
 
                 {/* <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Église locale principale *</label>
+                <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">Église locale principale *</label>
                 <input
                   type="text"
                   required
@@ -515,7 +515,7 @@ export default function ProfilePage() {
               </div> */}
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                     Langue *
                   </label>
                   <select
@@ -552,7 +552,7 @@ export default function ProfilePage() {
 
               <form onSubmit={handleUpdatePassword} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                     Mot de passe actuel *
                   </label>
                   <div className="relative">
@@ -578,7 +578,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                     Nouveau mot de passe *
                   </label>
                   <input
@@ -591,7 +591,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                  <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                     Confirmer le nouveau mot de passe *
                   </label>
                   <input

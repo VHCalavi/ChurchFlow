@@ -260,7 +260,7 @@ export default function FormationsPage() {
                 style={{ width: "40%" }}
               />
             </div>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">
               40% — En cours
             </span>
           </div>
@@ -289,7 +289,7 @@ export default function FormationsPage() {
               <h3 className="text-base font-bold text-slate-900">
                 Écoles de Croissance Chrétienne
               </h3>
-              <p className="text-xs font-medium text-slate-500 mt-1">
+              <p className="text-sm font-medium text-slate-500 mt-1">
                 Supervision des 4 parcours de formation biblique de la charte.
               </p>
             </div>
@@ -322,7 +322,7 @@ export default function FormationsPage() {
                         {getTypeIcon(session.type)}
                       </div>
                       <div>
-                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        <h4 className="text-sm font-bold text-slate-500 font-semibold">
                           {getTypeName(session.type)}
                         </h4>
                         <h3 className="text-base font-bold text-slate-900 mt-1">
@@ -330,17 +330,17 @@ export default function FormationsPage() {
                         </h3>
                       </div>
                     </div>
-                    <span className="text-xs font-bold tracking-wider px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">
+                    <span className="text-sm font-bold tracking-wider px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg">
                       ACTIF
                     </span>
                   </div>
 
-                  <p className="text-xs font-medium text-slate-600 mt-4 h-10 line-clamp-2">
+                  <p className="text-sm font-medium text-slate-600 mt-4 h-10 line-clamp-2">
                     {session.description ||
                       "Aucune description de cours renseignée."}
                   </p>
 
-                  <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-100 text-xs font-semibold text-slate-700">
+                  <div className="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-slate-100 text-sm font-semibold text-slate-700">
                     <div className="flex items-center space-x-1.5">
                       <Calendar className="w-4 h-4 text-slate-500" />
                       <span>
@@ -382,7 +382,7 @@ export default function FormationsPage() {
 
                 <form onSubmit={handleCreateFormation} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                       Catégorie d&apos;École *
                     </label>
                     <select
@@ -414,7 +414,7 @@ export default function FormationsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                       Nom de la Session *
                     </label>
                     <input
@@ -428,7 +428,7 @@ export default function FormationsPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                       Description / Contenu
                     </label>
                     <textarea
@@ -441,7 +441,7 @@ export default function FormationsPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                      <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                         Date de Début
                       </label>
                       <input
@@ -452,7 +452,7 @@ export default function FormationsPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
+                      <label className="block text-sm font-semibold text-slate-700 uppercase tracking-wide mb-1.5">
                         Date de Fin
                       </label>
                       <input

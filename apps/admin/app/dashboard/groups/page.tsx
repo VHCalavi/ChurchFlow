@@ -172,12 +172,12 @@ export default function GroupsPage() {
     <DashboardLayout title="Gestion des Groupes & Départements">
       {/* Notifications */}
       {notification && (
-        <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-xl border shadow-premium animate-fade-in ${
-          notification.type === "success" 
-            ? "bg-emerald-50 border-emerald-200 text-emerald-800" 
-            : "bg-red-50 border-red-200 text-red-800"
+        <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-2xl shadow-horizon-xl animate-fade-in ${
+          notification.type === "success"
+            ? "bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20"
+            : "bg-[#CD3C14]/10 text-[#CD3C14] border border-[#CD3C14]/20"
         }`}>
-          <span className="text-sm font-semibold">{notification.message}</span>
+          <span className="text-sm font-bold">{notification.message}</span>
         </div>
       )}
 
@@ -187,11 +187,11 @@ export default function GroupsPage() {
           <div className="flex items-center justify-between mb-2">
             {/* ✅ Horizon standard: text-sm font-medium, no uppercase */}
             <span className="text-sm font-medium text-muted-foreground">Départements</span>
-            <div className="p-2.5 rounded-lg bg-[#12BC7E]/5 text-[#12BC7E] border border-[#12BC7E]/10">
+            <div className="p-2.5 rounded-lg bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20">
               <Layers className="w-5 h-5" />
             </div>
           </div>
-          <h3 className="text-3xl font-bold text-foreground">
+          <h3 className="text-2xl font-bold text-foreground">
             {groups.filter(g => g.type === "DEPARTEMENT").length}
           </h3>
           <p className="text-sm font-medium text-muted-foreground mt-1">Pôles d&apos;activité officiels</p>
@@ -200,11 +200,11 @@ export default function GroupsPage() {
         <div className="horizon-card p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-muted-foreground">Tribus</span>
-            <div className="p-2.5 rounded-lg bg-[#CEAD1E]/5 text-[#CEAD1E] border border-[#CEAD1E]/10">
+            <div className="p-2.5 rounded-lg bg-[#CEAD1E]/10 text-[#CEAD1E] border border-[#CEAD1E]/20">
               <Network className="w-5 h-5" />
             </div>
           </div>
-          <h3 className="text-3xl font-bold text-foreground">
+          <h3 className="text-2xl font-bold text-foreground">
             {groups.filter(g => g.type === "TRIBU").length}
           </h3>
           <p className="text-sm font-medium text-muted-foreground mt-1">Communautés géographiques</p>
@@ -213,11 +213,11 @@ export default function GroupsPage() {
         <div className="horizon-card p-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-muted-foreground">GEM / Familles</span>
-            <div className="p-2.5 rounded-lg bg-[#D6D1CE]/5 text-[#D6D1CE] border border-[#D6D1CE]/10">
+            <div className="p-2.5 rounded-lg bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20">
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <h3 className="text-3xl font-bold text-foreground">
+          <h3 className="text-2xl font-bold text-foreground">
             {groups.filter(g => g.type === "GEM").length}
           </h3>
           <p className="text-sm font-medium text-muted-foreground mt-1">Cellules de prière de maison</p>
@@ -289,7 +289,7 @@ export default function GroupsPage() {
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
-                        <span className="text-xs font-bold tracking-wider px-2.5 py-1 bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20 rounded-lg">DEPT</span>
+                        <span className="text-sm font-bold tracking-wider px-2.5 py-1 bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20 rounded-lg">DEPT</span>
                       </div>
                     </div>
                   </Link>
@@ -334,7 +334,7 @@ export default function GroupsPage() {
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
-                        <span className="text-xs font-bold tracking-wider px-2.5 py-1 bg-[#CEAD1E]/10 text-[#CEAD1E] border border-[#CEAD1E]/20 rounded-lg">TRIBU</span>
+                        <span className="text-sm font-bold tracking-wider px-2.5 py-1 bg-[#CEAD1E]/10 text-[#CEAD1E] border border-[#CEAD1E]/20 rounded-lg">TRIBU</span>
                       </div>
                     </div>
                   </Link>
@@ -387,7 +387,7 @@ export default function GroupsPage() {
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
-                        <span className="text-xs font-bold tracking-wider px-2.5 py-1 bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20 rounded-lg">GEM</span>
+                        <span className="text-sm font-bold tracking-wider px-2.5 py-1 bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20 rounded-lg">GEM</span>
                       </div>
                     </div>
                   </Link>
