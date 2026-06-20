@@ -41,7 +41,9 @@ enum MemberEchelon {
 enum GroupType {
   DEPARTEMENT
   TRIBU
-  GEM
+  MAISON_D_HONNEUR
+  CELLULE
+  ASSEMBLEE
 }
 
 enum FormationType {
@@ -124,6 +126,8 @@ model Church {
   transactions      Transaction[]
   financeCategories FinanceCategory[]
   inactivityConfig  InactivityConfig?
+  gems              Gem[]
+  reports           Report[]
   metadata          Json              @default("{}")
 
   @@map("churches")
@@ -244,25 +248,25 @@ model UserRole {
 // ============================================================
 
 model Member {
-  id          String    @id @default(cuid())
-  firstName   String
-  lastName    String
-  gender      Gender
-  birthDate   DateTime?
-  phone       String?
-  email       String?
-  address     String?
-  photoUrl    String?
-  baptismDate    DateTime?
-  joinDate       DateTime  @default(now())
-  isActive       Boolean   @default(true)
-  notes          String?   @db.Text
-  maritalStatus  String?   // CELIBATAIRE, MARIE, VEUF, DIVORCE
-  occupation     String?   // Profession / Métier
-  nationalId     String?   // Numéro CNI / Passeport
-  nationality    String?   // Nationalité
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  firstName     String
+  lastName      String
+  gender        Gender
+  birthDate     DateTime?
+  phone         String?
+  email         String?
+  address       String?
+  photoUrl      String?
+  baptismDate   DateTime?
+  joinDate      DateTime  @default(now())
+  isActive      Boolean   @default(true)
+  notes         String?   @db.Text
+  maritalStatus String? // CELIBATAIRE, MARIE, VEUF, DIVORCE
+  occupation    String? // Profession / Métier
+  nationalId    String? // Numéro CNI / Passeport
+  nationality   String? // Nationalité
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Hiérarchie ChurchFlow
   status  MemberStatus
@@ -283,6 +287,8 @@ model Member {
   groups           MemberGroup[]
   formations       MemberFormation[]
   meetingsAttended MeetingAttendee[]
+  gemMemberships   GemMember[]
+  reportsWritten   Report[]          @relation("ReportAuthor")
 
   // Phase 1 Relations inverses (Requises par Prisma, mais non utilisées via 'include' dans le code par soucis de performance)
   interviews                MemberInterview[]
@@ -319,6 +325,8 @@ model Group {
   children Group[] @relation("GroupHierarchy")
 
   members  MemberGroup[]
+  gems     Gem[]
+  reports  Report[]
   metadata Json          @default("{}")
 
   @@map("groups")
@@ -622,4 +630,64 @@ model InactivityConfig {
   church Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
 
   @@map("inactivity_configs")
+}
+
+// ============================================================
+// PHASE 2: GEMs & RAPPORTS
+// ============================================================
+
+model Gem {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+
+  // Rattachement optionnel à un groupe (ex: département)
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id])
+
+  members GemMember[]
+  reports Report[]
+
+  @@map("gems")
+}
+
+model GemMember {
+  id       String   @id @default(cuid())
+  gemId    String
+  memberId String
+  isLeader Boolean  @default(false)
+  joinedAt DateTime @default(now())
+
+  gem    Gem    @relation(fields: [gemId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId]) // Contrainte mono-GEM — gérer via config API si multi-GEM
+  @@unique([gemId, memberId])
+  @@map("gem_members")
+}
+
+model Report {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  submittedAt DateTime @default(now())
+
+  authorId String
+  author   Member @relation("ReportAuthor", fields: [authorId], references: [id])
+
+  gemId   String?
+  gem     Gem?    @relation(fields: [gemId], references: [id])
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id])
+
+  churchId String
+  church   Church @relation(fields: [churchId], references: [id])
+
+  @@map("reports")
 }

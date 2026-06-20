@@ -18,7 +18,7 @@ interface Group {
   id: string;
   name: string;
   description: string | null;
-  type: "DEPARTEMENT" | "TRIBU" | "GEM";
+  type: "DEPARTEMENT" | "TRIBU" | "MAISON_D_HONNEUR" | "CELLULE" | "ASSEMBLEE";
   parentId: string | null;
   isActive: boolean;
   parent?: { id: string; name: string; type: string } | null;
@@ -35,7 +35,7 @@ export default function GroupsPage() {
   // Form states
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState<"DEPARTEMENT" | "TRIBU" | "GEM">("DEPARTEMENT");
+  const [type, setType] = useState<"DEPARTEMENT" | "TRIBU" | "MAISON_D_HONNEUR" | "CELLULE" | "ASSEMBLEE">("DEPARTEMENT");
   const [parentId, setParentId] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -440,7 +440,7 @@ export default function GroupsPage() {
                 <label className="block text-sm font-medium text-foreground mb-1.5">Type de structure *</label>
                 <select
                   value={type}
-                  onChange={(e) => setType(e.target.value as "DEPARTEMENT" | "TRIBU" | "GEM")}
+                  onChange={(e) => setType(e.target.value as "DEPARTEMENT" | "TRIBU" | "MAISON_D_HONNEUR" | "CELLULE" | "ASSEMBLEE")}
                   className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] dark:bg-[#0B1437] text-[#1B2559] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#12BC7E]/25 transition-all cursor-pointer [&>option]:bg-[#F4F7FE] dark:[&>option]:bg-[#0B1437] [&>option]:text-[#1B2559] dark:[&>option]:text-white"
                 >
                   <option value="DEPARTEMENT">Département (Activités ecclésiastiques)</option>

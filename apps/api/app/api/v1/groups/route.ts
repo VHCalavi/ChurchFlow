@@ -6,7 +6,7 @@ import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
 const createGroupSchema = z.object({
   name: z.string().min(1, "Le nom du groupe est requis"),
   description: z.string().optional().nullable(),
-  type: z.enum(["DEPARTEMENT", "TRIBU", "GEM"]),
+  type: z.enum(["DEPARTEMENT", "TRIBU", "MAISON_D_HONNEUR", "CELLULE", "ASSEMBLEE"]),
   parentId: z.string().optional().nullable(),
   churchId: z.string().optional()
 });
@@ -61,13 +61,7 @@ export async function POST(request: Request) {
 
     const { type, parentId } = result.data;
 
-    // Logique hiérarchique : Un GEM doit avoir un groupe parent (Département ou Tribu)
-    if (type === "GEM" && !parentId) {
-      return NextResponse.json(
-        { success: false, error: "Un GEM (famille d'impact) doit obligatoirement avoir un Département ou une Tribu comme parent" },
-        { status: 400 }
-      );
-    }
+
 
     if (parentId) {
       const parentGroup = await prisma.group.findUnique({
@@ -88,12 +82,6 @@ export async function POST(request: Request) {
         );
       }
 
-      if (parentGroup.type === "GEM") {
-        return NextResponse.json(
-          { success: false, error: "Un GEM ne peut pas avoir un autre GEM comme parent" },
-          { status: 400 }
-        );
-      }
     }
 
     const group = await prisma.group.create({

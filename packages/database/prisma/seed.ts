@@ -179,8 +179,8 @@ async function main() {
   // 7. Création de Groupes de test
   const groupsData = [
     { name: "Département de Louange", type: GroupType.DEPARTEMENT, description: "Chorale et musiciens de l'église" },
-    { name: "GEM Victoire", type: GroupType.GEM, description: "Groupe d'Évangélisation et de Maison de Victoire" },
-    { name: "GEM Paix", type: GroupType.GEM, description: "Groupe d'Évangélisation et de Maison de la Paix" },
+    { name: "GEM Victoire", type: GroupType.CELLULE, description: "Groupe d'Évangélisation et de Maison de Victoire" },
+    { name: "GEM Paix", type: GroupType.CELLULE, description: "Groupe d'Évangélisation et de Maison de la Paix" },
   ];
 
   const seededGroups = [];

@@ -168,6 +168,8 @@ export const GEM_CONFIG = {
 
 ---
 
+> 👉 **VOUS ÊTES ICI** — (Les étapes 1 et 2 concernant la base de données ont été réalisées)
+
 ## ÉTAPE 3 — API : Routes CRUD pour les GEMs
 
 ### 3.1 Structure des routes à créer

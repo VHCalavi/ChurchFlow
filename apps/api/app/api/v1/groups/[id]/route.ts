@@ -6,7 +6,7 @@ import { auth, getAuthUser, unauthorized, forbidden } from "../../../../../lib/a
 const updateGroupSchema = z.object({
   name: z.string().min(1, "Le nom du groupe est requis").optional(),
   description: z.string().optional().nullable(),
-  type: z.enum(["DEPARTEMENT", "TRIBU", "GEM"]).optional(),
+  type: z.enum(["DEPARTEMENT", "TRIBU", "MAISON_D_HONNEUR", "CELLULE", "ASSEMBLEE"]).optional(),
   parentId: z.string().optional().nullable(),
   isActive: z.boolean().optional()
 });
@@ -97,13 +97,7 @@ export async function PUT(
     const type = result.data.type ?? currentGroup.type;
     const parentId = result.data.parentId !== undefined ? result.data.parentId : currentGroup.parentId;
 
-    // Logique hiérarchique : Un GEM doit avoir un groupe parent (Département ou Tribu)
-    if (type === "GEM" && !parentId) {
-      return NextResponse.json(
-        { success: false, error: "Un GEM (famille d'impact) doit obligatoirement avoir un Département ou une Tribu comme parent" },
-        { status: 400 }
-      );
-    }
+
 
     if (parentId) {
       const parentGroup = await prisma.group.findUnique({
@@ -121,12 +115,6 @@ export async function PUT(
         return forbidden();
       }
 
-      if (parentGroup.type === "GEM") {
-        return NextResponse.json(
-          { success: false, error: "Un GEM ne peut pas avoir un autre GEM comme parent" },
-          { status: 400 }
-        );
-      }
     }
 
     const updatedGroup = await prisma.group.update({

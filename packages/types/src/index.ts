@@ -15,7 +15,7 @@ export type MemberGrade =
 
 export type MemberEchelon = "C2" | "C5" | "C10" | "C20" | "GA_C50" | "GA_C100";
 
-export type GroupType = "DEPARTEMENT" | "TRIBU" | "GEM";
+export type GroupType = "DEPARTEMENT" | "TRIBU" | "MAISON_D_HONNEUR" | "CELLULE" | "ASSEMBLEE";
 
 export type FormationType =
   | "ACADEMIE"
