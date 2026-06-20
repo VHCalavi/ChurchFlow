@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MemberDetailsDrawer } from "../../../components/members/MemberDetailsDrawer";
+import { useRouter } from "next/navigation";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
 import { StatCard } from "../../../components/ui/stat-card";
 
@@ -35,6 +35,7 @@ interface Member {
 }
 
 export default function MembersPage() {
+  const router = useRouter();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -516,7 +517,7 @@ export default function MembersPage() {
                         <td className="py-4 px-6">
                           <div className="flex items-center justify-center space-x-1">
                             <button
-                              onClick={() => setViewingMemberId(member.id)}
+                              onClick={() => router.push(`/dashboard/members/${member.id}`)}
                               className="p-2 rounded-full bg-transparent hover:bg-[#F2EFFF] text-[#A3AED0] hover:text-[#1B2559] transition-all"
                             >
                               <Eye className="w-4 h-4" />
@@ -976,10 +977,7 @@ export default function MembersPage() {
           </div>
         )}
 
-        <MemberDetailsDrawer
-          memberId={viewingMemberId}
-          onClose={() => setViewingMemberId(null)}
-        />
+
       </div>
     </DashboardLayout>
   );

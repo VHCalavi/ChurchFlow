@@ -6,8 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ============================================================
@@ -123,7 +123,8 @@ model Church {
   purchases         Purchase[]
   transactions      Transaction[]
   financeCategories FinanceCategory[]
-  metadata          Json @default("{}")
+  inactivityConfig  InactivityConfig?
+  metadata          Json              @default("{}")
 
   @@map("churches")
 }
@@ -150,7 +151,7 @@ model User {
   roles    UserRole[]
   sessions Session[]
   accounts Account[]
-  metadata Json @default("{}")
+  metadata Json       @default("{}")
 
   @@map("users")
 }
@@ -205,8 +206,8 @@ model Role {
 
 model Permission {
   id          String   @id @default(cuid())
-  action      String   // e.g. "create", "read", "update", "delete"
-  resource    String   // e.g. "members", "groups", "finances"
+  action      String // e.g. "create", "read", "update", "delete"
+  resource    String // e.g. "members", "groups", "finances"
   description String?
   createdAt   DateTime @default(now())
 
@@ -252,17 +253,21 @@ model Member {
   email       String?
   address     String?
   photoUrl    String?
-  baptismDate DateTime?
-  joinDate    DateTime  @default(now())
-  isActive    Boolean   @default(true)
-  notes       String?   @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  baptismDate    DateTime?
+  joinDate       DateTime  @default(now())
+  isActive       Boolean   @default(true)
+  notes          String?   @db.Text
+  maritalStatus  String?   // CELIBATAIRE, MARIE, VEUF, DIVORCE
+  occupation     String?   // Profession / Métier
+  nationalId     String?   // Numéro CNI / Passeport
+  nationality    String?   // Nationalité
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   // Hiérarchie ChurchFlow
-  status   MemberStatus
-  grade    MemberGrade?  // uniquement pour RESPONSABLE
-  echelon  MemberEchelon? // uniquement pour RESPONSABLE
+  status  MemberStatus
+  grade   MemberGrade? // uniquement pour RESPONSABLE
+  echelon MemberEchelon? // uniquement pour RESPONSABLE
 
   churchId String
   church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
@@ -275,10 +280,19 @@ model Member {
   supervisor   Member?  @relation("MemberHierarchy", fields: [supervisorId], references: [id])
   subordinates Member[] @relation("MemberHierarchy")
 
-  groups          MemberGroup[]
-  formations      MemberFormation[]
+  groups           MemberGroup[]
+  formations       MemberFormation[]
   meetingsAttended MeetingAttendee[]
-  metadata        Json @default("{}")
+
+  // Phase 1 Relations inverses (Requises par Prisma, mais non utilisées via 'include' dans le code par soucis de performance)
+  interviews                MemberInterview[]
+  interviewsGiven           MemberInterview[]        @relation("Interviewer")
+  documents                 MemberDocument[]
+  familyRelationsAsMember   FamilyRelation[]         @relation("FamilyRelationsAsMember")
+  familyRelationsAsRelative FamilyRelation[]         @relation("FamilyRelationsAsRelative")
+  activities                MemberActivityTimeline[]
+
+  metadata Json @default("{}")
 
   @@map("members")
 }
@@ -304,17 +318,17 @@ model Group {
   parent   Group?  @relation("GroupHierarchy", fields: [parentId], references: [id])
   children Group[] @relation("GroupHierarchy")
 
-  members MemberGroup[]
-  metadata Json @default("{}")
+  members  MemberGroup[]
+  metadata Json          @default("{}")
 
   @@map("groups")
 }
 
 model MemberGroup {
-  memberId  String
-  groupId   String
-  role      String?   // e.g. "Leader", "Membre"
-  joinedAt  DateTime  @default(now())
+  memberId String
+  groupId  String
+  role     String? // e.g. "Leader", "Membre"
+  joinedAt DateTime @default(now())
 
   member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   group  Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -351,7 +365,7 @@ model MemberFormation {
   formationId String
   enrolledAt  DateTime  @default(now())
   completedAt DateTime?
-  grade       String?   // Note ou mention obtenue
+  grade       String? // Note ou mention obtenue
 
   member    Member    @relation(fields: [memberId], references: [id], onDelete: Cascade)
   formation Formation @relation(fields: [formationId], references: [id], onDelete: Cascade)
@@ -374,7 +388,7 @@ model Meeting {
   location    String?
   notes       String?     @db.Text
   isRecurrent Boolean     @default(false)
-  tags        String[]   @default([])
+  tags        String[]    @default([])
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -382,7 +396,7 @@ model Meeting {
   church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
 
   attendees MeetingAttendee[]
-  metadata  Json @default("{}")
+  metadata  Json              @default("{}")
 
   @@map("meetings")
 }
@@ -406,18 +420,18 @@ model MeetingAttendee {
 // ============================================================
 
 model Material {
-  id           String         @id @default(cuid())
-  name         String
-  description  String?
-  serialNumber String?
-  quantity     Int            @default(1)
-  status       MaterialStatus @default(DISPONIBLE)
-  purchaseDate DateTime?
-  purchasePrice Decimal?     @db.Decimal(12, 2)
-  location     String?
-  notes        String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id            String         @id @default(cuid())
+  name          String
+  description   String?
+  serialNumber  String?
+  quantity      Int            @default(1)
+  status        MaterialStatus @default(DISPONIBLE)
+  purchaseDate  DateTime?
+  purchasePrice Decimal?       @db.Decimal(12, 2)
+  location      String?
+  notes         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 
   churchId String
   church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
@@ -438,7 +452,7 @@ model Provider {
   updatedAt   DateTime @updatedAt
 
   churchId  String
-  church    Church    @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  church    Church     @relation(fields: [churchId], references: [id], onDelete: Cascade)
   purchases Purchase[]
 
   @@map("providers")
@@ -473,7 +487,7 @@ model FinanceCategory {
   id        String          @id @default(cuid())
   name      String
   flowType  TransactionType
-  family    ExpenseFamily?  // null pour les entrées
+  family    ExpenseFamily? // null pour les entrées
   color     String?
   isDefault Boolean         @default(false)
   isActive  Boolean         @default(true)
@@ -503,9 +517,109 @@ model Transaction {
   updatedAt     DateTime        @updatedAt
 
   churchId   String
-  church     Church          @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  church     Church           @relation(fields: [churchId], references: [id], onDelete: Cascade)
   categoryId String?
   category   FinanceCategory? @relation(fields: [categoryId], references: [id])
 
   @@map("transactions")
+}
+
+// ============================================================
+// PHASE 1: GESTION MEMBRES & PROFIL
+// ============================================================
+
+model MemberInterview {
+  id            String   @id @default(cuid())
+  memberId      String
+  title         String
+  content       String   @db.Text
+  date          DateTime @default(now())
+  interviewerId String
+  type          String // INITIAL, FOLLOWUP, ANNUAL, SPECIAL
+  attachments   String[] // Listes d'URLs de fichiers
+
+  member      Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  interviewer Member? @relation("Interviewer", fields: [interviewerId], references: [id])
+
+  @@index([memberId])
+  @@index([date])
+  @@index([type])
+  @@map("member_interviews")
+}
+
+model MemberDocument {
+  id         String   @id @default(cuid())
+  memberId   String
+  type       String // ID_CARD, BAPTISM_CERTIFICATE, MEDICAL_REPORT, ETC.
+  fileUrl    String
+  fileName   String?
+  uploadedAt DateTime @default(now())
+  uploadedBy String // ID de l'utilisateur (User.id)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([type])
+  @@index([uploadedAt])
+  @@map("member_documents")
+}
+
+model FamilyRelation {
+  id           String  @id @default(cuid())
+  memberId     String
+  relativeId   String
+  relationType String // PARENT, ENFANT, SPOUSE, SIBLING, GEM_PARTNER
+  isActive     Boolean @default(true)
+
+  member   Member @relation("FamilyRelationsAsMember", fields: [memberId], references: [id], onDelete: Cascade)
+  relative Member @relation("FamilyRelationsAsRelative", fields: [relativeId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, relativeId, relationType])
+  @@index([memberId])
+  @@index([relativeId])
+  @@index([relationType])
+  @@map("family_relations")
+}
+
+model FamilyIndex {
+  id           String   @id @default(cuid())
+  memberId     String
+  relationType String
+  relativeIds  String[]
+  lastUpdated  DateTime @updatedAt
+
+  @@index([memberId])
+  @@index([relationType])
+  @@map("family_indices")
+}
+
+model MemberActivityTimeline {
+  id           String   @id @default(cuid())
+  memberId     String
+  date         DateTime
+  activityType String
+  details      String
+  relatedId    String?
+  relatedType  String?
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([date])
+  @@index([activityType])
+  @@map("member_activity_timeline")
+}
+
+model InactivityConfig {
+  id                 String   @id @default(cuid())
+  name               String
+  description        String?
+  inactivePeriodDays Int
+  actions            String[]
+  isActive           Boolean  @default(true)
+  churchId           String   @unique
+
+  church Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+
+  @@map("inactivity_configs")
 }

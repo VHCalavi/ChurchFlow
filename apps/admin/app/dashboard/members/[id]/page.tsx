@@ -1,0 +1,1184 @@
+"use client";
+
+import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import { DashboardLayout } from "../../../../components/layout/dashboard-layout";
+import { ArrowLeft, User, Users, Calendar, FileText, File, Network, Circle, X, Plus, Search, Eye, Pencil, Trash2, Camera } from "lucide-react";
+
+export default function MemberDetailPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("general");
+  const [member, setMember] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  
+  const [interviews, setInterviews] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [relations, setRelations] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [attendances, setAttendances] = useState<any[]>([]);
+  const [loadingTab, setLoadingTab] = useState(false);
+
+  // Lists for dropdowns
+  const [allGroups, setAllGroups] = useState<any[]>([]);
+  const [allMembers, setAllMembers] = useState<any[]>([]);
+  const [memberSearch, setMemberSearch] = useState("");
+
+  // Modals & Forms
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [showDocModal, setShowDocModal] = useState(false);
+  const [showRelModal, setShowRelModal] = useState(false);
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [isToggling, setIsToggling] = useState(false);
+
+  // View/Edit detail modals
+  const [viewingInterview, setViewingInterview] = useState<any>(null);
+  const [editingInterview, setEditingInterview] = useState<any>(null);
+  const [viewingDoc, setViewingDoc] = useState<any>(null);
+  const [editingDoc, setEditingDoc] = useState<any>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Fetch dependencies for dropdowns (Groups, Members)
+    const fetchDependencies = async () => {
+      try {
+        const [gRes, mRes] = await Promise.all([
+          fetch('/api/v1/groups'),
+          fetch('/api/v1/members')
+        ]);
+        const gJson = await gRes.json();
+        const mJson = await mRes.json();
+        if (gJson.success) setAllGroups(gJson.data || []);
+        if (mJson.success) setAllMembers(mJson.data || []);
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    fetchDependencies();
+  }, []);
+
+  useEffect(() => {
+    const fetchTab = async (url: string, setter: any) => {
+      setLoadingTab(true);
+      try {
+        const res = await fetch(url);
+        const json = await res.json();
+        if (json.success) setter(json.data || []);
+      } catch (err) {
+        console.error("Erreur chargement onglet", err);
+      } finally {
+        setLoadingTab(false);
+      }
+    };
+
+    if (activeTab === "entretiens" && interviews.length === 0) {
+      fetchTab(`/api/v1/members/${params.id}/interviews`, setInterviews);
+    } else if (activeTab === "documents" && documents.length === 0) {
+      fetchTab(`/api/v1/members/${params.id}/documents`, setDocuments);
+    } else if (activeTab === "arbre" && relations.length === 0) {
+      fetchTab(`/api/v1/members/${params.id}/family-relations?includeFamily=true&includeGem=true`, setRelations);
+    } else if (activeTab === "groupes" && groups.length === 0) {
+      fetchTab(`/api/v1/members/${params.id}/groups`, setGroups);
+    } else if (activeTab === "presences" && attendances.length === 0) {
+      fetchTab(`/api/v1/members/${params.id}/attendance`, setAttendances);
+    }
+  }, [activeTab, params.id]);
+
+  useEffect(() => {
+    async function loadMember() {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/v1/members/${params.id}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          setMember(json.data);
+        } else {
+          // Si le membre n'existe pas en base de données, on le signale.
+          setErrorMsg("Ce membre n'existe pas ou vous n'avez pas l'autorisation d'y accéder.");
+        }
+      } catch (err) {
+        setErrorMsg("Erreur lors de la récupération du membre.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadMember();
+  }, [params.id]);
+
+  const toggleActiveStatus = async () => {
+    if (!member) return;
+    setIsToggling(true);
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !member.isActive })
+      });
+      const json = await res.json();
+      if (json.success) {
+        setMember({ ...member, isActive: !member.isActive });
+      } else {
+        alert("Erreur lors de la mise à jour: " + json.error);
+      }
+    } catch (e) {
+      alert("Erreur de connexion.");
+    } finally {
+      setIsToggling(false);
+    }
+  };
+
+  const handleEditMember = async (e: any) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const data = {
+      firstName: e.target.firstName.value,
+      lastName: e.target.lastName.value,
+      email: e.target.email.value,
+      phone: e.target.phone.value,
+      gender: e.target.gender.value,
+      address: e.target.address.value,
+    };
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      if (json.success) {
+        setMember({ ...member, ...data });
+        setShowEditModal(false);
+      } else {
+        alert("Erreur d'édition: " + json.error);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAddInterview = async (e: any) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const data = {
+      title: e.target.title.value,
+      type: e.target.type.value,
+      content: e.target.content.value || "Aucun contenu renseigné.",
+      date: e.target.date.value ? new Date(e.target.date.value).toISOString() : new Date().toISOString(),
+      interviewerId: e.target.interviewerId.value,
+    };
+    
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}/interviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      if (json.success) {
+        setInterviews([json.data, ...interviews]);
+        setShowInterviewModal(false);
+      } else {
+        alert("Erreur: " + json.error);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAddDocument = async (e: any) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const data = {
+      type: "OTHER", // Always OTHER or REPORT for generic texts
+      fileName: e.target.fileName.value,
+      content: e.target.content.value, 
+    };
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}/documents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDocuments([json.data, ...documents]);
+        setShowDocModal(false);
+      } else {
+        alert("Erreur: " + json.error);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAddRelation = async (e: any) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const data = {
+      relationType: e.target.type.value,
+      relativeId: e.target.relativeId.value,
+    };
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}/family-relations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      if (json.success) {
+        setRelations([json.data, ...relations]);
+        setShowRelModal(false);
+      } else {
+        alert("Erreur: " + json.error);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAddGroup = async (e: any) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const groupId = e.target.groupId.value;
+    try {
+      const res = await fetch(`/api/v1/groups/${groupId}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: params.id, role: "Membre" })
+      });
+      const json = await res.json();
+      if (json.success) {
+        // Refresh groups tab manually or append
+        const gRes = await fetch(`/api/v1/members/${params.id}/groups`);
+        const gJson = await gRes.json();
+        if (gJson.success) setGroups(gJson.data);
+        setShowGroupModal(false);
+      } else {
+        alert("Erreur: " + json.error);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteRelation = async (relationId: string) => {
+    if (!confirm("Voulez-vous vraiment supprimer cette relation ?")) return;
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}/family-relations/${relationId}`, { method: 'DELETE' });
+      if (res.ok) setRelations(relations.filter(r => r.id !== relationId));
+    } catch (e) { console.error(e); }
+  };
+
+  const handleRemoveFromGroup = async (groupId: string) => {
+    if (!confirm("Voulez-vous vraiment retirer le membre de ce groupe ?")) return;
+    try {
+      const res = await fetch(`/api/v1/groups/${groupId}/members?memberId=${params.id}`, { method: 'DELETE' });
+      if (res.ok) setGroups(groups.filter(g => g.groupId !== groupId));
+    } catch (e) { console.error(e); }
+  };
+
+  const handleDeleteInterview = async (interviewId: string) => {
+    if (!confirm("Voulez-vous vraiment supprimer cet entretien ?")) return;
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}/interviews/${interviewId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setInterviews(interviews.filter(i => i.id !== interviewId));
+        setViewingInterview(null);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const handleUpdateInterview = async (e: any) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const data = {
+      title: e.target.title.value,
+      type: e.target.type.value,
+      content: e.target.content.value || "Aucun contenu renseigné.",
+      date: e.target.date.value ? new Date(e.target.date.value).toISOString() : undefined,
+      interviewerId: e.target.interviewerId.value,
+    };
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}/interviews/${editingInterview.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      if (json.success) {
+        setInterviews(interviews.map(i => i.id === editingInterview.id ? json.data : i));
+        setEditingInterview(null);
+      } else alert("Erreur: " + json.error);
+    } finally { setSubmitting(false); }
+  };
+
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!confirm("Voulez-vous vraiment supprimer ce document ?")) return;
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}/documents/${documentId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setDocuments(documents.filter(d => d.id !== documentId));
+        setViewingDoc(null);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const handleUpdateDocument = async (e: any) => {
+    e.preventDefault();
+    setSubmitting(true);
+    const data = {
+      fileName: e.target.fileName.value,
+      content: e.target.content.value,
+    };
+    try {
+      const res = await fetch(`/api/v1/members/${params.id}/documents/${editingDoc.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      if (json.success) {
+        setDocuments(documents.map(d => d.id === editingDoc.id ? json.data : d));
+        setEditingDoc(null);
+      } else alert("Erreur: " + json.error);
+    } finally { setSubmitting(false); }
+  };
+
+  const handlePhotoUpload = async (e: any) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // In a real app, you would upload to S3/Cloudinary here.
+    // For now, we'll convert to base64 for simplicity since it's an avatar.
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64String = reader.result as string;
+      try {
+        const res = await fetch(`/api/v1/members/${params.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ photoUrl: base64String })
+        });
+        const json = await res.json();
+        if (json.success) {
+          setMember({ ...member, photoUrl: base64String });
+        }
+      } catch (err) {
+        console.error("Erreur lors de l'upload de la photo", err);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const tabs = [
+    { id: "general", label: "Général", icon: <User className="w-4 h-4" /> },
+    { id: "groupes", label: "Groupes", icon: <Users className="w-4 h-4" /> },
+    { id: "presences", label: "Présences", icon: <Calendar className="w-4 h-4" /> },
+    { id: "entretiens", label: "Entretiens", icon: <FileText className="w-4 h-4" /> },
+    { id: "documents", label: "Rapports", icon: <File className="w-4 h-4" /> },
+    { id: "arbre", label: "Arbre", icon: <Network className="w-4 h-4" /> },
+  ];
+
+  const filteredMembers = allMembers.filter(m => 
+    `${m.firstName} ${m.lastName}`.toLowerCase().includes(memberSearch.toLowerCase()) && 
+    m.id !== params.id
+  );
+
+  if (loading) {
+    return (
+      <DashboardLayout title="Détail du Membre">
+        <div className="flex justify-center items-center h-64">
+          <div className="w-8 h-8 border-4 border-[#006C69] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <DashboardLayout title="Erreur">
+        <div className="flex flex-col justify-center items-center h-64">
+          <p className="text-[#CD3C14] font-bold text-lg mb-4">{errorMsg}</p>
+          <button onClick={() => router.push('/dashboard/members')} className="btn-horizon btn-horizon-secondary">Retour aux membres</button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!member) return null;
+
+  return (
+    <DashboardLayout title="Profil Membre">
+      <div className="w-full max-w-6xl mx-auto pb-10">
+        <button 
+          onClick={() => router.push('/dashboard/members')}
+          className="flex items-center text-[#A3AED0] hover:text-[#1B2559] font-bold text-sm mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Retour aux membres
+        </button>
+
+        <div className="horizon-card p-6 mb-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-6">
+            <div className="relative group w-24 h-24 rounded-full bg-[#006C69] flex items-center justify-center text-3xl font-bold text-white shadow-horizon-xl overflow-hidden flex-shrink-0 cursor-pointer" onClick={() => photoInputRef.current?.click()}>
+              {member.photoUrl ? (
+                <img src={member.photoUrl} alt="Profil" className="w-full h-full object-cover" />
+              ) : (
+                <span>{member.firstName?.[0]}{member.lastName?.[0]}</span>
+              )}
+              <div className="absolute inset-0 bg-black/50 hidden group-hover:flex items-center justify-center transition-all">
+                <Camera className="w-6 h-6 text-white" />
+              </div>
+              <input type="file" accept="image/*" className="hidden" ref={photoInputRef} onChange={handlePhotoUpload} />
+            </div>
+            
+            <div>
+              <h1 className="text-2xl font-extrabold text-[#1B2559]">
+                {member.firstName} {member.lastName}
+              </h1>
+              <div className="flex items-center gap-4 mt-2 text-sm font-medium text-[#A3AED0]">
+                <span>{member.email || "Aucun email"}</span>
+                <span>•</span>
+                <span>{member.phone || "Aucun téléphone"}</span>
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                  member.status === "RESPONSABLE" ? "bg-[#CEAD1E] text-white" : 
+                  member.status === "MEMBRE" ? "bg-[#006C69] text-white" : "bg-[#A3AED0] text-[#1B2559]"
+                }`}>
+                  {member.status}
+                </span>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4F7FE] text-xs font-bold">
+                  <Circle className={`w-2 h-2 fill-current ${member.isActive ? "text-[#006C69]" : "text-[#CD3C14]"}`} />
+                  <span className={member.isActive ? "text-[#006C69]" : "text-[#CD3C14]"}>
+                    {member.isActive ? "Actif" : "Inactif"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <button onClick={() => setShowEditModal(true)} className="btn-horizon btn-horizon-secondary text-sm font-bold w-full sm:w-auto">Éditer le profil</button>
+            <button 
+              onClick={toggleActiveStatus} 
+              disabled={isToggling}
+              className="btn-horizon btn-horizon-primary text-sm font-bold w-full sm:w-auto flex items-center justify-center"
+            >
+              {isToggling ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" /> : null}
+              {member.isActive ? "Marquer inactif" : "Marquer actif"}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex overflow-x-auto gap-2 mb-6 border-b border-[#E0E5F2] pb-px scrollbar-hide">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === tab.id
+                  ? "border-[#006C69] text-[#006C69]"
+                  : "border-transparent text-[#A3AED0] hover:text-[#1B2559]"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="horizon-card p-6 min-h-[400px]">
+          {/* GENERAL */}
+          {activeTab === "general" && (
+            <div className="animate-fade-in">
+              <h3 className="text-lg font-bold text-[#1B2559] mb-4">Informations Générales</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="p-4 rounded-2xl bg-[#F4F7FE]">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">Date d'inscription</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{new Date(member.createdAt).toLocaleDateString('fr-FR')}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#F4F7FE]">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">Date de naissance</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{member.birthDate ? new Date(member.birthDate).toLocaleDateString('fr-FR') : "Non renseignée"}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#F4F7FE]">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">Date de baptême</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{member.baptismDate ? new Date(member.baptismDate).toLocaleDateString('fr-FR') : "Non renseignée"}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#F4F7FE]">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">Sexe</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{member.gender === 'HOMME' ? 'Homme' : 'Femme'}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#F4F7FE]">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">Adresse</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{member.address || "Non renseignée"}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#F4F7FE]">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">Statut marital</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{member.maritalStatus || "Non renseigné"}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#F4F7FE]">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">Profession</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{member.occupation || "Non renseignée"}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#F4F7FE]">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">Nationalité</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{member.nationality || "Non renseignée"}</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-[#F4F7FE]">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">CNI / Passeport</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{member.nationalId || "Non renseigné"}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* GROUPES */}
+          {activeTab === "groupes" && (
+            <div className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[#1B2559]">Groupes d'appartenance</h3>
+                <button onClick={() => setShowGroupModal(true)} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Ajouter à un groupe</button>
+              </div>
+              {loadingTab ? (
+                <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : groups.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-[#A3AED0] bg-[#F4F7FE] rounded-2xl border border-dashed border-[#A3AED0]">
+                  <Users className="w-10 h-10 mb-3 opacity-50" />
+                  <p className="font-bold text-sm">Le membre n'est dans aucun groupe.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {groups.map((g: any, i: number) => (
+                    <div key={g.groupId || i} className="p-4 border border-[#E0E5F2] rounded-2xl hover:shadow-horizon-md transition-all bg-white shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold px-2 py-1 bg-[#F4F7FE] text-[#1B2559] rounded-full">{g.group?.type || "Groupe"}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-[#A3AED0]">{new Date(g.joinedAt).toLocaleDateString('fr-FR')}</span>
+                          <button onClick={() => handleRemoveFromGroup(g.groupId)} className="p-1 text-[#CD3C14] bg-[#CD3C14]/10 rounded-md hover:bg-[#CD3C14]/20 transition-colors">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-base font-extrabold text-[#1B2559]">{g.group?.name || "Groupe introuvable"}</p>
+                      <p className="text-sm font-medium text-[#006C69] mt-1">{g.role}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PRESENCES */}
+          {activeTab === "presences" && (
+            <div className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[#1B2559]">Historique des Présences</h3>
+              </div>
+              {loadingTab ? (
+                <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : attendances.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-[#A3AED0] bg-[#F4F7FE] rounded-2xl border border-dashed border-[#A3AED0]">
+                  <Calendar className="w-10 h-10 mb-3 opacity-50" />
+                  <p className="font-bold text-sm">Aucune présence enregistrée.</p>
+                </div>
+              ) : (
+                <div className="relative border-l-2 border-[#E0E5F2] ml-4 space-y-6 py-4">
+                  {attendances.map((a: any, idx: number) => (
+                    <div key={a.meetingId || idx} className="relative pl-6">
+                      <div className="absolute w-4 h-4 bg-[#006C69] rounded-full -left-[9px] top-1 border-4 border-white shadow-sm" />
+                      <div>
+                        <p className="text-sm font-bold text-[#A3AED0] mb-0.5">{new Date(a.meeting?.date).toLocaleDateString('fr-FR')}</p>
+                        <div className="p-4 bg-[#F4F7FE] rounded-xl inline-block shadow-sm">
+                          <p className="text-base font-extrabold text-[#1B2559]">{a.meeting?.title}</p>
+                          <span className="text-xs px-2 py-0.5 bg-white text-[#1B2559] rounded-full mt-2 inline-block font-bold">{a.meeting?.type}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ENTRETIENS */}
+          {activeTab === "entretiens" && (
+            <div className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[#1B2559]">Historique des entretiens</h3>
+                <button onClick={() => setShowInterviewModal(true)} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Nouveau</button>
+              </div>
+              {loadingTab ? (
+                <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : interviews.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-[#A3AED0] bg-[#F4F7FE] rounded-2xl border border-dashed border-[#A3AED0]">
+                  <FileText className="w-10 h-10 mb-3 opacity-50" />
+                  <p className="font-bold text-sm">Aucun entretien enregistré.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border border-[#E0E5F2] shadow-sm">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-[#F4F7FE] text-[#A3AED0]">
+                      <tr>
+                        <th className="px-4 py-3 font-bold">Date</th>
+                        <th className="px-4 py-3 font-bold">Objet / Titre</th>
+                        <th className="px-4 py-3 font-bold">Type</th>
+                        <th className="px-4 py-3 font-bold">Interviewer</th>
+                        <th className="px-4 py-3 font-bold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E0E5F2] text-[#1B2559] font-medium">
+                      {interviews.map(i => (
+                        <tr key={i.id} className="hover:bg-[#F8F9FA] transition-colors">
+                          <td className="px-4 py-3">{new Date(i.date).toLocaleDateString('fr-FR')}</td>
+                          <td className="px-4 py-3 font-bold">{i.title}</td>
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-1 bg-[#006C69]/10 text-[#006C69] rounded-full text-xs font-bold">{i.type}</span>
+                          </td>
+                          <td className="px-4 py-3 flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-[#F4F7FE] flex items-center justify-center text-xs font-bold text-[#A3AED0]">
+                              <User className="w-3 h-3" />
+                            </div>
+                            {i.interviewer?.firstName || i.interviewerName || "Non assigné"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-end gap-2">
+                              <button onClick={() => setViewingInterview(i)} className="p-1.5 text-[#006C69] bg-[#006C69]/10 rounded-md hover:bg-[#006C69]/20 transition-colors">
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => setEditingInterview(i)} className="p-1.5 text-[#CEAD1E] bg-[#CEAD1E]/10 rounded-md hover:bg-[#CEAD1E]/20 transition-colors">
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteInterview(i.id)} className="p-1.5 text-[#CD3C14] bg-[#CD3C14]/10 rounded-md hover:bg-[#CD3C14]/20 transition-colors">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* DOCUMENTS */}
+          {activeTab === "documents" && (
+            <div className="animate-fade-in">
+               <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[#1B2559]">Documents et Rapports</h3>
+                <button onClick={() => setShowDocModal(true)} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Ajouter un rapport</button>
+              </div>
+              {loadingTab ? (
+                <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : documents.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-[#A3AED0] bg-[#F4F7FE] rounded-2xl border border-dashed border-[#A3AED0]">
+                  <File className="w-10 h-10 mb-3 opacity-50" />
+                  <p className="font-bold text-sm">Aucun document n'a été enregistré.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {documents.map(d => (
+                    <div key={d.id} className="flex flex-col p-5 border border-[#E0E5F2] rounded-2xl bg-white shadow-sm hover:shadow-horizon-md transition-all">
+                      <div className="flex items-center justify-between mb-3 border-b border-[#E0E5F2] pb-3">
+                        <div className="flex items-center">
+                          <div className="w-10 h-10 rounded-full bg-[#F4F7FE] text-[#CEAD1E] flex items-center justify-center mr-3">
+                            <File className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-base font-extrabold text-[#1B2559]">{d.fileName || "Rapport sans titre"}</p>
+                            <p className="text-xs font-medium text-[#A3AED0]">{new Date(d.uploadedAt).toLocaleDateString('fr-FR')} • par {d.uploadedBy || "Admin"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setViewingDoc(d)} className="p-1.5 text-[#006C69] bg-[#006C69]/10 rounded-md hover:bg-[#006C69]/20 transition-colors">
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => setEditingDoc(d)} className="p-1.5 text-[#CEAD1E] bg-[#CEAD1E]/10 rounded-md hover:bg-[#CEAD1E]/20 transition-colors">
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDeleteDocument(d.id)} className="p-1.5 text-[#CD3C14] bg-[#CD3C14]/10 rounded-md hover:bg-[#CD3C14]/20 transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-[#F8F9FA] rounded-xl text-sm text-[#1B2559] font-medium leading-relaxed max-h-60 overflow-y-auto whitespace-pre-wrap">
+                        {d.fileUrl}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ARBRE */}
+          {activeTab === "arbre" && (
+            <div className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[#1B2559]">Arbre des relations</h3>
+                <button onClick={() => setShowRelModal(true)} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Lier un membre</button>
+              </div>
+              {loadingTab ? (
+                <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : relations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-[#A3AED0] bg-[#F4F7FE] rounded-2xl border border-dashed border-[#A3AED0]">
+                  <Network className="w-10 h-10 mb-3 opacity-50" />
+                  <p className="font-bold text-sm">Aucune relation enregistrée.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border border-[#E0E5F2] shadow-sm">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-[#F4F7FE] text-[#A3AED0]">
+                      <tr>
+                        <th className="px-4 py-3 font-bold">Type de Relation</th>
+                        <th className="px-4 py-3 font-bold">Membre Lié</th>
+                        <th className="px-4 py-3 font-bold">Statut</th>
+                        <th className="px-4 py-3 font-bold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E0E5F2] text-[#1B2559] font-medium">
+                      {relations.map(r => (
+                        <tr key={r.id} className="hover:bg-[#F8F9FA] transition-colors">
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-1 bg-[#CEAD1E]/10 text-[#CEAD1E] rounded-full text-xs font-bold">{r.relationType}</span>
+                          </td>
+                          <td className="px-4 py-3 flex items-center font-bold">
+                            <div className="w-8 h-8 rounded-full bg-[#006C69] text-white flex items-center justify-center text-xs mr-3 shadow-sm">
+                              {r.relative?.firstName?.[0] || ""}{r.relative?.lastName?.[0] || ""}
+                            </div>
+                            {r.relative?.firstName} {r.relative?.lastName}
+                          </td>
+                          <td className="px-4 py-3">
+                             <span className={`px-2 py-1 rounded-full text-xs font-bold ${r.isActive ? 'bg-[#006C69]/10 text-[#006C69]' : 'bg-[#CD3C14]/10 text-[#CD3C14]'}`}>
+                               {r.isActive ? 'Actif' : 'Historique'}
+                             </span>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button onClick={() => handleDeleteRelation(r.id)} className="p-1.5 text-[#CD3C14] bg-[#CD3C14]/10 rounded-md hover:bg-[#CD3C14]/20 transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* --- MODALS --- */}
+        
+        {/* EDIT PROFILE MODAL */}
+        {showEditModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Éditer le profil</h3>
+                <button onClick={() => setShowEditModal(false)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <form onSubmit={handleEditMember} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Prénom</label>
+                    <input name="firstName" defaultValue={member.firstName} required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Nom</label>
+                    <input name="lastName" defaultValue={member.lastName} required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Email</label>
+                  <input name="email" type="email" defaultValue={member.email} className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Téléphone</label>
+                  <input name="phone" defaultValue={member.phone} className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Sexe</label>
+                    <select name="gender" defaultValue={member.gender} className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
+                      <option value="HOMME">Homme</option>
+                      <option value="FEMME">Femme</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Date de naissance</label>
+                    <input name="birthDate" type="date" defaultValue={member.birthDate ? new Date(member.birthDate).toISOString().split('T')[0] : ''} className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Adresse</label>
+                  <input name="address" defaultValue={member.address} className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Statut Marital</label>
+                    <select name="maritalStatus" defaultValue={member.maritalStatus || ""} className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
+                      <option value="">Non renseigné</option>
+                      <option value="CELIBATAIRE">Célibataire</option>
+                      <option value="MARIE">Marié(e)</option>
+                      <option value="VEUF">Veuf / Veuve</option>
+                      <option value="DIVORCE">Divorcé(e)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Profession</label>
+                    <input name="occupation" defaultValue={member.occupation} placeholder="Ex: Informaticien" className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Nationalité</label>
+                    <input name="nationality" defaultValue={member.nationality} placeholder="Ex: Ivoirienne" className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">CNI / Passeport</label>
+                    <input name="nationalId" defaultValue={member.nationalId} placeholder="Numéro de pièce" className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
+                  <button type="button" onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
+                  <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#006C69] hover:bg-[#005250] text-white rounded-full font-bold transition-colors">
+                    {submitting ? 'Sauvegarde...' : 'Sauvegarder'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* INTERVIEW MODAL */}
+        {showInterviewModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Nouvel Entretien</h3>
+                <button onClick={() => setShowInterviewModal(false)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <form onSubmit={handleAddInterview} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Objet / Titre de l'entretien</label>
+                  <input name="title" required placeholder="Ex: Entretien de suivi pastoral..." className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Date (Passée ou Future)</label>
+                    <input name="date" type="datetime-local" required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Type</label>
+                    <select name="type" required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
+                      <option value="INITIAL">Initial</option>
+                      <option value="FOLLOWUP">Suivi</option>
+                      <option value="ANNUAL">Annuel</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Interviewer (Personne en charge)</label>
+                  <select name="interviewerId" required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
+                    <option value="">Sélectionner un responsable...</option>
+                    {allMembers.filter(m => m.status === "RESPONSABLE" || m.status === "PASTEUR").map(m => (
+                      <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>
+                    ))}
+                    {/* Fallback au cas où il n'y a pas de responsable pour tester */}
+                    {allMembers.length > 0 && <option disabled>--- Tous les membres ---</option>}
+                    {allMembers.map(m => (
+                      <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Contenu du compte-rendu (Optionnel)</label>
+                  <textarea name="content" rows={4} placeholder="Peut être rempli plus tard..." className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium"></textarea>
+                </div>
+                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
+                  <button type="button" onClick={() => setShowInterviewModal(false)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
+                  <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#006C69] hover:bg-[#005250] text-white rounded-full font-bold transition-colors">
+                    {submitting ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* DOCUMENTS MODAL */}
+        {showDocModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl">
+              <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Ajouter un document / rapport</h3>
+                <button onClick={() => setShowDocModal(false)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <form onSubmit={handleAddDocument} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Nom du document / rapport</label>
+                  <input name="fileName" required placeholder="Ex: Rapport d'évaluation 2024" className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Contenu directement</label>
+                  <textarea name="content" required rows={8} placeholder="Saisir le texte de votre rapport ici..." className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium leading-relaxed"></textarea>
+                </div>
+                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
+                  <button type="button" onClick={() => setShowDocModal(false)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
+                  <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#006C69] hover:bg-[#005250] text-white rounded-full font-bold transition-colors">
+                    {submitting ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* RELATION MODAL */}
+        {showRelModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Lier un membre</h3>
+                <button onClick={() => setShowRelModal(false)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <form onSubmit={handleAddRelation} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Type de relation</label>
+                  <select name="type" required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
+                    <option value="PARENT">Parent</option>
+                    <option value="ENFANT">Enfant</option>
+                    <option value="SPOUSE">Conjoint(e)</option>
+                    <option value="SIBLING">Frère/Sœur</option>
+                    <option value="GEM_PARTNER">Partenaire GEM</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Rechercher un membre à lier</label>
+                  <div className="relative mb-2">
+                    <Search className="w-4 h-4 absolute left-3 top-3 text-[#A3AED0]" />
+                    <input 
+                      type="text" 
+                      placeholder="Taper un nom pour filtrer..." 
+                      value={memberSearch}
+                      onChange={(e) => setMemberSearch(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 bg-white border border-[#E0E5F2] focus:border-[#006C69] rounded-lg text-sm font-medium"
+                    />
+                  </div>
+                  <select name="relativeId" required size={5} className="w-full p-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium h-32">
+                    {filteredMembers.length === 0 ? (
+                      <option disabled>Aucun membre trouvé.</option>
+                    ) : (
+                      filteredMembers.map(m => (
+                         <option key={m.id} value={m.id} className="p-2 hover:bg-white cursor-pointer border-b border-[#E0E5F2]">
+                           {m.firstName} {m.lastName} ({m.email || 'Sans email'})
+                         </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
+                  <button type="button" onClick={() => setShowRelModal(false)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
+                  <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#006C69] hover:bg-[#005250] text-white rounded-full font-bold transition-colors">
+                    {submitting ? 'Enregistrement...' : 'Enregistrer'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* GROUP MODAL */}
+        {showGroupModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl">
+              <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Ajouter à un groupe</h3>
+                <button onClick={() => setShowGroupModal(false)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <form onSubmit={handleAddGroup} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Sélectionner un groupe</label>
+                  <select name="groupId" required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
+                    <option value="">Choisir...</option>
+                    {allGroups.map(g => (
+                      <option key={g.id} value={g.id}>{g.name} ({g.type})</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
+                  <button type="button" onClick={() => setShowGroupModal(false)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
+                  <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#006C69] hover:bg-[#005250] text-white rounded-full font-bold transition-colors">
+                    {submitting ? 'Ajout...' : 'Ajouter'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW INTERVIEW MODAL */}
+        {viewingInterview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Détails de l'entretien</h3>
+                <button onClick={() => setViewingInterview(null)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase">Objet / Titre</p>
+                  <p className="text-base font-bold text-[#1B2559]">{viewingInterview.title}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-[#A3AED0] font-bold uppercase">Date</p>
+                    <p className="text-sm font-bold text-[#1B2559]">{new Date(viewingInterview.date).toLocaleDateString('fr-FR')} à {new Date(viewingInterview.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#A3AED0] font-bold uppercase">Type</p>
+                    <p className="text-sm font-bold text-[#1B2559]">{viewingInterview.type}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase">Interviewer</p>
+                  <p className="text-sm font-bold text-[#1B2559]">{viewingInterview.interviewer?.firstName || viewingInterview.interviewerName || "Non assigné"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-2">Contenu / Notes</p>
+                  <div className="p-4 bg-[#F4F7FE] rounded-lg text-sm text-[#1B2559] whitespace-pre-wrap">
+                    {viewingInterview.content}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* EDIT INTERVIEW MODAL */}
+        {editingInterview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Modifier l'entretien</h3>
+                <button onClick={() => setEditingInterview(null)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <form onSubmit={handleUpdateInterview} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Objet / Titre</label>
+                  <input name="title" defaultValue={editingInterview.title} required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Date</label>
+                    <input name="date" type="datetime-local" defaultValue={new Date(editingInterview.date).toISOString().slice(0, 16)} required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Type</label>
+                    <select name="type" defaultValue={editingInterview.type} required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
+                      <option value="PASTORAL">Suivi Pastoral</option>
+                      <option value="AFFECTION">Affection / Visite</option>
+                      <option value="DISCIPLINE">Discipline</option>
+                      <option value="BAPTEME">Préparation Baptême</option>
+                      <option value="MARIAGE">Préparation Mariage</option>
+                      <option value="AUTRE">Autre</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Interviewer</label>
+                  <select name="interviewerId" defaultValue={editingInterview.interviewerId} required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
+                    <option value="">Sélectionner l'interviewer...</option>
+                    {allMembers.filter(m => m.status === 'RESPONSABLE').map(m => (
+                      <option key={m.id} value={m.id}>{m.firstName} {m.lastName}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Contenu / Notes de l'entretien</label>
+                  <textarea name="content" defaultValue={editingInterview.content} rows={4} className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium resize-none" />
+                </div>
+                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
+                  <button type="button" onClick={() => setEditingInterview(null)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
+                  <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#CEAD1E] hover:bg-[#b09319] text-white rounded-full font-bold transition-colors">
+                    {submitting ? 'Modification...' : 'Modifier'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW DOCUMENT MODAL */}
+        {viewingDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-2xl p-6 bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Lecture du rapport</h3>
+                <button onClick={() => setViewingDoc(null)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase">Titre</p>
+                  <p className="text-xl font-extrabold text-[#1B2559]">{viewingDoc.fileName}</p>
+                </div>
+                <div className="flex gap-4 mb-4">
+                  <div>
+                    <p className="text-xs text-[#A3AED0] font-bold uppercase">Date</p>
+                    <p className="text-sm font-bold text-[#1B2559]">{new Date(viewingDoc.uploadedAt).toLocaleDateString('fr-FR')}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-[#A3AED0] font-bold uppercase">Auteur</p>
+                    <p className="text-sm font-bold text-[#1B2559]">{viewingDoc.uploadedBy || "Admin"}</p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <p className="text-xs text-[#A3AED0] font-bold uppercase mb-2">Contenu</p>
+                  <div className="p-6 bg-[#F8F9FA] rounded-xl text-[#1B2559] whitespace-pre-wrap text-sm leading-relaxed border border-[#E0E5F2]">
+                    {viewingDoc.fileUrl}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* EDIT DOCUMENT MODAL */}
+        {editingDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-2xl p-6 bg-white rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Modifier le rapport</h3>
+                <button onClick={() => setEditingDoc(null)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+              <form onSubmit={handleUpdateDocument} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Titre du document / rapport</label>
+                  <input name="fileName" defaultValue={editingDoc.fileName} required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Contenu du rapport</label>
+                  <textarea name="content" defaultValue={editingDoc.fileUrl} required rows={10} className="w-full px-4 py-3 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium resize-none leading-relaxed" />
+                </div>
+                <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
+                  <button type="button" onClick={() => setEditingDoc(null)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
+                  <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#CEAD1E] hover:bg-[#b09319] text-white rounded-full font-bold transition-colors">
+                    {submitting ? 'Modification...' : 'Modifier'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </DashboardLayout>
+  );
+}

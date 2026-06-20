@@ -191,3 +191,91 @@ export interface UserSession {
   churchId: string;
   roles: string[];
 }
+
+// ============================================================
+// PHASE 1: GESTION MEMBRES & PROFIL
+// ============================================================
+
+export enum InterviewType {
+  INITIAL = 'INITIAL',
+  FOLLOWUP = 'FOLLOWUP',
+  ANNUAL = 'ANNUAL',
+  SPECIAL = 'SPECIAL'
+}
+
+export enum DocumentType {
+  ID_CARD = 'ID_CARD',
+  BAPTISM_CERTIFICATE = 'BAPTISM_CERTIFICATE',
+  MEDICAL_REPORT = 'MEDICAL_REPORT',
+  OTHER = 'OTHER'
+}
+
+export enum FamilyRelationType {
+  PARENT = 'PARENT',
+  ENFANT = 'ENFANT',
+  SPOUSE = 'SPOUSE',
+  SIBLING = 'SIBLING',
+  GEM_PARTNER = 'GEM_PARTNER'
+}
+
+export interface MemberInterview {
+  id: string;
+  memberId: string;
+  title: string;
+  content: string;
+  date: Date;
+  interviewerId: string;
+  interviewerName?: string;
+  type: InterviewType | string;
+  attachments: string[];
+}
+
+export interface MemberDocument {
+  id: string;
+  memberId: string;
+  type: DocumentType | string;
+  fileUrl: string;
+  fileName?: string;
+  uploadedAt: Date;
+  uploadedBy: string;
+  uploadedByName?: string;
+}
+
+export interface FamilyRelation {
+  id: string;
+  memberId: string;
+  relativeId: string;
+  relativeName?: string;
+  relationType: FamilyRelationType | string;
+  isActive: boolean;
+}
+
+export interface FamilyIndex {
+  id: string;
+  memberId: string;
+  relationType: FamilyRelationType | string;
+  relativeIds: string[];
+  lastUpdated: Date;
+}
+
+export interface MemberActivity {
+  id: string;
+  memberId: string;
+  date: Date;
+  activityType: string;
+  activityTypeLabel?: string;
+  details: string;
+  relatedId?: string;
+  relatedType?: string;
+  relatedName?: string;
+}
+
+export interface InactivityConfig {
+  id: string;
+  name: string;
+  description?: string;
+  inactivePeriodDays: number;
+  actions: string[];
+  isActive: boolean;
+  churchId: string;
+}

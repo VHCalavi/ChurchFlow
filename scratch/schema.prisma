@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:postgres@localhost:5432/postgres"
+}
+model Member {
+  id String @id @default(cuid())
+}
+model MemberInterview {
+  id       String @id @default(cuid())
+  memberId String
+  member   Member @relation(fields: [memberId], references: [id])
+}
