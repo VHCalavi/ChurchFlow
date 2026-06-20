@@ -340,186 +340,198 @@ interface FamilyTreeViewProps {
 
 ---
 
-## 🎯 PRIORITÉ 2: Gestion GEMs (Binômes) - CRITIQUE
+## 🎯 PRIORITÉ 2: Gestion GEMs (Groupes de Suivi Pastoral) - CRITIQUE
 
-### 2.1 Chef de GEM ✅
+### 2.0 Définition — Qu'est-ce qu'un GEM ?
 
-**CE QUE TU VEUX:**
-- Définir le chef de chaque GEM
-- Distinction chef vs membres dans GEM
-- Permission spéciale pour le chef (surtout pour les rapports)
+Un **GEM** est un **mini-groupe de suivi pastoral** composé de plusieurs membres (généralement 2+, pas strictement un binôme). Les GEMs existent **de façon transversale** aux groupes/départements : ils ne sont pas une sous-catégorie des Tribus ou Départements, mais une entité propre et indépendante.
 
-**CE QUI EXISTE DÉJÀ:**
-- ✅ Relation avec groupes via `MemberGroup`
-- ✅ Chaque membre peut être dans un groupe (type GEM)
+> ⚠️ **ACTION CRITIQUE :** Le type `GEM` doit être **retiré de l'enum `GroupType`** et du menu "Groupes". Les GEMs ont leur propre entité, leur propre menu et leur propre logique. Dans la pratique, un GEM sera souvent rattaché à un groupe, mais ce lien reste **optionnel et non contraignant**.
 
-**CE QUI MANQUE À IMPLEMENTER:**
+---
 
-1. **Champ spécial pour le chef de GEM**
-   - Ajouter `gemRole` dans la relation `MemberGroup`
-   - Valeurs possibles: CHEF_GEM, RESPONSABLE_GEM, MEMBRE
+### 2.1 Modélisation de l'entité GEM
 
-2. **Validation de l'unicité du chef par GEM**
-   - Un seul membre par GEM peut être chef
+**CE QUI EXISTE DÉJÀ :**
+- ✅ `GroupType` avec valeur `GEM` (à supprimer)
+- ✅ Système de rôles RBAC existant
 
-**Architecture:**
+**CE QUI MANQUE :**
+
+#### Table `Gem` (entité indépendante)
+
 ```prisma
-model MemberGroup {
-  // ... existing fields
+model Gem {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  gemRole String? // CHEF_GEM, RESPONSABLE_GEM, MEMBRE
+  churchId    String
+  church      Church   @relation(fields: [churchId], references: [id], onDelete: Cascade)
+
+  // Rattachement optionnel à un groupe (sans couplage fort)
+  groupId     String?
+  group       Group?   @relation(fields: [groupId], references: [id])
+
+  members     GemMember[]
+  reports     Report[]
+
+  @@map("gems")
 }
 
-// Pour assurer l'unicité du chef par GEM
-// On peut ajouter un index unique ou une contrainte
-// Ou faire la validation dans le code
+model GemMember {
+  id        String   @id @default(cuid())
+  gemId     String
+  memberId  String
+  isLeader  Boolean  @default(false) // true = Responsable GEM (un seul par GEM)
+  joinedAt  DateTime @default(now())
+
+  gem    Gem    @relation(fields: [gemId], references: [id], onDelete: Cascade)
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // Par défaut un membre ne peut être que dans 1 GEM.
+  // Si ALLOW_MULTI_GEM=true dans la config API, cette contrainte est ignorée (validée en service).
+  @@unique([memberId])
+  @@unique([gemId, memberId])
+  @@map("gem_members")
+}
 ```
 
-**Interfaces TypeScript:**
+#### Config API pour le multi-GEM
+
 ```typescript
-export enum GemRole {
-  CHEF_GEM = 'chef_gem',
-  RESPONSABLE_GEM = 'responsable_gem',
-  MEMBRE = 'membre'
-}
+// apps/api/src/config/gem.config.ts
+export const GEM_CONFIG = {
+  // false = un membre dans 1 seul GEM (défaut)
+  // true  = un membre peut être dans plusieurs GEMs
+  ALLOW_MULTI_GEM: false,
+};
 ```
 
 ---
 
-### 2.2 Menu GEM Spécifique ✅
+### 2.2 Rôles Système liés aux GEMs
 
-**CE QUE TU VEUX:**
-- Menu dédié "GEMs" dans la navigation
-- Section: Binômes et Rapports
-- Vue de tous les GEMs du groupe
-- Vue de tous les GEMs du système
+| Rôle | Accès plateforme admin | Description |
+|---|---|---|
+| `MEMBRE` | ❌ Non | Membre ordinaire, aucun accès admin |
+| `RESPONSABLE_GEM` | ✅ Oui (limité) | Responsable d'un GEM, soumet des rapports |
+| `RESPONSABLE_GROUPE` | ✅ Oui | Responsable d'un département/groupe |
+| `PASTEUR_RESIDENT` | ✅ Oui | Pasteur de l'église |
+| `PASTEUR_SUPERVISEUR` | ✅ Oui | Supervise plusieurs églises |
 
-**CE QUI EXISTE DÉJÀ:**
-- ✅ Vue des groupes avec types GEM
-- ✅ Interface de gestion des groupes
-
-**CE QUI MANQUE À IMPLEMENTER:**
-
-1. **Menu GEM dans la navigation**
-   - Nouveau menu item "GEMs"
-   - Sous-menus: "Binômes" et "Rapports"
-
-2. **Page de visualisation des GEMs**
-   - Vue de tous les GEMs du groupe (filtré par churchId)
-   - Vue de tous les GEMs du système
-   - Switch pour basculer entre les deux vues
-
-**Architecture:**
-```prisma
-// Mapping des binômes GEM
-model GemConnection {
-  id String @id @default(cuid())
-  gemId String
-  mapping String[] // IDs des membres du binôme (généralement 2 membres)
-  isActive Boolean @default(true)
-
-  group Group @relation(fields: [gemId], references: [id])
-}
-```
-
-**Interfaces TypeScript:**
-```typescript
-export enum GemView {
-  GROUP_GEMS = 'group_gems',      // GEMs du groupe actuel
-  SYSTEM_GEMS = 'system_gems',    // Tous les GEMs
-}
-
-export interface GemViewProps {
-  view: GemView
-  currentGroupId?: string
-  churchId: string
-}
-
-// Component pour la page des GEMs
-interface GEMsPageProps {
-  view: GemView
-  currentGroupId?: string
-  churchId: string
-}
-```
+**Automatisation :** Dès qu'un membre est désigné **leader d'un GEM** (`isLeader: true`), son rôle RBAC passe automatiquement à `RESPONSABLE_GEM` via l'API. Même chose à l'inverse si on lui retire ce rôle.
 
 ---
 
-### 2.3 Rapports GEM ✅
+### 2.3 Navigation — Menu GEM séparé
 
-**CE QUE TU VEUX:**
-- Formulaire de rapport pour le responsable GEM
-- Types de rapports: Activités, Finances, Membres
-- Historique des rapports
-- Le responsable GEM a besoin de se connecter à la plateforme admin pour faire ses rapports
-- Formulaire spécialisé pour les rapports GEM
+```
+Sidebar :
+  📂 Groupes    → /dashboard/groups      (Départements, Tribus — PAS de GEM ici)
+  💠 GEMs       → /dashboard/gems        (Liste des GEMs)
+  📝 Rapports   → /dashboard/reports     (Rapports filtrés selon l'accès)
+```
 
-**CE QUI EXISTE DÉJÀ:**
-- ✅ Modèle de groupes avec type GEM
-- ✅ Système d'authentification avec Rôles
-- ✅ Possibilité de filtrer par responsable (superviseurId)
+#### Page `/dashboard/gems`
 
-**CE QUI MANQUE À IMPLEMENTER:**
+- GEMs listés **regroupés par groupe de rattachement** (ou par ordre alphabétique si non rattaché)
+- Pagination pour éviter l'affichage brut de 130 GEMs
+- Chaque carte GEM : nom, nombre de membres, responsable, groupe lié (si applicable)
+- Bouton "Voir" → page détail du GEM : liste des membres + rapports associés
 
-1. **Table des rapports GEM**
-   - Table: `GemReport`
-   - Pour chaque rapport: période, type, contenu, status
+#### Onglet GEM dans la page Groupe
 
-2. **Formulaire de rapport spécialisé**
-   - Interface dédiée pour les rapports GEM
-   - Types de rapports: ACTIVITES, FINANCES, MEMBRES
-   - Validation des données selon le type
+Sur `/dashboard/groups/[id]`, un onglet **"GEMs"** liste les GEMs dont les membres appartiennent à ce groupe. C'est une vue filtrée, pas un doublon du menu GEM.
 
-3. **Permissons**
-   - Responsable GEM peut accéder au formulaire
-   - Les autres utilisateurs n'ont pas accès
+---
 
-**Architecture:**
+### 2.4 Rapports — Système unifié
+
+> Le système de rapport n'est pas exclusif aux GEMs. Tout responsable (GEM, Groupe, Pasteur) peut soumettre un rapport. L'accès est filtré par rôle et contexte.
+
+#### Table `Report`
+
 ```prisma
-model GemReport {
-  id String @id @default(cuid())
-  gemId String
-  reporterId String
-  period String // mensuel, trimestriel, annuel
-  reportType String // ACTIVITES, FINANCES, MEMBRES
-  content String @db.Text
+model Report {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
   submittedAt DateTime @default(now())
-  status String // DRAFT, SUBMITTED, APPROVED
 
-  gem Group @relation(fields: [gemId], references: [id])
-  reporter Member @relation(fields: [reporterId], references: [id])
-}
+  authorId    String
+  author      Member   @relation("ReportAuthor", fields: [authorId], references: [id])
 
-// Pour s'assurer qu'un responsable ne fait qu'un seul rapport par période
-// Option 1: Index unique sur (gemId, period)
-// Option 2: Validation dans le code
-```
+  // Contexte : rattaché à un GEM OU un Groupe (optionnel)
+  gemId       String?
+  gem         Gem?     @relation(fields: [gemId], references: [id])
+  groupId     String?
+  group       Group?   @relation(fields: [groupId], references: [id])
 
-**Interfaces TypeScript:**
-```typescript
-export enum GemReportType {
-  ACTIVITES = 'activites',
-  FINANCES = 'finances',
-  MEMBRES = 'membres'
-}
+  churchId    String
+  church      Church   @relation(fields: [churchId], references: [id])
 
-export enum GemReportStatus {
-  DRAFT = 'draft',
-  SUBMITTED = 'submitted',
-  APPROVED = 'approved'
-}
-
-export interface GemReport {
-  id: string
-  gemId: string
-  reporterId: string
-  period: string
-  reportType: GemReportType
-  content: string
-  submittedAt: Date
-  status: GemReportStatus
+  @@map("reports")
 }
 ```
+
+#### Règles de visibilité
+
+| Rôle connecté | Rapports visibles |
+|---|---|
+| `RESPONSABLE_GEM` | Ses propres rapports uniquement |
+| `RESPONSABLE_GROUPE` | Ses rapports + rapports des GEMs de **son** groupe |
+| `PASTEUR_RESIDENT` | Tous les rapports de son église |
+| `PASTEUR_SUPERVISEUR` | Tous les rapports des églises sous sa supervision |
+| `ADMIN` | Tout |
+
+- Pas de périodicité : les rapports sont soumis **à la demande**, sans contrainte de fréquence.
+- Les rapports d'un membre sont également visibles dans **son profil** (onglet Rapports).
+- Menu `/dashboard/reports` : accessible à tous les rôles connectés, filtré automatiquement.
+
+---
+
+### 2.5 Visualisation Graph — Organigramme interactif
+
+**Technologie :** [React Flow](https://reactflow.dev/) — graphe interactif avec zoom, pan, nœuds cliquables.
+
+**Page dédiée :** `/dashboard/graph`
+
+#### Structure hiérarchique des nœuds (du plus grand au plus petit)
+
+```
+🏛️  Pasteur du Pays
+  └── 🌍 Région
+        └── ⛪ Église (Church)
+              [niveau : Maison d'Honneur → Cellule → Assemblée]
+              └── 👔 Pasteur Résident
+                    └── 🗂️ Département (Group)
+                          ├── 👥 Responsable de Groupe
+                          │     └── 👤 Membres
+                          └── 💠 GEM
+                                ├── ⭐ Responsable GEM
+                                └── 👤 Membres GEM
+                                      └── (liens de parenté si activés)
+```
+
+#### Panneau de filtres (contrôle des couches affichées)
+
+- `[x]` Hiérarchie pastorale
+- `[x]` Groupes / Départements
+- `[x]` GEMs
+- `[x]` Liens de parenté familiale
+- `[ ]` Membres individuels *(désactivé par défaut — trop dense)*
+
+#### Comportement au zoom
+
+- **Zoom arrière** : vision macro — Pays → Régions → Églises
+- **Zoom avant** : détail du département → membres individuels → liens de parenté
+- **Taille des nœuds** : proportionnelle au nombre de connexions (le nœud le plus connecté est le plus grand)
+- Les nœuds sont **cliquables** pour naviguer vers la page de détail correspondante
+
 
 ---
 
