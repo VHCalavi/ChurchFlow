@@ -1,0 +1,177 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '../../../../lib/auth';
+import { getAuthUser } from '../../../../lib/auth';
+import { prisma } from '@churchflow/database';
+import { z } from 'zod';
+
+const addMemberSchema = z.object({
+  memberId: z.string(),
+  role: z.enum(['LEADER', 'MEMBER', 'ASSISTANT']).default('MEMBER'),
+});
+
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+
+  try {
+    const gem = await prisma.gem.findUnique({
+      where: { id: params.id }
+    });
+
+    if (!gem) {
+      return NextResponse.json({ success: false, error: "GEM non trouvé" }, { status: 404 });
+    }
+
+    if (gem.churchId !== user.churchId) {
+      return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+    }
+
+    const members = await prisma.gemMember.findMany({
+      where: { gemId: params.id },
+      include: {
+        member: { select: { id: true, firstName: true, lastName: true, status: true } }
+      },
+      orderBy: { isLeader: 'desc', joinedAt: 'asc' }
+    });
+
+    return NextResponse.json({ success: true, data: members });
+  } catch (error) {
+    console.error('Error fetching gem members:', error);
+    return NextResponse.json(
+      { success: false, error: "Erreur lors de la récupération des membres" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+
+  try {
+    const body = await request.json();
+    const validatedData = addMemberSchema.parse(body);
+
+    const gem = await prisma.gem.findUnique({
+      where: { id: params.id }
+    });
+
+    if (!gem) {
+      return NextResponse.json({ success: false, error: "GEM non trouvé" }, { status: 404 });
+    }
+
+    if (gem.churchId !== user.churchId) {
+      return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+    }
+
+    const existingMember = await prisma.gemMember.findUnique({
+      where: { gemId_memberId: { gemId: params.id, memberId: validatedData.memberId } }
+    });
+
+    if (existingMember) {
+      return NextResponse.json({ success: false, error: "Ce membre est déjà dans ce GEM" }, { status: 400 });
+    }
+
+    const newMember = await prisma.gemMember.create({
+      data: {
+        gemId: params.id,
+        memberId: validatedData.memberId,
+        role: validatedData.role,
+        isLeader: validatedData.role === 'LEADER'
+      },
+      include: {
+        member: { select: { id: true, firstName: true, lastName: true, status: true } }
+      }
+    });
+
+    if (validatedData.role === 'LEADER') {
+      await prisma.gemMember.updateMany({
+        where: {
+          gemId: params.id,
+          id: { not: newMember.id }
+        },
+        data: { isLeader: false }
+      });
+    }
+
+    return NextResponse.json({ success: true, data: newMember }, { status: 201 });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: "Données invalides", details: error.errors },
+        { status: 400 }
+      );
+    }
+    console.error('Error adding member to gem:', error);
+    return NextResponse.json(
+      { success: false, error: "Erreur lors de l'ajout du membre" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const memberId = searchParams.get('memberId');
+
+    if (!memberId) {
+      return NextResponse.json({ success: false, error: "ID du membre manquant" }, { status: 400 });
+    }
+
+    const gem = await prisma.gem.findUnique({
+      where: { id: params.id }
+    });
+
+    if (!gem) {
+      return NextResponse.json({ success: false, error: "GEM non trouvé" }, { status: 404 });
+    }
+
+    if (gem.churchId !== user.churchId) {
+      return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+    }
+
+    const gemMember = await prisma.gemMember.findUnique({
+      where: { gemId_memberId: { gemId: params.id, memberId } },
+      include: { member: { select: { id: true, firstName: true, lastName: true } } }
+    });
+
+    if (!gemMember) {
+      return NextResponse.json({ success: false, error: "Membre non trouvé dans ce GEM" }, { status: 404 });
+    }
+
+    if (gemMember.isLeader) {
+      const newLeader = await prisma.gemMember.findFirst({
+        where: {
+          gemId: params.id,
+          isLeader: false
+        }
+      });
+
+      if (newLeader) {
+        await prisma.gemMember.update({
+          where: { id: newLeader.id },
+          data: { isLeader: true, role: 'LEADER' }
+        });
+      }
+    }
+
+    await prisma.gemMember.delete({
+      where: { gemId_memberId: { gemId: params.id, memberId } }
+    });
+
+    return NextResponse.json({ success: true, message: "Membre retiré avec succès" });
+  } catch (error) {
+    console.error('Error removing member from gem:', error);
+    return NextResponse.json(
+      { success: false, error: "Erreur lors du retrait du membre" },
+      { status: 500 }
+    );
+  }
+}

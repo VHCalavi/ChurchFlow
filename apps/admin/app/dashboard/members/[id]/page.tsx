@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { DashboardLayout } from "../../../../components/layout/dashboard-layout";
 import { ArrowLeft, User, Users, Calendar, FileText, File, Network, Circle, X, Plus, Search, Eye, Pencil, Trash2, Camera } from "lucide-react";
 
@@ -377,7 +378,8 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
     { id: "groupes", label: "Groupes", icon: <Users className="w-4 h-4" /> },
     { id: "presences", label: "Présences", icon: <Calendar className="w-4 h-4" /> },
     { id: "entretiens", label: "Entretiens", icon: <FileText className="w-4 h-4" /> },
-    { id: "documents", label: "Rapports", icon: <File className="w-4 h-4" /> },
+    { id: "reports", label: "Rapports", icon: <FileText className="w-4 h-4" /> },
+    { id: "documents", label: "Documents", icon: <File className="w-4 h-4" /> },
     { id: "arbre", label: "Arbre", icon: <Network className="w-4 h-4" /> },
   ];
 
@@ -711,6 +713,82 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* REPORTS */}
+          {activeTab === "reports" && (
+            <div className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[#1B2559]">Rapports du membre</h3>
+                <Link href={`/dashboard/reports?authorId=${params.id}`} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center">
+                  <FileText className="w-4 h-4 mr-1" />
+                  <span>Voir tous</span>
+                </Link>
+              </div>
+              {loadingTab ? (
+                <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : (
+                <div className="text-center py-10">
+                  <FileText className="w-12 h-12 mx-auto text-[#D6D1CE] mb-4" />
+                  <p className="text-[#6D6E71]">La gestion des rapports sera implémentée prochainement.</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* DOCUMENTS */}
+          {activeTab === "documents" && (
+            <div className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[#1B2559]">Documents du membre</h3>
+                <button onClick={() => setShowDocModal(true)} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Nouveau</button>
+              </div>
+              {loadingTab ? (
+                <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : documents.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-[#A3AED0] bg-[#F4F7FE] rounded-2xl border border-dashed border-[#A3AED0]">
+                  <File className="w-10 h-10 mb-3 opacity-50" />
+                  <p className="font-bold text-sm">Aucun document enregistré.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border border-[#E0E5F2] shadow-sm">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-[#F4F7FE] text-[#A3AED0]">
+                      <tr>
+                        <th className="px-4 py-3 font-bold">Type</th>
+                        <th className="px-4 py-3 font-bold">Fichier</th>
+                        <th className="px-4 py-3 font-bold">Date</th>
+                        <th className="px-4 py-3 font-bold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E0E5F2] text-[#1B2559] font-medium">
+                      {documents.map(d => (
+                        <tr key={d.id} className="hover:bg-[#F8F9FA] transition-colors">
+                          <td className="px-4 py-3">
+                            <span className="px-2 py-1 bg-[#006C69]/10 text-[#006C69] rounded-full text-xs font-bold">{d.type}</span>
+                          </td>
+                          <td className="px-4 py-3 font-bold">{d.fileName || 'Sans nom'}</td>
+                          <td className="px-4 py-3">{new Date(d.uploadedAt).toLocaleDateString('fr-FR')}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-end gap-2">
+                              <button onClick={() => setViewingDoc(d)} className="p-1.5 text-[#006C69] bg-[#006C69]/10 rounded-md hover:bg-[#006C69]/20 transition-colors">
+                                <Eye className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => setEditingDoc(d)} className="p-1.5 text-[#CEAD1E] bg-[#CEAD1E]/10 rounded-md hover:bg-[#CEAD1E]/20 transition-colors">
+                                <Pencil className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteDocument(d.id)} className="p-1.5 text-[#CD3C14] bg-[#CD3C14]/10 rounded-md hover:bg-[#CD3C14]/20 transition-colors">
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>

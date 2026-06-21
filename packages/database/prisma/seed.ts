@@ -28,14 +28,32 @@ async function main() {
 
   // 2. Création des Rôles & Permissions
   const permissionsList = [
+    // Members
     { action: "read", resource: "members", description: "Lecture des fiches membres" },
     { action: "write", resource: "members", description: "Modification des membres" },
+
+    // Groups & GEMs
     { action: "read", resource: "groups", description: "Lecture des groupes & GEM" },
     { action: "write", resource: "groups", description: "Gestion des groupes & GEM" },
+    { action: "read", resource: "gems", description: "Lecture des GEMs" },
+    { action: "create", resource: "gems", description: "Créer des GEMs" },
+    { action: "manage_members", resource: "gems", description: "Gérer les membres d'un GEM" },
+
+    // Reports
+    { action: "create", resource: "reports", description: "Créer des rapports" },
+    { action: "view_own", resource: "reports", description: "Voir ses propres rapports" },
+    { action: "view_group", resource: "reports", description: "Voir les rapports de son groupe" },
+    { action: "view_all", resource: "reports", description: "Voir tous les rapports" },
+
+    // Meetings
     { action: "read", resource: "meetings", description: "Lecture des réunions" },
     { action: "write", resource: "meetings", description: "Gestion et émargement des réunions" },
+
+    // Finances
     { action: "read", resource: "finances", description: "Lecture des transactions financières" },
     { action: "write", resource: "finances", description: "Gestion des transactions" },
+
+    // Roles
     { action: "manage", resource: "roles", description: "Gestion de la matrice RBAC" }
   ];
 
@@ -51,11 +69,11 @@ async function main() {
   console.log("✅ Permissions initialisées");
 
   const rolesData = [
-    { name: "ADMIN", description: "Administrateur Général", perms: ["read:members", "write:members", "read:groups", "write:groups", "read:meetings", "write:meetings", "read:finances", "write:finances", "manage:roles"] },
-    { name: "PASTEUR", description: "Pasteur Titulaire", perms: ["read:members", "read:groups", "read:meetings", "write:meetings"] },
-    { name: "RESPONSABLE_GEM", description: "Responsable de GEM", perms: ["read:groups", "read:meetings", "write:meetings"] },
+    { name: "ADMIN", description: "Administrateur Général", perms: ["read:members", "write:members", "read:groups", "write:groups", "read:gems", "create:gems", "manage_members:gems", "create:reports", "view_own:reports", "view_group:reports", "view_all:reports", "read:graph", "read:meetings", "write:meetings", "read:finances", "write:finances", "manage:roles"] },
+    { name: "PASTEUR", description: "Pasteur Titulaire", perms: ["read:members", "read:groups", "read:gems", "read:graph", "read:meetings", "write:meetings", "create:reports", "view_own:reports", "view_all:reports"] },
+    { name: "RESPONSABLE_GEM", description: "Responsable de GEM", perms: ["read:groups", "read:gems", "create:gems", "manage_members:gems", "read:graph", "read:meetings", "write:meetings", "create:reports", "view_own:reports", "view_group:reports"] },
     { name: "TRESORIER", description: "Trésorier de l'église", perms: ["read:members", "read:finances", "write:finances"] },
-    { name: "MEMBRE", description: "Fidèle membre de l'église", perms: [] }
+    { name: "MEMBRE", description: "Fidèle membre de l'église", perms: ["read:members", "read:groups", "read:gems", "read:graph", "create:reports", "view_own:reports"] }
   ];
 
   const seededRoles: Record<string, any> = {};
@@ -114,7 +132,12 @@ async function main() {
 
   // 5. Supprimer les anciennes données de test pour éviter les doublons lors des re-seeds
   await prisma.meetingAttendee.deleteMany({});
+  await prisma.memberInterview.deleteMany({});
+  await prisma.memberDocument.deleteMany({});
   await prisma.memberGroup.deleteMany({});
+  await prisma.report.deleteMany({});
+  await prisma.gemMember.deleteMany({});
+  await prisma.gem.deleteMany({});
   await prisma.meeting.deleteMany({});
   await prisma.group.deleteMany({});
   await prisma.member.deleteMany({});

@@ -18,6 +18,8 @@ import {
   Wallet,
   Settings,
   UserCircle,
+  FileText,
+  BarChart3,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -88,6 +90,24 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       icon: <Network className="w-5 h-5" />,
       href: "/dashboard/groups",
       requiredPermission: "read:groups",
+    },
+    {
+      title: "GEMs",
+      icon: <Users className="w-5 h-5" />,
+      href: "/dashboard/gems",
+      requiredPermission: "read:gems",
+    },
+    {
+      title: "Rapports",
+      icon: <FileText className="w-5 h-5" />,
+      href: "/dashboard/reports",
+      requiredPermission: "view_own:reports",
+    },
+    {
+      title: "Graphiques",
+      icon: <BarChart3 className="w-5 h-5" />,
+      href: "/dashboard/graph",
+      requiredPermission: "read:reports",
     },
     {
       title: "Rencontres",

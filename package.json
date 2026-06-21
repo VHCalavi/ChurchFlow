@@ -1,6 +1,9 @@
 {
   "name": "churchflow-monorepo",
   "private": true,
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
@@ -15,5 +18,8 @@
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "reactflow": "^11.11.4"
   }
 }

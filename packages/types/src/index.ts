@@ -279,3 +279,98 @@ export interface InactivityConfig {
   isActive: boolean;
   churchId: string;
 }
+
+// ============================================================
+// PHASE 2: GESTION DES GEMS
+// ============================================================
+
+export enum GemMemberRole {
+  LEADER = 'LEADER',
+  MEMBER = 'MEMBER',
+  ASSISTANT = 'ASSISTANT'
+}
+
+export interface Gem {
+  id: string;
+  name: string;
+  description?: string;
+  isActive: boolean;
+  churchId: string;
+  createdAt: Date;
+  updatedAt: Date;
+
+  groupId?: string;
+  group?: { id: string; name: string };
+
+  members: GemMember[];
+  reports: Report[];
+
+  _count?: {
+    members: number;
+    reports: number;
+  };
+}
+
+export interface GemMember {
+  id: string;
+  gemId: string;
+  memberId: string;
+  role: GemMemberRole | string;
+  isLeader: boolean;
+  joinedAt: Date;
+
+  gem: { id: string; name: string };
+  member: { id: string; firstName: string; lastName: string; status: MemberStatus };
+}
+
+export enum ReportType {
+  ACTIVITY = 'ACTIVITY',
+  FINANCIAL = 'FINANCIAL',
+  SPIRITUAL = 'SPIRITUAL',
+  TRAINING = 'TRAINING',
+  MEETING = 'MEETING'
+}
+
+export interface Report {
+  id: string;
+  title: string;
+  content: string;
+  type: ReportType | string;
+  submittedAt: Date;
+
+  authorId: string;
+  author: { id: string; firstName: string; lastName: string };
+
+  gemId?: string;
+  gem?: { id: string; name: string };
+
+  churchId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// --- DTOs ---
+export interface CreateGemDTO {
+  name: string;
+  description?: string;
+  groupId?: string;
+  isActive?: boolean;
+}
+
+export interface UpdateGemDTO {
+  name?: string;
+  description?: string;
+  isActive?: boolean;
+}
+
+export interface AddGemMemberDTO {
+  memberId: string;
+  role?: GemMemberRole | string;
+}
+
+export interface CreateReportDTO {
+  title: string;
+  content: string;
+  type?: ReportType | string;
+  gemId?: string;
+}
