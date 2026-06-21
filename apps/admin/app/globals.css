@@ -104,6 +104,12 @@
   box-shadow: var(--shadow-horizon-md);
 }
 
+/* Toast notifications - above modals */
+.notification-toast {
+  position: fixed;
+  z-index: 9999 !important;
+}
+
 /* Icon Box — Horizon UI */
 .horizon-icon-box {
   display: flex;
@@ -155,6 +161,15 @@
 }
 .dark .btn-horizon-secondary:hover {
   background-color: #24307a;
+}
+
+.btn-horizon-danger {
+  background-color: #CD3C14;
+  color: white;
+}
+.btn-horizon-danger:hover {
+  opacity: 0.95;
+  transform: translateY(-0.5px);
 }
 
 /* Hero Banner dégradé VH — style Horizon marketplace banner */

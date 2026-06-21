@@ -56,11 +56,42 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createReportSchema.parse(body);
 
+    // Trouver le membre associé à l'utilisateur
+    let member = await prisma.member.findFirst({
+      where: { userId: user.id }
+    });
+
+    // Si aucun membre n'est trouvé, créer un membre par défaut pour l'utilisateur
+    if (!member) {
+      member = await prisma.member.create({
+        data: {
+          firstName: user.firstName || user.name?.split(' ')[0] || 'Utilisateur',
+          lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || 'Inconnu',
+          userId: user.id,
+          churchId: user.churchId,
+          status: 'MEMBRE', // Valeur de l'enum MemberStatus
+          gender: 'HOMME' // Valeur de l'enum Gender
+        }
+      });
+    }
+
     const report = await prisma.report.create({
       data: {
-        ...validatedData,
-        authorId: user.id,
-        submittedAt: new Date()
+        title: validatedData.title,
+        content: validatedData.content,
+        type: validatedData.type,
+        submittedAt: new Date(),
+        author: {
+          connect: { id: member.id }
+        },
+        ...(validatedData.gemId && {
+          gem: {
+            connect: { id: validatedData.gemId }
+          }
+        }),
+        church: {
+          connect: { id: user.churchId }
+        }
       },
       include: {
         author: { select: { id: true, firstName: true, lastName: true } },
@@ -78,7 +109,7 @@ export async function POST(request: NextRequest) {
     }
     console.error('Error creating report:', error);
     return NextResponse.json(
-      { success: false, error: "Erreur lors de la création du rapport" },
+      { success: false, error: "Erreur lors de la création du rapport", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

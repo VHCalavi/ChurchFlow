@@ -1,8 +1,10 @@
 "use client";
 
+"use client";
+
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Search, Plus, FileText, Calendar, User } from "lucide-react";
+import { Search, Plus, FileText, Calendar, User, Trash2, Eye, X } from "lucide-react";
 import { HorizonCard } from "@/components/ui/horizon-card";
 import { Report } from "@churchflow/types";
 
@@ -10,7 +12,13 @@ export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<{ start: string; end: string }>({ start: "", end: "" });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState<Report | null>(null);
+  const [viewReportModal, setViewReportModal] = useState(false);
+  const [reportToView, setReportToView] = useState<Report | null>(null);
   const [notification, setNotification] = useState<{
     message: string;
     type: "success" | "error";
@@ -21,19 +29,25 @@ export default function ReportsPage() {
     async function loadReports() {
       try {
         setLoading(true);
-        const res = await fetch(`/api/v1/reports`);
+        const params = new URLSearchParams();
+        if (typeFilter !== "all") params.append("type", typeFilter);
+        if (dateFilter.start) params.append("startDate", dateFilter.start);
+        if (dateFilter.end) params.append("endDate", dateFilter.end);
+
+        const res = await fetch(`/api/v1/reports?${params}`);
         const json = await res.json();
         if (json.success && json.data) {
           setReports(json.data);
         }
       } catch (err) {
         console.error("Error loading reports:", err);
+        showNotification("Erreur lors du chargement des rapports", "error");
       } finally {
         setLoading(false);
       }
     }
     loadReports();
-  }, []);
+  }, [typeFilter, dateFilter]);
 
   // Filtered reports
   const filteredReports = reports.filter(report =>
@@ -51,7 +65,7 @@ export default function ReportsPage() {
     <DashboardLayout title="Rapports">
       {/* Notification Toast */}
       {notification && (
-        <div className={`fixed top-24 right-8 z-50 px-6 py-3 rounded-lg shadow-lg ${
+        <div className={`notification-toast fixed top-24 right-8 px-6 py-3 rounded-lg shadow-lg ${
           notification.type === "success"
             ? "bg-green-500 text-white"
             : "bg-red-500 text-white"
@@ -74,6 +88,47 @@ export default function ReportsPage() {
             <Plus className="w-4 h-4 mr-2" />
             <span>Nouveau rapport</span>
           </button>
+        </div>
+      </HorizonCard>
+
+      {/* Filters */}
+      <HorizonCard className="p-5 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="text-sm font-bold text-[#1B2559] block mb-2">Type</label>
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69]/25"
+            >
+              <option value="all">Tous les types</option>
+              <option value="ACTIVITY">Activité</option>
+              <option value="FINANCIAL">Financier</option>
+              <option value="SPIRITUAL">Spirituel</option>
+              <option value="TRAINING">Formation</option>
+              <option value="MEETING">Réunion</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-bold text-[#1B2559] block mb-2">Date de début</label>
+            <input
+              type="date"
+              value={dateFilter.start}
+              onChange={(e) => setDateFilter({...dateFilter, start: e.target.value})}
+              className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69]/25"
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-bold text-[#1B2559] block mb-2">Date de fin</label>
+            <input
+              type="date"
+              value={dateFilter.end}
+              onChange={(e) => setDateFilter({...dateFilter, end: e.target.value})}
+              className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69]/25"
+            />
+          </div>
         </div>
       </HorizonCard>
 
@@ -132,10 +187,28 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                <button className="btn-horizon btn-horizon-secondary ml-4">
-                  <FileText className="w-4 h-4" />
-                  <span>Voir</span>
-                </button>
+                <div className="flex gap-2 ml-4">
+                  <button
+                    onClick={() => {
+                      setReportToView(report);
+                      setViewReportModal(true);
+                    }}
+                    className="btn-horizon btn-horizon-secondary"
+                  >
+                    <Eye className="w-4 h-4" />
+                    <span>Voir</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setReportToDelete(report);
+                      setDeleteModalOpen(true);
+                    }}
+                    className="btn-horizon btn-horizon-danger"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Supprimer</span>
+                  </button>
+                </div>
               </div>
             </HorizonCard>
           ))
@@ -169,10 +242,44 @@ export default function ReportsPage() {
               </button>
             </div>
 
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
-              showNotification("Fonctionnalité en cours de développement", "success");
-              setIsModalOpen(false);
+              const formData = new FormData(e.target as HTMLFormElement);
+
+              try {
+                const reportData: any = {
+                  title: formData.get('title') as string,
+                  type: formData.get('type') as string,
+                  content: formData.get('content') as string,
+                };
+
+                // Ajouter gemId seulement s'il est sélectionné
+                const gemId = formData.get('gemId') as string;
+                if (gemId && gemId !== '') {
+                  reportData.gemId = gemId;
+                }
+
+                const res = await fetch('/api/v1/reports', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify(reportData),
+                });
+
+                const json = await res.json();
+                if (json.success) {
+                  showNotification("Rapport créé avec succès", "success");
+                  setIsModalOpen(false);
+                  // Reload reports
+                  loadReports();
+                } else {
+                  showNotification(json.error || "Erreur lors de la création", "error");
+                }
+              } catch (err) {
+                console.error("Error creating report:", err);
+                showNotification("Erreur lors de la création", "error");
+              }
             }} className="space-y-4">
               <div>
                 <label className="text-sm font-bold text-[#1B2559] block mb-2">
@@ -180,6 +287,7 @@ export default function ReportsPage() {
                 </label>
                 <input
                   type="text"
+                  name="title"
                   placeholder="Ex: Rapport de réunion"
                   className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69]/25"
                   required
@@ -191,6 +299,7 @@ export default function ReportsPage() {
                   Type *
                 </label>
                 <select
+                  name="type"
                   required
                   className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69]/25"
                 >
@@ -207,6 +316,7 @@ export default function ReportsPage() {
                   GEM (optionnel)
                 </label>
                 <select
+                  name="gemId"
                   className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69]/25"
                 >
                   <option value="">Aucun</option>
@@ -220,6 +330,7 @@ export default function ReportsPage() {
                   Contenu *
                 </label>
                 <textarea
+                  name="content"
                   className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] min-h-[120px] resize-none focus:outline-none focus:ring-2 focus:ring-[#006C69]/25"
                   placeholder="Écrivez le contenu du rapport..."
                   required
@@ -242,6 +353,118 @@ export default function ReportsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Report Modal */}
+      {deleteModalOpen && reportToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-md p-6 bg-white rounded-[20px] shadow-horizon-xl">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-[#1B2559] mb-2">
+                Supprimer le rapport ?
+              </h3>
+              <p className="text-sm text-[#6D6E71] mb-6">
+                Êtes-vous sûr de vouloir supprimer le rapport "{reportToDelete.title}" ? Cette action est irréversible.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await fetch(`/api/v1/reports/${reportToDelete.id}`, {
+                        method: 'DELETE',
+                      });
+                      const json = await res.json();
+                      if (json.success) {
+                        showNotification("Rapport supprimé avec succès", "success");
+                        setDeleteModalOpen(false);
+                        setReportToDelete(null);
+                        loadReports();
+                      } else {
+                        showNotification(json.error || "Erreur lors de la suppression", "error");
+                      }
+                    } catch (err) {
+                      console.error("Error deleting report:", err);
+                      showNotification("Erreur lors de la suppression", "error");
+                    }
+                  }}
+                  className="flex-1 btn-horizon btn-horizon-danger"
+                >
+                  Supprimer
+                </button>
+                <button
+                  onClick={() => {
+                    setDeleteModalOpen(false);
+                    setReportToDelete(null);
+                  }}
+                  className="flex-1 px-4 py-3 text-sm font-bold rounded-full border-[#D6D1CE] bg-white text-[#6D6E71]"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Report Modal */}
+      {viewReportModal && reportToView && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-2xl p-6 bg-white rounded-[20px] shadow-horizon-xl max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-[#1B2559]">
+                {reportToView.title}
+              </h3>
+              <button
+                onClick={() => {
+                  setViewReportModal(false);
+                  setReportToView(null);
+                }}
+                className="text-[#6D6E71] hover:text-[#1B2559]"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <div className="flex flex-wrap gap-3">
+                <span className="px-3 py-1 rounded-full text-sm font-semibold border border-[#D6D1CE] text-[#6D6E71]">
+                  {reportToView.type}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4 text-sm text-[#6D6E71]">
+                <div className="flex items-center gap-1">
+                  <User className="w-4 h-4" />
+                  <span>
+                    {reportToView.author.firstName} {reportToView.author.lastName}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-4 h-4" />
+                  <span>
+                    {new Date(reportToView.submittedAt).toLocaleDateString('fr-FR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-[#D6D1CE] pt-6">
+              <h4 className="text-sm font-bold text-[#1B2559] mb-3">Contenu du rapport</h4>
+              <div className="prose prose-sm max-w-none">
+                <p className="text-sm text-[#6D6E71] whitespace-pre-wrap">
+                  {reportToView.content}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

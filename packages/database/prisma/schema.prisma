@@ -676,6 +676,7 @@ model Report {
   id          String   @id @default(cuid())
   title       String
   content     String   @db.Text
+  type        String   @default("ACTIVITY")
   submittedAt DateTime @default(now())
 
   authorId String
