@@ -22,8 +22,13 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
 
   // Lists for dropdowns
   const [allGroups, setAllGroups] = useState<any[]>([]);
+  const [allGems, setAllGems] = useState<any[]>([]);
   const [allMembers, setAllMembers] = useState<any[]>([]);
   const [memberSearch, setMemberSearch] = useState("");
+
+  // State for group/gem modal
+  const [addType, setAddType] = useState<'groupe' | 'gem'>('groupe');
+  const [gemsLoading, setGemsLoading] = useState(false);
 
   // Modals & Forms
   const [showInterviewModal, setShowInterviewModal] = useState(false);
@@ -59,6 +64,18 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
     };
     fetchDependencies();
   }, []);
+
+  // Fetch gems when type switches to 'gem' in the modal
+  useEffect(() => {
+    if (addType === 'gem' && allGems.length === 0) {
+      setGemsLoading(true);
+      fetch('/api/v1/gems')
+        .then(r => r.json())
+        .then(json => { if (json.success) setAllGems(json.data || []); })
+        .catch(console.error)
+        .finally(() => setGemsLoading(false));
+    }
+  }, [addType]);
 
   useEffect(() => {
     const fetchTab = async (url: string, setter: any) => {
@@ -242,22 +259,40 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
   const handleAddGroup = async (e: any) => {
     e.preventDefault();
     setSubmitting(true);
-    const groupId = e.target.groupId.value;
+    const targetId = e.target.targetId.value;
     try {
-      const res = await fetch(`/api/v1/groups/${groupId}/members`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ memberId: params.id, role: "Membre" })
-      });
-      const json = await res.json();
-      if (json.success) {
-        // Refresh groups tab manually or append
-        const gRes = await fetch(`/api/v1/members/${params.id}/groups`);
-        const gJson = await gRes.json();
-        if (gJson.success) setGroups(gJson.data);
-        setShowGroupModal(false);
+      if (addType === 'groupe') {
+        const res = await fetch(`/api/v1/groups/${targetId}/members`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memberId: params.id, role: "MEMBER" })
+        });
+        const json = await res.json();
+        if (json.success) {
+          const gRes = await fetch(`/api/v1/members/${params.id}/groups`);
+          const gJson = await gRes.json();
+          if (gJson.success) setGroups(gJson.data);
+          setShowGroupModal(false);
+        } else {
+          alert("Erreur: " + json.error);
+        }
       } else {
-        alert("Erreur: " + json.error);
+        // GEM
+        const res = await fetch(`/api/v1/gems/${targetId}/members`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ memberId: params.id, role: "MEMBER" })
+        });
+        const json = await res.json();
+        if (json.success) {
+          // Refresh groups tab
+          const gRes = await fetch(`/api/v1/members/${params.id}/groups`);
+          const gJson = await gRes.json();
+          if (gJson.success) setGroups(gJson.data);
+          setShowGroupModal(false);
+        } else {
+          alert("Erreur: " + json.error);
+        }
       }
     } finally {
       setSubmitting(false);
@@ -375,7 +410,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
 
   const tabs = [
     { id: "general", label: "Général", icon: <User className="w-4 h-4" /> },
-    { id: "groupes", label: "Groupes", icon: <Users className="w-4 h-4" /> },
+    { id: "groupes", label: "Groupes/GEM", icon: <Users className="w-4 h-4" /> },
     { id: "presences", label: "Présences", icon: <Calendar className="w-4 h-4" /> },
     { id: "entretiens", label: "Entretiens", icon: <FileText className="w-4 h-4" /> },
     { id: "reports", label: "Rapports", icon: <FileText className="w-4 h-4" /> },
@@ -542,8 +577,8 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
           {activeTab === "groupes" && (
             <div className="animate-fade-in">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-[#1B2559]">Groupes d'appartenance</h3>
-                <button onClick={() => setShowGroupModal(true)} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Ajouter à un groupe</button>
+                <h3 className="text-lg font-bold text-[#1B2559]">Groupes/GEM d'appartenance</h3>
+                <button onClick={() => { setAddType('groupe'); setShowGroupModal(true); }} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Ajouter à un groupe/GEM</button>
               </div>
               {loadingTab ? (
                 <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
@@ -1073,27 +1108,95 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
           </div>
         )}
 
-        {/* GROUP MODAL */}
+        {/* GROUP / GEM MODAL */}
         {showGroupModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
             <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl">
               <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
-                <h3 className="font-extrabold text-lg text-[#1B2559]">Ajouter à un groupe</h3>
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Ajouter à un groupe/GEM</h3>
                 <button onClick={() => setShowGroupModal(false)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
               </div>
               <form onSubmit={handleAddGroup} className="space-y-4">
+                {/* Type selector */}
                 <div>
-                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Sélectionner un groupe</label>
-                  <select name="groupId" required className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
-                    <option value="">Choisir...</option>
-                    {allGroups.map(g => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.type})</option>
-                    ))}
-                  </select>
+                  <label className="block text-sm font-bold mb-2 text-[#A3AED0]">Type</label>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setAddType('groupe')}
+                      className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold border-2 transition-all ${
+                        addType === 'groupe'
+                          ? 'border-[#006C69] bg-[#006C69]/10 text-[#006C69]'
+                          : 'border-[#E0E5F2] bg-white text-[#A3AED0] hover:border-[#006C69]/40'
+                      }`}
+                    >
+                      <Users className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+                      Groupe
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setAddType('gem')}
+                      className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold border-2 transition-all ${
+                        addType === 'gem'
+                          ? 'border-[#CEAD1E] bg-[#CEAD1E]/10 text-[#CEAD1E]'
+                          : 'border-[#E0E5F2] bg-white text-[#A3AED0] hover:border-[#CEAD1E]/40'
+                      }`}
+                    >
+                      <Circle className="w-4 h-4 inline mr-1.5 -mt-0.5" />
+                      GEM
+                    </button>
+                  </div>
                 </div>
+
+                {/* Dynamic select based on type */}
+                <div>
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">
+                    {addType === 'groupe' ? 'Sélectionner un groupe' : 'Sélectionner un GEM'}
+                  </label>
+                  {addType === 'gem' && gemsLoading ? (
+                    <div className="flex items-center gap-2 px-4 py-3 bg-[#F4F7FE] rounded-lg text-sm text-[#A3AED0]">
+                      <div className="w-4 h-4 border-2 border-[#CEAD1E] border-t-transparent rounded-full animate-spin" />
+                      Chargement des GEMs...
+                    </div>
+                  ) : (
+                    <select
+                      name="targetId"
+                      required
+                      className={`w-full px-4 py-2 bg-[#F4F7FE] border border-transparent rounded-lg text-sm font-medium focus:outline-none ${
+                        addType === 'groupe' ? 'focus:border-[#006C69]' : 'focus:border-[#CEAD1E]'
+                      }`}
+                    >
+                      <option value="">Choisir...</option>
+                      {addType === 'groupe'
+                        ? allGroups.map(g => (
+                            <option key={g.id} value={g.id}>
+                              {g.name} ({g.type})
+                            </option>
+                          ))
+                        : allGems.map(gem => (
+                            <option key={gem.id} value={gem.id}>
+                              {gem.name}{gem.group ? ` — ${gem.group.name}` : ''}
+                            </option>
+                          ))
+                      }
+                    </select>
+                  )}
+                  {addType === 'gem' && !gemsLoading && allGems.length === 0 && (
+                    <p className="text-xs text-[#A3AED0] mt-1">Aucun GEM disponible.</p>
+                  )}
+                </div>
+
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
                   <button type="button" onClick={() => setShowGroupModal(false)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
-                  <button type="submit" disabled={submitting} className="px-6 py-2 bg-[#006C69] hover:bg-[#005250] text-white rounded-full font-bold transition-colors">
+                  <button
+                    type="submit"
+                    disabled={submitting || (addType === 'gem' && gemsLoading)}
+                    className={`px-6 py-2 text-white rounded-full font-bold transition-colors disabled:opacity-60 ${
+                      addType === 'groupe'
+                        ? 'bg-[#006C69] hover:bg-[#005250]'
+                        : 'bg-[#CEAD1E] hover:bg-[#b09319]'
+                    }`}
+                  >
                     {submitting ? 'Ajout...' : 'Ajouter'}
                   </button>
                 </div>

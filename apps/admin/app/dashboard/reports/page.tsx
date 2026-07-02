@@ -275,6 +275,7 @@ export default function ReportsPage() {
                   loadReports();
                 } else {
                   showNotification(json.error || "Erreur lors de la création", "error");
+                  console.error("Error creating report:", json.details);
                 }
               } catch (err) {
                 console.error("Error creating report:", err);
