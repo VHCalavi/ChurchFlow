@@ -6,7 +6,7 @@ import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
 const createGroupSchema = z.object({
   name: z.string().min(1, "Le nom du groupe est requis"),
   description: z.string().optional().nullable(),
-  type: z.enum(["DEPARTEMENT", "TRIBU", "MAISON_D_HONNEUR", "CELLULE", "ASSEMBLEE"]),
+  type: z.enum(["DEPARTEMENT", "TRIBU", "MAISON_D_HONNEUR", "ASSEMBLEE"]),
   parentId: z.string().optional().nullable(),
   churchId: z.string().optional()
 });

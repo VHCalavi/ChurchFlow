@@ -26,8 +26,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
   try {
     const { searchParams } = new URL(request.url);
     const filters = {
-      includeFamily: searchParams.get('includeFamily') === 'true',
-      includeGem: searchParams.get('includeGem') === 'true',
+      includeFamily: searchParams.has('includeFamily') ? searchParams.get('includeFamily') === 'true' : true,
+      includeGem: searchParams.has('includeGem') ? searchParams.get('includeGem') === 'true' : true,
     };
 
     const relations = await familyRelationService.getByMember(params.id, filters);

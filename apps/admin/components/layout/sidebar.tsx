@@ -86,7 +86,7 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       requiredPermission: "read:members",
     },
     {
-      title: "Groupes & GEM",
+      title: "Groupes",
       icon: <Network className="w-5 h-5" />,
       href: "/dashboard/groups",
       requiredPermission: "read:groups",

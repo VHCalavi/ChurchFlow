@@ -1,5 +1,6 @@
 import { prisma } from '@churchflow/database';
 import { Gem, GemMember } from '@churchflow/types';
+import { GEM_CONFIG } from '../config/gem.config';
 
 export const gemService = {
   async getAll(churchId: string, groupId?: string) {
@@ -75,6 +76,16 @@ export const gemService = {
   },
 
   async addMember(gemId: string, memberId: string, role: string = 'MEMBER') {
+    // Vérifier la configuration multi-GEM
+    if (!GEM_CONFIG.ALLOW_MULTI_GEM) {
+      const existing = await prisma.gemMember.findUnique({
+        where: { memberId }
+      });
+      if (existing) {
+        throw new Error('Ce membre appartient déjà à un GEM. (ALLOW_MULTI_GEM=false)');
+      }
+    }
+
     const newMember = await prisma.gemMember.create({
       data: {
         gemId,

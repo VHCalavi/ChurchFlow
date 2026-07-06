@@ -1,8 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../../../lib/auth';
-import { getAuthUser } from '../../../../lib/auth';
-import { prisma } from '@churchflow/database';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@churchflow/database";
+import { z } from "zod";
+import { auth, getAuthUser, unauthorized } from "../../../../../lib/auth";
 
 const updateGemSchema = z.object({
   name: z.string().min(1).optional(),
@@ -13,7 +12,7 @@ const updateGemSchema = z.object({
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth();
   const user = getAuthUser(session);
-  if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+  if (!user) return unauthorized();
 
   try {
     const gem = await prisma.gem.findUnique({
@@ -22,7 +21,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
         group: { select: { id: true, name: true } },
         members: {
           include: { member: { select: { id: true, firstName: true, lastName: true, status: true } } },
-          orderBy: { isLeader: 'desc', joinedAt: 'asc' }
+          orderBy: [{ isLeader: 'desc' }, { joinedAt: 'asc' }]
         },
         reports: {
           include: { author: { select: { id: true, firstName: true, lastName: true } } },
@@ -52,7 +51,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth();
   const user = getAuthUser(session);
-  if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+  if (!user) return unauthorized();
 
   try {
     const body = await request.json();
@@ -100,7 +99,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const session = await auth();
   const user = getAuthUser(session);
-  if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+  if (!user) return unauthorized();
 
   try {
     const existingGem = await prisma.gem.findUnique({

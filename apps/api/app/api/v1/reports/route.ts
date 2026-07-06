@@ -3,6 +3,8 @@ import { auth } from '../../../../lib/auth';
 import { getAuthUser } from '../../../../lib/auth';
 import { prisma } from '@churchflow/database';
 import { z } from 'zod';
+import { reportService } from '../../../../src/services/report-service';
+import { requireAuth, hasRole } from '../../../../src/lib/rbac';
 
 const createReportSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
@@ -12,8 +14,7 @@ const createReportSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  const session = await auth();
-  const user = getAuthUser(session);
+  const user = await requireAuth(request);
   if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
 
   try {
@@ -21,20 +22,15 @@ export async function GET(request: NextRequest) {
     const type = url.searchParams.get('type');
     const gemId = url.searchParams.get('gemId');
 
-    const whereClause: any = {
-      churchId: user.churchId
-    };
+    // Filtrer par rôle
+    const userRole = user.roles.includes('ADMIN') ? 'ADMIN' :
+                    user.roles.includes('RESPONSABLE_GEM') ? 'RESPONSABLE_GEM' :
+                    user.roles.includes('RESPONSABLE_GROUPE') ? 'RESPONSABLE_GROUPE' :
+                    'PASTEUR_RESIDENT';
 
-    if (type) whereClause.type = type;
-    if (gemId) whereClause.gemId = gemId;
-
-    const reports = await prisma.report.findMany({
-      where: whereClause,
-      include: {
-        author: { select: { id: true, firstName: true, lastName: true } },
-        gem: { select: { id: true, name: true } }
-      },
-      orderBy: { submittedAt: 'desc' }
+    const reports = await reportService.getFiltered(user.id, user.churchId, userRole, {
+      type: type as any,
+      gemId: gemId as any
     });
 
     return NextResponse.json({ success: true, data: reports });
@@ -48,55 +44,20 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  const user = getAuthUser(session);
+  const user = await requireAuth(request);
   if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
 
   try {
     const body = await request.json();
     const validatedData = createReportSchema.parse(body);
 
-    // Trouver le membre associé à l'utilisateur
-    let member = await prisma.member.findFirst({
-      where: { userId: user.id }
-    });
-
-    // Si aucun membre n'est trouvé, créer un membre par défaut pour l'utilisateur
-    if (!member) {
-      member = await prisma.member.create({
-        data: {
-          firstName: user.firstName || user.name?.split(' ')[0] || 'Utilisateur',
-          lastName: user.lastName || user.name?.split(' ').slice(1).join(' ') || 'Inconnu',
-          userId: user.id,
-          churchId: user.churchId,
-          status: 'MEMBRE', // Valeur de l'enum MemberStatus
-          gender: 'HOMME' // Valeur de l'enum Gender
-        }
-      });
-    }
-
-    const report = await prisma.report.create({
-      data: {
-        title: validatedData.title,
-        content: validatedData.content,
-        type: validatedData.type,
-        submittedAt: new Date(),
-        author: {
-          connect: { id: member.id }
-        },
-        ...(validatedData.gemId && {
-          gem: {
-            connect: { id: validatedData.gemId }
-          }
-        }),
-        church: {
-          connect: { id: user.churchId }
-        }
-      },
-      include: {
-        author: { select: { id: true, firstName: true, lastName: true } },
-        gem: { select: { id: true, name: true } }
-      }
+    // Utiliser le service pour créer le rapport
+    const report = await reportService.create({
+      title: validatedData.title,
+      content: validatedData.content,
+      authorId: user.id,
+      churchId: user.churchId,
+      gemId: validatedData.gemId
     });
 
     return NextResponse.json({ success: true, data: report }, { status: 201 });

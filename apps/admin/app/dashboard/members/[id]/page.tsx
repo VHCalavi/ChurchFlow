@@ -1,10 +1,166 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DashboardLayout } from "../../../../components/layout/dashboard-layout";
-import { ArrowLeft, User, Users, Calendar, FileText, File, Network, Circle, X, Plus, Search, Eye, Pencil, Trash2, Camera } from "lucide-react";
+import { ArrowLeft, User, Users, Calendar, FileText, File, Network, Circle, X, Plus, Search, Eye, Pencil, Trash2, Camera, FileText as FileTextIcon } from "lucide-react";
+import { ReactFlow, Background, Controls, Node, Edge, Position, MarkerType, Handle, BaseEdge, EdgeLabelRenderer, getBezierPath, EdgeProps } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+import dagre from 'dagre';
+
+const MemberNode = ({ data }: any) => {
+  return (
+    <div className={`flex items-center bg-white border-2 ${data.isCenter ? 'border-[#006C69]' : 'border-[#E0E5F2]'} rounded-full p-1 pr-4 shadow-sm min-w-[180px]`}>
+      <Handle type="target" position={Position.Top} className="opacity-0" />
+      <div className={`w-8 h-8 rounded-full ${data.isCenter ? 'bg-[#006C69]' : 'bg-[#1B2559]'} text-white flex items-center justify-center text-xs mr-3 shadow-sm font-bold shrink-0`}>
+        {data.initials}
+      </div>
+      <div>
+        <p className="text-xs font-bold text-[#1B2559] whitespace-nowrap">{data.label}</p>
+        {data.subLabel && <p className="text-[10px] text-[#A3AED0] uppercase">{data.subLabel}</p>}
+      </div>
+      <Handle type="source" position={Position.Bottom} className="opacity-0" />
+    </div>
+  );
+};
+const nodeTypes = { memberNode: MemberNode };
+
+const RELATION_LABELS: Record<string, string> = {
+  PARENT: 'Parent',
+  ENFANT: 'Enfant',
+  SIBLING: 'Frère / Sœur',
+  SPOUSE: 'Conjoint(e)',
+  GEM_PARTNER: 'Partenaire GEM',
+};
+const toFr = (type: string) => RELATION_LABELS[type] ?? type;
+
+const CustomEdge = ({
+  id,
+  sourceX,
+  sourceY,
+  targetX,
+  targetY,
+  sourcePosition,
+  targetPosition,
+  style = {},
+  markerEnd,
+  label,
+  data,
+}: EdgeProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Calcul standard
+  let [edgePath, labelX, labelY] = getBezierPath({
+    sourceX,
+    sourceY,
+    sourcePosition,
+    targetX,
+    targetY,
+    targetPosition,
+  });
+
+  // Appliquer le décalage (offset) de courbure si fourni
+  const curvatureOffset = data?.curvature as number || 0;
+  if (curvatureOffset !== 0) {
+    // Calcul de points de contrôle décalés pour écarter les traits
+    const dx = targetX - sourceX;
+    const dy = targetY - sourceY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    // Vecteur normal perpendiculaire
+    const nx = -dy / distance;
+    const ny = dx / distance;
+    const offset = curvatureOffset * 40; // force du décalage
+
+    const c1X = sourceX + (dx * 0.25) + nx * offset;
+    const c1Y = sourceY + (dy * 0.25) + ny * offset;
+    const c2X = sourceX + (dx * 0.75) + nx * offset;
+    const c2Y = sourceY + (dy * 0.75) + ny * offset;
+
+    edgePath = `M ${sourceX},${sourceY} C ${c1X},${c1Y} ${c2X},${c2Y} ${targetX},${targetY}`;
+    // Approximation du centre
+    labelX = sourceX + (dx * 0.5) + nx * (offset * 0.75);
+    labelY = sourceY + (dy * 0.5) + ny * (offset * 0.75);
+  }
+
+  return (
+    <>
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />
+      <EdgeLabelRenderer>
+        <div
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          style={{
+            position: 'absolute',
+            transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
+            background: '#F4F7FE',
+            padding: '2px 6px',
+            borderRadius: '4px',
+            fontSize: '10px',
+            fontWeight: 700,
+            color: '#1B2559',
+            pointerEvents: 'all', // Important pour capter les clics
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            zIndex: isHovered ? 1000 : 1,
+            boxShadow: isHovered ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none'
+          }}
+          className="nodrag nopan transition-shadow"
+        >
+          {label as React.ReactNode}
+          {data?.onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (typeof data.onDelete === 'function') data.onDelete(data.relationId);
+              }}
+              className="hover:text-red-500 hover:bg-red-50 p-0.5 rounded transition-colors"
+              title="Supprimer la relation"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      </EdgeLabelRenderer>
+    </>
+  );
+};
+const edgeTypes = { custom: CustomEdge };
+
+
+const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
+  const nodeWidth = 200;
+  const nodeHeight = 60;
+  dagreGraph.setGraph({ rankdir: direction, nodesep: 50, edgesep: 30, ranksep: 80 });
+
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  const layoutedNodes = nodes.map((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    return {
+      ...node,
+      targetPosition: Position.Top,
+      sourcePosition: Position.Bottom,
+      position: {
+        x: nodeWithPosition.x - nodeWidth / 2,
+        y: nodeWithPosition.y - nodeHeight / 2,
+      },
+    };
+  });
+
+  return { nodes: layoutedNodes, edges };
+};
 
 export default function MemberDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -22,13 +178,9 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
 
   // Lists for dropdowns
   const [allGroups, setAllGroups] = useState<any[]>([]);
-  const [allGems, setAllGems] = useState<any[]>([]);
   const [allMembers, setAllMembers] = useState<any[]>([]);
+  const [allGems, setAllGems] = useState<any[]>([]);
   const [memberSearch, setMemberSearch] = useState("");
-
-  // State for group/gem modal
-  const [addType, setAddType] = useState<'groupe' | 'gem'>('groupe');
-  const [gemsLoading, setGemsLoading] = useState(false);
 
   // Modals & Forms
   const [showInterviewModal, setShowInterviewModal] = useState(false);
@@ -36,8 +188,58 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
   const [showRelModal, setShowRelModal] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showGemModal, setShowGemModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [isToggling, setIsToggling] = useState(false);
+
+  // Notification & Confirm
+  const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const showNotification = (message: string, type: "success" | "error" = "error") => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+  const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void } | null>(null);
+
+  // GEM creation state (from Arbre tab)
+  const [gemModalName, setGemModalName] = useState('');
+  const [gemModalDescription, setGemModalDescription] = useState('');
+  const [gemModalSearch, setGemModalSearch] = useState('');
+  const [gemModalMemberIds, setGemModalMemberIds] = useState<string[]>([]);
+
+  const memberGemMap = useMemo(() => {
+    const map = new Map<string, any>();
+    allGems.forEach(gem => {
+      (gem.members || []).forEach((gm: any) => {
+        if (gm.member?.id) map.set(gm.member.id, gem);
+      });
+    });
+    return map;
+  }, [allGems]);
+
+  const isCurrentMemberInGem = member ? memberGemMap.has(member.id) : false;
+
+  const handleToggleGemModalMember = (id: string) => {
+    setGemModalMemberIds(prev => {
+      if (prev.includes(id)) return prev.filter(x => x !== id);
+
+      const newMemberGem = memberGemMap.get(id);
+      const existingGemInSelection = prev
+        .map(selId => memberGemMap.get(selId))
+        .find(gem => gem !== undefined);
+
+      if (newMemberGem && existingGemInSelection && newMemberGem.id !== existingGemInSelection.id) {
+        showNotification("Impossible de sélectionner des membres appartenant à des GEMs différents.", "error");
+        return prev;
+      }
+
+      if (newMemberGem) {
+        setGemModalName(newMemberGem.name);
+        setGemModalDescription(newMemberGem.description || "");
+      }
+
+      return [...prev, id];
+    });
+  };
 
   // View/Edit detail modals
   const [viewingInterview, setViewingInterview] = useState<any>(null);
@@ -46,18 +248,140 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
   const [editingDoc, setEditingDoc] = useState<any>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
 
+  const handleDeleteRelation = useCallback((relationId: string) => {
+    setConfirmDialog({
+      message: "Voulez-vous vraiment supprimer cette relation ?",
+      onConfirm: async () => {
+        try {
+          if (relationId.startsWith('gem_virtual_')) {
+            const parts = relationId.split('_');
+            const gemId = parts[2];
+            const relativeId = parts[3];
+            const res = await fetch(`/api/v1/gems/${gemId}/members?memberId=${relativeId}`, { method: 'DELETE' });
+            if (res.ok) setRelations(prev => prev.filter(r => r.id !== relationId));
+            else showNotification("Erreur lors de la suppression du membre du GEM", "error");
+          } else {
+            const res = await fetch(`/api/v1/members/${params.id}/family-relations/${relationId}`, { method: 'DELETE' });
+            if (res.ok) setRelations(prev => prev.filter(r => r.id !== relationId));
+            else showNotification("Erreur lors de la suppression de la relation familiale", "error");
+          }
+        } catch (e) { console.error(e); }
+      }
+    });
+  }, [params.id, setRelations]);
+
+  const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
+    if (!member) return { nodes: [], edges: [] };
+    const nodes: Node[] = [];
+    const edges: Edge[] = [];
+
+    const addedNodes = new Set<string>();
+    addedNodes.add(member.id);
+
+    // Nœud central
+    nodes.push({
+      id: member.id,
+      type: 'memberNode',
+      position: { x: 0, y: 0 },
+      data: {
+        label: `${member.firstName} ${member.lastName}`,
+        subLabel: 'Moi',
+        initials: `${member.firstName?.[0] || ''}${member.lastName?.[0] || ''}`,
+        isCenter: true,
+      }
+    });
+
+    // Pour chaque paire, compter combien de relations existent et assigners un offset différent
+    const pairCounts = new Map<string, number>();
+    relations.forEach(r => {
+      if (!r.relative) return;
+      const key = [member.id, r.relative.id].sort().join('-');
+      pairCounts.set(key, (pairCounts.get(key) || 0) + 1);
+    });
+
+    const pairIndexes = new Map<string, number>();
+
+    // Nœuds liés + edges
+    relations.forEach((r, i) => {
+      if (!r.relative) return;
+
+      if (!addedNodes.has(r.relative.id)) {
+        nodes.push({
+          id: r.relative.id,
+          type: 'memberNode',
+          position: { x: 0, y: 0 },
+          data: {
+            label: `${r.relative.firstName} ${r.relative.lastName}`,
+            subLabel: toFr(r.relationType),
+            initials: `${r.relative.firstName?.[0] || ''}${r.relative.lastName?.[0] || ''}`,
+            isCenter: false,
+          }
+        });
+        addedNodes.add(r.relative.id);
+      } else {
+        const existingNode = nodes.find(n => n.id === r.relative.id);
+        const frLabel = toFr(r.relationType);
+        if (existingNode && !String(existingNode.data.subLabel).includes(frLabel)) {
+          existingNode.data.subLabel = `${existingNode.data.subLabel}, ${frLabel}`;
+        }
+      }
+
+      const pairKey = [member.id, r.relative.id].sort().join('-');
+      const total = pairCounts.get(pairKey) || 1;
+      const currentIdx = pairIndexes.get(pairKey) || 0;
+      pairIndexes.set(pairKey, currentIdx + 1);
+
+      // Curvature offsets: pour 1 lien c=0, pour 2 liens: 0.4 et -0.4, pour 3: 0.5, 0, -0.5
+      const offsets = total === 1
+        ? [0]
+        : total === 2
+          ? [0.5, -0.5]
+          : [0.6, 0, -0.6];
+      const curvature = offsets[currentIdx % offsets.length];
+
+      let color = '#A3AED0';
+      switch (r.relationType) {
+        case 'GEM_PARTNER': color = '#006C69'; break; // Vert
+        case 'PARENT': color = '#4318FF'; break;      // Bleu
+        case 'ENFANT': color = '#FF9800'; break;      // Orange
+        case 'SIBLING': color = '#CEAD1E'; break;     // Jaune/Or
+        case 'SPOUSE': color = '#E31A1A'; break;      // Rouge
+      }
+
+      edges.push({
+        id: `e-${member.id}-${r.relative.id}-${i}`,
+        source: member.id,
+        target: r.relative.id,
+        label: toFr(r.relationType),
+        type: 'custom',
+        animated: false,
+        style: { stroke: color, strokeWidth: 2 },
+        labelStyle: { fill: '#1B2559', fontWeight: 700, fontSize: 10 },
+        labelBgStyle: { fill: '#F4F7FE', fillOpacity: 0.9 },
+        labelBgPadding: [4, 6] as [number, number],
+        data: { curvature, relationId: r.id, onDelete: handleDeleteRelation },
+        markerEnd: { type: MarkerType.ArrowClosed, color: color },
+      });
+    });
+
+    return getLayoutedElements(nodes, edges, 'TB');
+  }, [member, relations, handleDeleteRelation]);
+
   useEffect(() => {
     // Fetch dependencies for dropdowns (Groups, Members)
     const fetchDependencies = async () => {
       try {
-        const [gRes, mRes] = await Promise.all([
+        const [gRes, mRes, gemRes] = await Promise.all([
           fetch('/api/v1/groups'),
-          fetch('/api/v1/members')
+          fetch('/api/v1/members'),
+          fetch('/api/v1/gems')
         ]);
         const gJson = await gRes.json();
         const mJson = await mRes.json();
+        const gemJson = await gemRes.json();
         if (gJson.success) setAllGroups(gJson.data || []);
         if (mJson.success) setAllMembers(mJson.data || []);
+        if (gemJson.success) setAllGems(gemJson.data || []);
       } catch (e) {
         console.error(e);
       }
@@ -66,16 +390,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
   }, []);
 
   // Fetch gems when type switches to 'gem' in the modal
-  useEffect(() => {
-    if (addType === 'gem' && allGems.length === 0) {
-      setGemsLoading(true);
-      fetch('/api/v1/gems')
-        .then(r => r.json())
-        .then(json => { if (json.success) setAllGems(json.data || []); })
-        .catch(console.error)
-        .finally(() => setGemsLoading(false));
-    }
-  }, [addType]);
+  // (removed - GEM association is done via Arbre tab)
 
   useEffect(() => {
     const fetchTab = async (url: string, setter: any) => {
@@ -138,10 +453,10 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
       if (json.success) {
         setMember({ ...member, isActive: !member.isActive });
       } else {
-        alert("Erreur lors de la mise à jour: " + json.error);
+        showNotification("Erreur lors de la mise à jour: " + json.error, "error");
       }
     } catch (e) {
-      alert("Erreur de connexion.");
+      showNotification("Erreur de connexion.", "error");
     } finally {
       setIsToggling(false);
     }
@@ -169,7 +484,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
         setMember({ ...member, ...data });
         setShowEditModal(false);
       } else {
-        alert("Erreur d'édition: " + json.error);
+        showNotification("Erreur d'édition: " + json.error, "error");
       }
     } finally {
       setSubmitting(false);
@@ -198,7 +513,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
         setInterviews([json.data, ...interviews]);
         setShowInterviewModal(false);
       } else {
-        alert("Erreur: " + json.error);
+        showNotification("Erreur: " + json.error, "error");
       }
     } finally {
       setSubmitting(false);
@@ -224,7 +539,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
         setDocuments([json.data, ...documents]);
         setShowDocModal(false);
       } else {
-        alert("Erreur: " + json.error);
+        showNotification("Erreur: " + json.error, "error");
       }
     } finally {
       setSubmitting(false);
@@ -249,7 +564,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
         setRelations([json.data, ...relations]);
         setShowRelModal(false);
       } else {
-        alert("Erreur: " + json.error);
+        showNotification("Erreur: " + json.error, "error");
       }
     } finally {
       setSubmitting(false);
@@ -259,71 +574,54 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
   const handleAddGroup = async (e: any) => {
     e.preventDefault();
     setSubmitting(true);
-    const targetId = e.target.targetId.value;
+    const groupId = e.target.groupId.value;
     try {
-      if (addType === 'groupe') {
-        const res = await fetch(`/api/v1/groups/${targetId}/members`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ memberId: params.id, role: "MEMBER" })
-        });
-        const json = await res.json();
-        if (json.success) {
-          const gRes = await fetch(`/api/v1/members/${params.id}/groups`);
-          const gJson = await gRes.json();
-          if (gJson.success) setGroups(gJson.data);
-          setShowGroupModal(false);
-        } else {
-          alert("Erreur: " + json.error);
-        }
+      const res = await fetch(`/api/v1/groups/${groupId}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId: params.id, role: "MEMBER" })
+      });
+      const json = await res.json();
+      if (json.success) {
+        const gRes = await fetch(`/api/v1/members/${params.id}/groups`);
+        const gJson = await gRes.json();
+        if (gJson.success) setGroups(gJson.data);
+        setShowGroupModal(false);
       } else {
-        // GEM
-        const res = await fetch(`/api/v1/gems/${targetId}/members`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ memberId: params.id, role: "MEMBER" })
-        });
-        const json = await res.json();
-        if (json.success) {
-          // Refresh groups tab
-          const gRes = await fetch(`/api/v1/members/${params.id}/groups`);
-          const gJson = await gRes.json();
-          if (gJson.success) setGroups(gJson.data);
-          setShowGroupModal(false);
-        } else {
-          alert("Erreur: " + json.error);
-        }
+        showNotification("Erreur: " + json.error, "error");
       }
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteRelation = async (relationId: string) => {
-    if (!confirm("Voulez-vous vraiment supprimer cette relation ?")) return;
-    try {
-      const res = await fetch(`/api/v1/members/${params.id}/family-relations/${relationId}`, { method: 'DELETE' });
-      if (res.ok) setRelations(relations.filter(r => r.id !== relationId));
-    } catch (e) { console.error(e); }
-  };
 
-  const handleRemoveFromGroup = async (groupId: string) => {
-    if (!confirm("Voulez-vous vraiment retirer le membre de ce groupe ?")) return;
-    try {
-      const res = await fetch(`/api/v1/groups/${groupId}/members?memberId=${params.id}`, { method: 'DELETE' });
-      if (res.ok) setGroups(groups.filter(g => g.groupId !== groupId));
-    } catch (e) { console.error(e); }
-  };
 
-  const handleDeleteInterview = async (interviewId: string) => {
-    if (!confirm("Voulez-vous vraiment supprimer cet entretien ?")) return;
-    try {
-      const res = await fetch(`/api/v1/members/${params.id}/interviews/${interviewId}`, { method: 'DELETE' });
-      if (res.ok) {
-        setInterviews(interviews.filter(i => i.id !== interviewId));
-        setViewingInterview(null);
+  const handleRemoveFromGroup = (groupId: string) => {
+    setConfirmDialog({
+      message: "Voulez-vous vraiment retirer le membre de ce groupe ?",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/v1/groups/${groupId}/members?memberId=${params.id}`, { method: 'DELETE' });
+          if (res.ok) setGroups(groups.filter(g => g.groupId !== groupId));
+        } catch (e) { console.error(e); }
       }
-    } catch (e) { console.error(e); }
+    });
+  };
+
+  const handleDeleteInterview = (interviewId: string) => {
+    setConfirmDialog({
+      message: "Voulez-vous vraiment supprimer cet entretien ?",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/v1/members/${params.id}/interviews/${interviewId}`, { method: 'DELETE' });
+          if (res.ok) {
+            setInterviews(interviews.filter(i => i.id !== interviewId));
+            setViewingInterview(null);
+          }
+        } catch (e) { console.error(e); }
+      }
+    });
   };
 
   const handleUpdateInterview = async (e: any) => {
@@ -346,19 +644,23 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
       if (json.success) {
         setInterviews(interviews.map(i => i.id === editingInterview.id ? json.data : i));
         setEditingInterview(null);
-      } else alert("Erreur: " + json.error);
+      } else showNotification("Erreur: " + json.error, "error");
     } finally { setSubmitting(false); }
   };
 
-  const handleDeleteDocument = async (documentId: string) => {
-    if (!confirm("Voulez-vous vraiment supprimer ce document ?")) return;
-    try {
-      const res = await fetch(`/api/v1/members/${params.id}/documents/${documentId}`, { method: 'DELETE' });
-      if (res.ok) {
-        setDocuments(documents.filter(d => d.id !== documentId));
-        setViewingDoc(null);
+  const handleDeleteDocument = (documentId: string) => {
+    setConfirmDialog({
+      message: "Voulez-vous vraiment supprimer ce document ?",
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/v1/members/${params.id}/documents/${documentId}`, { method: 'DELETE' });
+          if (res.ok) {
+            setDocuments(documents.filter(d => d.id !== documentId));
+            setViewingDoc(null);
+          }
+        } catch (e) { console.error(e); }
       }
-    } catch (e) { console.error(e); }
+    });
   };
 
   const handleUpdateDocument = async (e: any) => {
@@ -378,7 +680,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
       if (json.success) {
         setDocuments(documents.map(d => d.id === editingDoc.id ? json.data : d));
         setEditingDoc(null);
-      } else alert("Erreur: " + json.error);
+      } else showNotification("Erreur: " + json.error, "error");
     } finally { setSubmitting(false); }
   };
 
@@ -410,7 +712,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
 
   const tabs = [
     { id: "general", label: "Général", icon: <User className="w-4 h-4" /> },
-    { id: "groupes", label: "Groupes/GEM", icon: <Users className="w-4 h-4" /> },
+    { id: "groupes", label: "Groupes", icon: <Users className="w-4 h-4" /> },
     { id: "presences", label: "Présences", icon: <Calendar className="w-4 h-4" /> },
     { id: "entretiens", label: "Entretiens", icon: <FileText className="w-4 h-4" /> },
     { id: "reports", label: "Rapports", icon: <FileText className="w-4 h-4" /> },
@@ -577,8 +879,8 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
           {activeTab === "groupes" && (
             <div className="animate-fade-in">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-[#1B2559]">Groupes/GEM d'appartenance</h3>
-                <button onClick={() => { setAddType('groupe'); setShowGroupModal(true); }} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Ajouter à un groupe/GEM</button>
+                <h3 className="text-lg font-bold text-[#1B2559]">Groupes d'appartenance</h3>
+                <button onClick={() => { setShowGroupModal(true); }} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Ajouter à un groupe</button>
               </div>
               {loadingTab ? (
                 <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
@@ -765,10 +1067,38 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
               </div>
               {loadingTab ? (
                 <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : relations.filter(r => r.type === 'REPORT').length > 0 ? (
+                <div className="space-y-4">
+                  {relations
+                    .filter(r => r.type === 'REPORT')
+                    .map(report => (
+                      <div key={report.id} className="horizon-card p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-base font-bold text-[#1B2559]">{report.title}</h4>
+                            <div className="flex items-center gap-3 mt-2">
+                              <span className="px-2 py-1 rounded-full text-xs font-semibold border border-[#D6D1CE] text-[#6D6E71]">
+                                {report.reportType || 'ACTIVITY'}
+                              </span>
+                              <span className="text-sm text-[#6D6E71]">
+                                {new Date(report.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-[#6D6E71] mt-2 line-clamp-2">
+                              {report.content}
+                            </p>
+                          </div>
+                          <Link href={`/dashboard/reports/${report.id}`} className="btn-horizon btn-horizon-secondary ml-4">
+                            <Eye className="w-4 h-4" />
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                </div>
               ) : (
-                <div className="text-center py-10">
-                  <FileText className="w-12 h-12 mx-auto text-[#D6D1CE] mb-4" />
-                  <p className="text-[#6D6E71]">La gestion des rapports sera implémentée prochainement.</p>
+                <div className="flex flex-col items-center justify-center py-10 text-[#A3AED0] bg-[#F4F7FE] rounded-2xl border border-dashed border-[#A3AED0]">
+                  <FileText className="w-12 h-12 mx-auto mb-4" />
+                  <p className="text-[#6D6E71]">Aucun rapport trouvé pour ce membre.</p>
                 </div>
               )}
             </div>
@@ -834,7 +1164,31 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
             <div className="animate-fade-in">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-[#1B2559]">Arbre des relations</h3>
-                <button onClick={() => setShowRelModal(true)} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center"><Plus className="w-4 h-4 mr-1"/> Lier un membre</button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      if (isCurrentMemberInGem) {
+                        showNotification("Ce membre appartient déjà à un GEM. Retirez-le de son GEM actuel avant de l'ajouter à un autre.", "error");
+                        return;
+                      }
+                      setGemModalName('');
+                      setGemModalDescription('');
+                      setGemModalSearch('');
+                      setGemModalMemberIds(member ? [member.id] : []);
+                      setShowGemModal(true);
+                    }}
+                    className={`btn-horizon text-sm font-bold flex items-center px-4 py-2 rounded-full transition-colors ${
+                      isCurrentMemberInGem
+                        ? 'bg-[#E0E5F2] text-[#A3AED0] cursor-not-allowed'
+                        : 'bg-[#006C69]/10 text-[#006C69] hover:bg-[#006C69]/20'
+                    }`}
+                  >
+                    <Plus className="w-4 h-4 mr-1"/> Ajouter à un GEM
+                  </button>
+                  <button onClick={() => setShowRelModal(true)} className="btn-horizon btn-horizon-primary text-sm font-bold flex items-center">
+                    <Plus className="w-4 h-4 mr-1"/> Lier un membre
+                  </button>
+                </div>
               </div>
               {loadingTab ? (
                 <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
@@ -844,42 +1198,20 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
                   <p className="font-bold text-sm">Aucune relation enregistrée.</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-[#E0E5F2] shadow-sm">
-                  <table className="w-full text-left text-sm">
-                    <thead className="bg-[#F4F7FE] text-[#A3AED0]">
-                      <tr>
-                        <th className="px-4 py-3 font-bold">Type de Relation</th>
-                        <th className="px-4 py-3 font-bold">Membre Lié</th>
-                        <th className="px-4 py-3 font-bold">Statut</th>
-                        <th className="px-4 py-3 font-bold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#E0E5F2] text-[#1B2559] font-medium">
-                      {relations.map(r => (
-                        <tr key={r.id} className="hover:bg-[#F8F9FA] transition-colors">
-                          <td className="px-4 py-3">
-                            <span className="px-2 py-1 bg-[#CEAD1E]/10 text-[#CEAD1E] rounded-full text-xs font-bold">{r.relationType}</span>
-                          </td>
-                          <td className="px-4 py-3 flex items-center font-bold">
-                            <div className="w-8 h-8 rounded-full bg-[#006C69] text-white flex items-center justify-center text-xs mr-3 shadow-sm">
-                              {r.relative?.firstName?.[0] || ""}{r.relative?.lastName?.[0] || ""}
-                            </div>
-                            {r.relative?.firstName} {r.relative?.lastName}
-                          </td>
-                          <td className="px-4 py-3">
-                             <span className={`px-2 py-1 rounded-full text-xs font-bold ${r.isActive ? 'bg-[#006C69]/10 text-[#006C69]' : 'bg-[#CD3C14]/10 text-[#CD3C14]'}`}>
-                               {r.isActive ? 'Actif' : 'Historique'}
-                             </span>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <button onClick={() => handleDeleteRelation(r.id)} className="p-1.5 text-[#CD3C14] bg-[#CD3C14]/10 rounded-md hover:bg-[#CD3C14]/20 transition-colors">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="rounded-2xl border border-[#E0E5F2] shadow-sm h-[600px] w-full overflow-hidden bg-[#F8F9FA] relative">
+                  <ReactFlow
+                    nodes={layoutedNodes}
+                    edges={layoutedEdges}
+                    nodeTypes={nodeTypes}
+                    edgeTypes={edgeTypes}
+                    fitView
+                    minZoom={0.2}
+                    maxZoom={2}
+                    attributionPosition="bottom-right"
+                  >
+                    <Background color="#A3AED0" gap={16} size={1} />
+                    <Controls className="!bg-white !border-[#E0E5F2] !shadow-sm" />
+                  </ReactFlow>
                 </div>
               )}
             </div>
@@ -1070,7 +1402,6 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
                     <option value="ENFANT">Enfant</option>
                     <option value="SPOUSE">Conjoint(e)</option>
                     <option value="SIBLING">Frère/Sœur</option>
-                    <option value="GEM_PARTNER">Partenaire GEM</option>
                   </select>
                 </div>
                 <div>
@@ -1108,94 +1439,209 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
           </div>
         )}
 
-        {/* GROUP / GEM MODAL */}
+        {/* GEM CREATION MODAL (depuis l'onglet Arbre) */}
+        {showGemModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl max-h-[90vh] flex flex-col">
+              <div className="flex justify-between items-center p-6 pb-4 border-b border-[#E0E5F2] shrink-0">
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Ajouter à un GEM</h3>
+                <button onClick={() => setShowGemModal(false)} className="text-[#A3AED0] hover:text-[#1B2559]"><X className="w-5 h-5" /></button>
+              </div>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!gemModalName.trim()) return;
+                  setSubmitting(true);
+                  try {
+                    const res = await fetch('/api/v1/gems', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        name: gemModalName,
+                        description: gemModalDescription || undefined,
+                        isActive: true,
+                        memberIds: gemModalMemberIds,
+                      }),
+                    });
+                    const json = await res.json();
+                    if (json.success) {
+                      setShowGemModal(false);
+                      if (json.isExisting) {
+                        showNotification(`Membres ajoutés avec succès au GEM ${json.data.name} !`, "success");
+                      } else {
+                        showNotification('GEM créé avec succès !', "success");
+                      }
+                      // Recharger les relations pour que les partenaires GEM apparaissent
+                      const relRes = await fetch(`/api/v1/members/${params.id}/family-relations?includeFamily=true&includeGem=true`);
+                      const relJson = await relRes.json();
+                      if (relJson.success) setRelations(relJson.data || []);
+                    } else {
+                      showNotification(json.error || 'Erreur lors de la création du GEM', "error");
+                    }
+                  } catch {
+                    showNotification('Erreur réseau', "error");
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+                className="flex flex-col flex-1 overflow-hidden"
+              >
+                <div className="p-6 space-y-4 overflow-y-auto flex-1">
+                  {/* Nom */}
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Nom du GEM *</label>
+                    <input
+                      type="text"
+                      value={gemModalName}
+                      onChange={e => setGemModalName(e.target.value)}
+                      placeholder="Ex: GEM Victoire"
+                      className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent rounded-lg text-sm font-medium focus:outline-none focus:border-[#006C69]"
+                      required
+                    />
+                  </div>
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Description</label>
+                    <input
+                      type="text"
+                      value={gemModalDescription}
+                      onChange={e => setGemModalDescription(e.target.value)}
+                      placeholder="Description optionnelle"
+                      className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent rounded-lg text-sm font-medium focus:outline-none focus:border-[#006C69]"
+                    />
+                  </div>
+                  {/* Membres */}
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">
+                      Membres du GEM
+                      {gemModalMemberIds.length > 0 && (
+                        <span className="ml-2 px-2 py-0.5 bg-[#006C69]/10 text-[#006C69] rounded-full text-xs">
+                          {gemModalMemberIds.length} sélectionné{gemModalMemberIds.length > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </label>
+                    {/* Chips des membres sélectionnés */}
+                    {gemModalMemberIds.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {gemModalMemberIds.map(id => {
+                          const m = id === member?.id ? member : allMembers.find((x: any) => x.id === id);
+                          if (!m) return null;
+                          const isCurrentMember = id === member?.id;
+                          return (
+                            <span key={id} className="flex items-center gap-1 px-3 py-1 bg-[#006C69]/10 text-[#006C69] rounded-full text-xs font-bold">
+                              {m.firstName} {m.lastName}
+                              {isCurrentMember && <span className="text-[10px] opacity-60">(vous)</span>}
+                              {!isCurrentMember && (
+                                <button type="button" onClick={() => setGemModalMemberIds(ids => ids.filter(x => x !== id))} className="ml-1 hover:text-red-500">
+                                  <X className="w-3 h-3" />
+                                </button>
+                              )}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                    {/* Recherche */}
+                    <div className="relative mb-2">
+                      <Search className="w-4 h-4 absolute left-3 top-3 text-[#A3AED0]" />
+                      <input
+                        type="text"
+                        value={gemModalSearch}
+                        onChange={e => setGemModalSearch(e.target.value)}
+                        placeholder="Rechercher un membre à ajouter..."
+                        className="w-full pl-9 pr-4 py-2 bg-white border border-[#E0E5F2] focus:border-[#006C69] rounded-lg text-sm font-medium focus:outline-none"
+                      />
+                    </div>
+                    {/* Liste */}
+                    <div className="max-h-44 overflow-y-auto rounded-lg border border-[#E0E5F2] divide-y divide-[#F4F7FE]">
+                      {allMembers
+                        .filter((m: any) =>
+                          m.id !== member?.id &&
+                          `${m.firstName} ${m.lastName}`.toLowerCase().includes(gemModalSearch.toLowerCase())
+                        )
+                        .map((m: any) => {
+                          const isSelected = gemModalMemberIds.includes(m.id);
+                          const memberGem = memberGemMap.get(m.id);
+                          const isAlreadyInGem = !!memberGem;
+                          const isDisabled = isAlreadyInGem && !isSelected;
+                          return (
+                            <button
+                              key={m.id}
+                              type="button"
+                              disabled={isDisabled}
+                              onClick={() => !isDisabled && handleToggleGemModalMember(m.id)}
+                              className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                                isDisabled
+                                  ? 'opacity-50 cursor-not-allowed bg-[#F4F7FE]'
+                                  : isSelected
+                                  ? 'bg-[#006C69]/5'
+                                  : 'hover:bg-[#F4F7FE]'
+                              }`}
+                            >
+                              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                                isSelected ? 'bg-[#006C69] text-white' : isDisabled ? 'bg-[#E0E5F2] text-[#A3AED0]' : 'bg-[#E0E5F2] text-[#1B2559]'
+                              }`}>
+                                {isSelected ? <Check className="w-3.5 h-3.5" /> : `${m.firstName?.[0] || ''}${m.lastName?.[0] || ''}`}
+                              </div>
+                              <div className="flex-1 min-w-0 text-left">
+                                <p className={`text-sm font-bold truncate ${isDisabled ? 'text-[#A3AED0]' : 'text-[#1B2559]'}`}>{m.firstName} {m.lastName}</p>
+                                {memberGem ? (
+                                  <p className="text-xs text-[#CEAD1E] font-semibold truncate">GEM : {memberGem.name}</p>
+                                ) : m.email ? (
+                                  <p className="text-xs text-[#A3AED0] truncate">{m.email}</p>
+                                ) : null}
+                              </div>
+                              {isDisabled && (
+                                <span className="text-[10px] text-[#A3AED0] font-medium shrink-0">Déjà en GEM</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-3 p-6 pt-4 border-t border-[#E0E5F2] shrink-0">
+                  <button type="button" onClick={() => setShowGemModal(false)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
+                  <button type="submit" disabled={submitting || !gemModalName.trim()} className="px-6 py-2 bg-[#006C69] hover:bg-[#005250] text-white rounded-full font-bold transition-colors disabled:opacity-50">
+                    {submitting ? 'Création...' : 'Créer le GEM'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* GROUP MODAL */}
         {showGroupModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
             <div className="w-full max-w-lg p-6 bg-white rounded-2xl shadow-xl">
               <div className="flex justify-between items-center mb-4 border-b border-[#E0E5F2] pb-3">
-                <h3 className="font-extrabold text-lg text-[#1B2559]">Ajouter à un groupe/GEM</h3>
+                <h3 className="font-extrabold text-lg text-[#1B2559]">Ajouter à un groupe</h3>
                 <button onClick={() => setShowGroupModal(false)} className="text-[#A3AED0] hover:text-[#1B2559] transition-colors"><X className="w-5 h-5" /></button>
               </div>
               <form onSubmit={handleAddGroup} className="space-y-4">
-                {/* Type selector */}
                 <div>
-                  <label className="block text-sm font-bold mb-2 text-[#A3AED0]">Type</label>
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setAddType('groupe')}
-                      className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold border-2 transition-all ${
-                        addType === 'groupe'
-                          ? 'border-[#006C69] bg-[#006C69]/10 text-[#006C69]'
-                          : 'border-[#E0E5F2] bg-white text-[#A3AED0] hover:border-[#006C69]/40'
-                      }`}
-                    >
-                      <Users className="w-4 h-4 inline mr-1.5 -mt-0.5" />
-                      Groupe
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAddType('gem')}
-                      className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold border-2 transition-all ${
-                        addType === 'gem'
-                          ? 'border-[#CEAD1E] bg-[#CEAD1E]/10 text-[#CEAD1E]'
-                          : 'border-[#E0E5F2] bg-white text-[#A3AED0] hover:border-[#CEAD1E]/40'
-                      }`}
-                    >
-                      <Circle className="w-4 h-4 inline mr-1.5 -mt-0.5" />
-                      GEM
-                    </button>
-                  </div>
-                </div>
-
-                {/* Dynamic select based on type */}
-                <div>
-                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">
-                    {addType === 'groupe' ? 'Sélectionner un groupe' : 'Sélectionner un GEM'}
-                  </label>
-                  {addType === 'gem' && gemsLoading ? (
-                    <div className="flex items-center gap-2 px-4 py-3 bg-[#F4F7FE] rounded-lg text-sm text-[#A3AED0]">
-                      <div className="w-4 h-4 border-2 border-[#CEAD1E] border-t-transparent rounded-full animate-spin" />
-                      Chargement des GEMs...
-                    </div>
-                  ) : (
-                    <select
-                      name="targetId"
-                      required
-                      className={`w-full px-4 py-2 bg-[#F4F7FE] border border-transparent rounded-lg text-sm font-medium focus:outline-none ${
-                        addType === 'groupe' ? 'focus:border-[#006C69]' : 'focus:border-[#CEAD1E]'
-                      }`}
-                    >
-                      <option value="">Choisir...</option>
-                      {addType === 'groupe'
-                        ? allGroups.map(g => (
-                            <option key={g.id} value={g.id}>
-                              {g.name} ({g.type})
-                            </option>
-                          ))
-                        : allGems.map(gem => (
-                            <option key={gem.id} value={gem.id}>
-                              {gem.name}{gem.group ? ` — ${gem.group.name}` : ''}
-                            </option>
-                          ))
-                      }
-                    </select>
-                  )}
-                  {addType === 'gem' && !gemsLoading && allGems.length === 0 && (
-                    <p className="text-xs text-[#A3AED0] mt-1">Aucun GEM disponible.</p>
-                  )}
+                  <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Sélectionner un groupe</label>
+                  <select
+                    name="groupId"
+                    required
+                    className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent rounded-lg text-sm font-medium focus:outline-none focus:border-[#006C69]"
+                  >
+                    <option value="">Choisir...</option>
+                    {allGroups.map(g => (
+                      <option key={g.id} value={g.id}>
+                        {g.name} ({g.type})
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
                   <button type="button" onClick={() => setShowGroupModal(false)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
                   <button
                     type="submit"
-                    disabled={submitting || (addType === 'gem' && gemsLoading)}
-                    className={`px-6 py-2 text-white rounded-full font-bold transition-colors disabled:opacity-60 ${
-                      addType === 'groupe'
-                        ? 'bg-[#006C69] hover:bg-[#005250]'
-                        : 'bg-[#CEAD1E] hover:bg-[#b09319]'
-                    }`}
+                    disabled={submitting}
+                    className="px-6 py-2 text-white rounded-full font-bold transition-colors disabled:opacity-60 bg-[#006C69] hover:bg-[#005250]"
                   >
                     {submitting ? 'Ajout...' : 'Ajouter'}
                   </button>
@@ -1355,6 +1801,27 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* NOTIFICATION TOAST */}
+        {notification && (
+          <div className={`fixed bottom-4 right-4 px-6 py-3 rounded-xl shadow-lg z-[100] text-sm font-bold text-white flex items-center animate-fade-in ${notification.type === 'success' ? 'bg-[#006C69]' : 'bg-red-500'}`}>
+            {notification.message}
+          </div>
+        )}
+
+        {/* CONFIRMATION MODAL */}
+        {confirmDialog && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4 animate-fade-in">
+            <div className="w-full max-w-sm p-6 bg-white rounded-2xl shadow-xl flex flex-col">
+              <h3 className="font-extrabold text-lg text-[#1B2559] mb-2">Confirmation</h3>
+              <p className="text-sm font-medium text-[#A3AED0] mb-6">{confirmDialog.message}</p>
+              <div className="flex justify-end gap-3">
+                <button onClick={() => setConfirmDialog(null)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
+                <button onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(null); }} className="px-6 py-2 bg-[#CEAD1E] hover:bg-[#b09319] text-white rounded-full font-bold transition-colors">Confirmer</button>
+              </div>
             </div>
           </div>
         )}

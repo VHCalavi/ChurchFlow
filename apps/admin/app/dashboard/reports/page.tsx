@@ -4,12 +4,13 @@
 
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Search, Plus, FileText, Calendar, User, Trash2, Eye, X } from "lucide-react";
+import { Search, Plus, FileText, Calendar, User, Trash2, Eye, X, Building } from "lucide-react";
 import { HorizonCard } from "@/components/ui/horizon-card";
 import { Report } from "@churchflow/types";
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [gems, setGems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
@@ -26,27 +27,38 @@ export default function ReportsPage() {
 
   // Load reports data
   useEffect(() => {
-    async function loadReports() {
+    async function loadData() {
       try {
         setLoading(true);
-        const params = new URLSearchParams();
-        if (typeFilter !== "all") params.append("type", typeFilter);
-        if (dateFilter.start) params.append("startDate", dateFilter.start);
-        if (dateFilter.end) params.append("endDate", dateFilter.end);
 
-        const res = await fetch(`/api/v1/reports?${params}`);
-        const json = await res.json();
-        if (json.success && json.data) {
-          setReports(json.data);
+        // Load reports
+        const reportParams = new URLSearchParams();
+        if (typeFilter !== "all") reportParams.append("type", typeFilter);
+        if (dateFilter.start) reportParams.append("startDate", dateFilter.start);
+        if (dateFilter.end) reportParams.append("endDate", dateFilter.end);
+
+        const [reportsRes, gemsRes] = await Promise.all([
+          fetch(`/api/v1/reports?${reportParams}`),
+          fetch("/api/v1/gems")
+        ]);
+
+        const reportsJson = await reportsRes.json();
+        const gemsJson = await gemsRes.json();
+
+        if (reportsJson.success && reportsJson.data) {
+          setReports(reportsJson.data);
+        }
+        if (gemsJson.success && gemsJson.data) {
+          setGems(gemsJson.data);
         }
       } catch (err) {
-        console.error("Error loading reports:", err);
-        showNotification("Erreur lors du chargement des rapports", "error");
+        console.error("Error loading data:", err);
+        showNotification("Erreur lors du chargement des données", "error");
       } finally {
         setLoading(false);
       }
     }
-    loadReports();
+    loadData();
   }, [typeFilter, dateFilter]);
 
   // Filtered reports
@@ -321,8 +333,9 @@ export default function ReportsPage() {
                   className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69]/25"
                 >
                   <option value="">Aucun</option>
-                  <option value="gem1">GEM Victoire</option>
-                  <option value="gem2">GEM Paix</option>
+                  {gems.map(gem => (
+                    <option key={gem.id} value={gem.id}>{gem.name}</option>
+                  ))}
                 </select>
               </div>
 

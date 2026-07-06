@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../../../lib/auth';
-import { getAuthUser } from '../../../../lib/auth';
+import { auth } from '../../../../../../lib/auth';
+import { getAuthUser } from '../../../../../../lib/auth';
 import { prisma } from '@churchflow/database';
 import { z } from 'zod';
+import { requireAuth, checkGemPermissions, requireOwnership } from '../../../../../../src/lib/rbac';
 
 const addMemberSchema = z.object({
   memberId: z.string(),
@@ -10,9 +11,14 @@ const addMemberSchema = z.object({
 });
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const session = await auth();
-  const user = getAuthUser(session);
+  const user = await requireAuth(request);
   if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+
+  // Vérifier les permissions
+  const permissions = checkGemPermissions(user);
+  if (!permissions.canView) {
+    return NextResponse.json({ success: false, error: "Permission refusée" }, { status: 403 });
+  }
 
   try {
     const gem = await prisma.gem.findUnique({
@@ -46,9 +52,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
-  const session = await auth();
-  const user = getAuthUser(session);
+  const user = await requireAuth(request);
   if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
+
+  // Vérifier les permissions
+  const permissions = checkGemPermissions(user);
+  if (!permissions.canManageMembers) {
+    return NextResponse.json({ success: false, error: "Permission refusée" }, { status: 403 });
+  }
 
   try {
     const body = await request.json();
@@ -74,11 +85,23 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ success: false, error: "Ce membre est déjà dans ce GEM" }, { status: 400 });
     }
 
+    // Un membre ne peut appartenir qu'à un seul GEM
+    const memberInAnyGem = await prisma.gemMember.findFirst({
+      where: { memberId: validatedData.memberId },
+      include: { gem: { select: { id: true, name: true } } }
+    });
+
+    if (memberInAnyGem) {
+      return NextResponse.json({
+        success: false,
+        error: `Ce membre appartient déjà au GEM "${(memberInAnyGem as any).gem.name}". Retirez-le d'abord de son GEM actuel.`
+      }, { status: 400 });
+    }
+
     const newMember = await prisma.gemMember.create({
       data: {
         gemId: params.id,
         memberId: validatedData.memberId,
-        role: validatedData.role,
         isLeader: validatedData.role === 'LEADER'
       },
       include: {
@@ -157,7 +180,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       if (newLeader) {
         await prisma.gemMember.update({
           where: { id: newLeader.id },
-          data: { isLeader: true, role: 'LEADER' }
+          data: { isLeader: true }
         });
       }
     }
@@ -166,7 +189,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       where: { gemId_memberId: { gemId: params.id, memberId } }
     });
 
-    return NextResponse.json({ success: true, message: "Membre retiré avec succès" });
+    return NextResponse.json({ success: true, message: "Membre retiré avec succès", gemDeleted: false });
   } catch (error) {
     console.error('Error removing member from gem:', error);
     return NextResponse.json(

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { DashboardLayout } from "../../../../components/layout/dashboard-layout";
-import { ArrowLeft, ArrowRight, Users, UserPlus, Trash2, Search, X, Edit3, AlertTriangle, Building } from "lucide-react";
+import { ArrowLeft, ArrowRight, Users, UserPlus, Trash2, Search, X, Edit3, AlertTriangle, Building, Layers } from "lucide-react";
 import { HorizonCard } from "@/components/ui/horizon-card";
 
 interface GroupDetail {
@@ -26,10 +26,25 @@ export default function GroupDetailPage() {
   const [group, setGroup] = useState<GroupDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [activeTab, setActiveTab] = useState("members");
+  const [gems, setGems] = useState<any[]>([]);
 
   useEffect(() => {
     loadGroup();
+    loadGems();
   }, [groupId]);
+
+  async function loadGems() {
+    try {
+      const res = await fetch(`/api/v1/gems?groupId=${groupId}`);
+      const data = await res.json();
+      if (data.success) {
+        setGems(data.data);
+      }
+    } catch (err) {
+      console.error("Error loading gems:", err);
+    }
+  }
 
   async function loadGroup() {
     try {
@@ -71,6 +86,31 @@ export default function GroupDetailPage() {
       <button onClick={() => router.push("/dashboard/groups")} className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-[#12BC7E] transition-colors mb-6">
         <ArrowLeft className="w-4 h-4" /><span>Retour aux Groupes</span>
       </button>
+
+      {/* Tabs */}
+      <div className="flex space-x-1 mb-6">
+        <button
+          onClick={() => setActiveTab("members")}
+          className={`px-4 py-2 rounded-t-lg font-medium text-sm ${
+            activeTab === "members"
+              ? "bg-white text-[#006C69] border-t border-x border-[#D6D1CE]"
+              : "text-[#6D6E71] hover:text-[#1B2559]"
+          }`}
+        >
+          Membres
+        </button>
+        <button
+          onClick={() => setActiveTab("gems")}
+          className={`px-4 py-2 rounded-t-lg font-medium text-sm ${
+            activeTab === "gems"
+              ? "bg-white text-[#006C69] border-t border-x border-[#D6D1CE]"
+              : "text-[#6D6E71] hover:text-[#1B2559]"
+          }`}
+        >
+          <Layers className="w-4 h-4 inline mr-2" />
+          GEMs
+        </button>
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
@@ -167,6 +207,56 @@ export default function GroupDetailPage() {
               </div>
             )}
           </HorizonCard>
+
+          {/* GEMs Tab */}
+          {activeTab === "gems" && (
+            <HorizonCard className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-[#1B2559]">GEMs associés</h3>
+                <Link href={`/dashboard/gems?groupId=${groupId}`} className="btn-horizon btn-horizon-primary">
+                  <Building className="w-4 h-4 mr-2" />
+                  <span>Gérer les GEMs</span>
+                </Link>
+              </div>
+
+              {gems.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {gems.map(gem => (
+                    <Link
+                      key={gem.id}
+                      href={`/dashboard/gems/${gem.id}`}
+                      className="horizon-card group"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="text-base font-bold text-[#1B2559]">{gem.name}</h4>
+                          {gem.description && (
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{gem.description}</p>
+                          )}
+                          <div className="flex items-center gap-4 mt-2 text-xs text-[#6D6E71]">
+                            <div className="flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              <span>{gem._count.members} membre{gem._count.members !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <FileText className="w-3 h-3" />
+                              <span>{gem._count.reports} rapport{gem._count.reports !== 1 ? 's' : ''}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <ArrowRight className="w-4 h-4 text-[#707EAE] transition-transform duration-300 group-hover:translate-x-1" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Building className="w-12 h-12 mx-auto text-[#D6D1CE] mb-4" />
+                  <p className="text-[#6D6E71]">Aucun GEM associé à ce groupe.</p>
+                </div>
+              )}
+            </HorizonCard>
+          )}
         </div>
       ) : (
         <div className="text-center py-20 text-muted-foreground text-sm font-medium">Groupe non trouvé.</div>
