@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const type = url.searchParams.get('type');
     const gemId = url.searchParams.get('gemId');
+    const authorId = url.searchParams.get('authorId');
 
     // Filtrer par rôle
     const userRole = user.roles.includes('ADMIN') ? 'ADMIN' :
@@ -30,7 +31,8 @@ export async function GET(request: NextRequest) {
 
     const reports = await reportService.getFiltered(user.id, user.churchId, userRole, {
       type: type as any,
-      gemId: gemId as any
+      gemId: gemId as any,
+      authorId: authorId as string
     });
 
     return NextResponse.json({ success: true, data: reports });

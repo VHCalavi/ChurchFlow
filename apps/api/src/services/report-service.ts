@@ -2,8 +2,8 @@ import { prisma } from '@churchflow/database';
 import { Report } from '@churchflow/types';
 
 export const reportService = {
-  async getFiltered(userId: string, churchId: string, userRole: string) {
-    const whereClause = {
+  async getFiltered(userId: string, churchId: string, userRole: string, filters?: { type?: string, gemId?: string, authorId?: string }) {
+    const whereClause: any = {
       churchId,
       ...(userRole === 'RESPONSABLE_GEM' && {
         OR: [
@@ -12,6 +12,10 @@ export const reportService = {
         ]
       })
     };
+
+    if (filters?.type) whereClause.type = filters.type;
+    if (filters?.gemId) whereClause.gemId = filters.gemId;
+    if (filters?.authorId) whereClause.authorId = filters.authorId;
 
     return await prisma.report.findMany({
       where: whereClause,

@@ -345,21 +345,31 @@ export default function GemsPage() {
                       <p className="text-center text-xs text-[#A3AED0] py-4">Aucun membre trouvé</p>
                     ) : filteredModalMembers.map(m => {
                       const isSelected = selectedMemberIds.includes(m.id);
+                      const memberGem = memberGemMap.get(m.id);
+                      const isAlreadyInGem = !!memberGem;
+                      
                       return (
                         <button
                           key={m.id}
                           type="button"
-                          onClick={() => toggleMember(m.id)}
-                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${isSelected ? 'bg-[#006C69]/5' : 'hover:bg-[#F4F7FE]'}`}
+                          disabled={isAlreadyInGem && !isSelected} // On ne peut pas sélectionner qqn déjà dans un GEM, mais on peut décocher s'il l'est (ex: cas d'édition future)
+                          onClick={() => !isAlreadyInGem && toggleMember(m.id)}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${
+                            isSelected ? 'bg-[#006C69]/5' : 
+                            isAlreadyInGem ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'hover:bg-[#F4F7FE]'
+                          }`}
                         >
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${isSelected ? 'bg-[#006C69] text-white' : 'bg-[#E0E5F2] text-[#1B2559]'}`}>
                             {isSelected ? <Check className="w-3.5 h-3.5" /> : `${m.firstName?.[0] || ''}${m.lastName?.[0] || ''}`}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold text-[#1B2559] truncate">{m.firstName} {m.lastName}</p>
-                            {memberGemMap.has(m.id) ? (
-                              <p className="text-xs text-[#CEAD1E] font-semibold truncate">GEM : {memberGemMap.get(m.id).name}</p>
-                            ) : m.email ? (
+                            <p className="text-sm font-bold text-[#1B2559] truncate">
+                              {m.firstName} {m.lastName}
+                              {isAlreadyInGem && (
+                                <span className="ml-2 text-xs text-[#CEAD1E] font-semibold">({memberGem.name})</span>
+                              )}
+                            </p>
+                            {m.email ? (
                               <p className="text-xs text-[#A3AED0] truncate">{m.email}</p>
                             ) : null}
                           </div>

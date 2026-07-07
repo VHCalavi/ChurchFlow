@@ -22,7 +22,7 @@ interface Provider {
 }
 
 export default function AdministrationPage() {
-  const [activeTab, setActiveTab] = useState<"EQUIPMENT" | "PROVIDERS">(
+  const [activeTab, setActiveTab] = useState<"EQUIPMENT" | "PROVIDERS" | "INACTIVITY">(
     "EQUIPMENT",
   );
   const [searchTerm, setSearchTerm] = useState("");
@@ -45,6 +45,40 @@ export default function AdministrationPage() {
   const [providerName, setProviderName] = useState("");
   const [service, setService] = useState("");
   const [phone, setPhone] = useState("");
+
+  // Inactivity Config states
+  const [inactivityConfig, setInactivityConfig] = useState<any>(null);
+  const [inactivitySaving, setInactivitySaving] = useState(false);
+
+  React.useEffect(() => {
+    if (activeTab === "INACTIVITY" && !inactivityConfig) {
+      fetch("/api/v1/admin/inactivity-config")
+        .then(r => r.json())
+        .then(d => { if (d.success) setInactivityConfig(d.data); });
+    }
+  }, [activeTab]);
+
+  const handleSaveInactivity = async () => {
+    if (!inactivityConfig) return;
+    setInactivitySaving(true);
+    try {
+      const res = await fetch("/api/v1/admin/inactivity-config", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inactivityConfig)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showNotification("Configuration mise à jour !", "success");
+      } else {
+        showNotification("Erreur lors de la sauvegarde.", "error");
+      }
+    } catch (e) {
+      showNotification("Erreur de connexion.", "error");
+    } finally {
+      setInactivitySaving(false);
+    }
+  };
 
   const [equipmentList, setEquipmentList] = useState<Equipment[]>([
     {
@@ -195,9 +229,7 @@ export default function AdministrationPage() {
               Module en Construction
             </h2>
             <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
-              Le module Administration est en cours de développement. Il
-              regroupera la gestion du patrimoine matériel et des prestataires
-              de la communauté.
+              Le module Administration est en cours de développement. Les équipements et prestataires sont des données simulées. L'onglet d'inactivité est fonctionnel.
             </p>
             <div className="w-full bg-background rounded-full h-1.5 mb-6 overflow-hidden">
               <div
@@ -256,6 +288,19 @@ export default function AdministrationPage() {
             >
               Prestataires & Maintenance
             </button>
+            <button
+              onClick={() => {
+                setActiveTab("INACTIVITY");
+                setSearchTerm("");
+              }}
+              className={`pb-4 transition-all ${
+                activeTab === "INACTIVITY"
+                  ? "text-primary border-b-2 border-primary font-bold"
+                  : "text-muted-foreground hover:text-primary transition-colors"
+              }`}
+            >
+              Règles d'Inactivité
+            </button>
           </div>
 
           {/* Control bar */}
@@ -275,17 +320,19 @@ export default function AdministrationPage() {
               />
             </div>
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="btn-horizon btn-horizon-primary flex items-center justify-center space-x-2 w-full md:w-auto"
-            >
-              <Plus className="w-4.5 h-4.5" />
-              <span>
-                {activeTab === "EQUIPMENT"
-                  ? "Ajouter un équipement"
-                  : "Ajouter un prestataire"}
-              </span>
-            </button>
+            {activeTab !== "INACTIVITY" && (
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="btn-horizon btn-horizon-primary flex items-center justify-center space-x-2 w-full md:w-auto"
+              >
+                <Plus className="w-4.5 h-4.5" />
+                <span>
+                  {activeTab === "EQUIPMENT"
+                    ? "Ajouter un équipement"
+                    : "Ajouter un prestataire"}
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Main lists */}
@@ -387,7 +434,82 @@ export default function AdministrationPage() {
                 </table>
               </div>
             </div>
-          )}
+          ) : activeTab === "INACTIVITY" ? (
+            <div className="rounded-xl border border-border bg-card shadow-sm p-6 pointer-events-auto">
+              <h3 className="text-lg font-bold text-foreground mb-4">Configuration d'inactivité des membres</h3>
+              
+              {!inactivityConfig ? (
+                <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : (
+                <div className="space-y-6 max-w-2xl">
+                  <div>
+                    <label className="block text-sm font-bold text-foreground mb-1.5">Période d'inactivité (jours)</label>
+                    <p className="text-sm text-muted-foreground mb-2">Un membre sera automatiquement marqué "Inactif" s'il ne réalise aucune des actions cochées ci-dessous pendant cette période.</p>
+                    <input 
+                      type="number" 
+                      value={inactivityConfig.inactivePeriodDays} 
+                      onChange={(e) => setInactivityConfig({...inactivityConfig, inactivePeriodDays: parseInt(e.target.value)})} 
+                      className="w-full md:w-48 px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-foreground mb-3">Actions réinitialisant l'activité</label>
+                    <div className="space-y-3">
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" checked={inactivityConfig.actionsResettingInactivity?.includes('ATTENDANCE')} 
+                          onChange={(e) => {
+                            const newActions = e.target.checked 
+                              ? [...inactivityConfig.actionsResettingInactivity, 'ATTENDANCE']
+                              : inactivityConfig.actionsResettingInactivity.filter((a: string) => a !== 'ATTENDANCE');
+                            setInactivityConfig({...inactivityConfig, actionsResettingInactivity: newActions});
+                          }} 
+                          className="w-4 h-4 rounded text-primary focus:ring-primary/25" 
+                        />
+                        <span className="text-sm font-semibold text-foreground">Présence à une réunion</span>
+                      </label>
+                      
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" checked={inactivityConfig.actionsResettingInactivity?.includes('GROUP_JOIN')} 
+                          onChange={(e) => {
+                            const newActions = e.target.checked 
+                              ? [...inactivityConfig.actionsResettingInactivity, 'GROUP_JOIN']
+                              : inactivityConfig.actionsResettingInactivity.filter((a: string) => a !== 'GROUP_JOIN');
+                            setInactivityConfig({...inactivityConfig, actionsResettingInactivity: newActions});
+                          }} 
+                          className="w-4 h-4 rounded text-primary focus:ring-primary/25" 
+                        />
+                        <span className="text-sm font-semibold text-foreground">Rejoindre un groupe</span>
+                      </label>
+
+                      <label className="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" checked={inactivityConfig.actionsResettingInactivity?.includes('INTERVIEW')} 
+                          onChange={(e) => {
+                            const newActions = e.target.checked 
+                              ? [...inactivityConfig.actionsResettingInactivity, 'INTERVIEW']
+                              : inactivityConfig.actionsResettingInactivity.filter((a: string) => a !== 'INTERVIEW');
+                            setInactivityConfig({...inactivityConfig, actionsResettingInactivity: newActions});
+                          }} 
+                          className="w-4 h-4 rounded text-primary focus:ring-primary/25" 
+                        />
+                        <span className="text-sm font-semibold text-foreground">Avoir un entretien pastoral</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-border">
+                    <button 
+                      onClick={handleSaveInactivity} 
+                      disabled={inactivitySaving}
+                      className="btn-horizon btn-horizon-primary"
+                    >
+                      {inactivitySaving ? 'Sauvegarde...' : 'Sauvegarder les règles'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
 
           {/* Modals Add */}
           {isModalOpen && (

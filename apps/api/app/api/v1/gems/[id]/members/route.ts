@@ -110,6 +110,15 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     });
 
     if (validatedData.role === 'LEADER') {
+      const oldLeaders = await prisma.gemMember.findMany({
+        where: {
+          gemId: params.id,
+          id: { not: newMember.id },
+          isLeader: true
+        },
+        include: { member: true }
+      });
+
       await prisma.gemMember.updateMany({
         where: {
           gemId: params.id,
@@ -117,6 +126,26 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         },
         data: { isLeader: false }
       });
+
+      const gemRole = await prisma.role.findFirst({ where: { name: 'RESPONSABLE_GEM' } });
+      if (gemRole) {
+        for (const oldLeader of oldLeaders) {
+          if (oldLeader.member.userId) {
+            await prisma.userRole.deleteMany({
+              where: { userId: oldLeader.member.userId, roleId: gemRole.id }
+            });
+          }
+        }
+
+        const newMemberFull = await prisma.member.findUnique({ where: { id: validatedData.memberId } });
+        if (newMemberFull?.userId) {
+          await prisma.userRole.upsert({
+            where: { userId_roleId: { userId: newMemberFull.userId, roleId: gemRole.id } },
+            create: { userId: newMemberFull.userId, roleId: gemRole.id },
+            update: {}
+          });
+        }
+      }
     }
 
     return NextResponse.json({ success: true, data: newMember }, { status: 201 });
@@ -162,7 +191,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     const gemMember = await prisma.gemMember.findUnique({
       where: { gemId_memberId: { gemId: params.id, memberId } },
-      include: { member: { select: { id: true, firstName: true, lastName: true } } }
+      include: { member: { select: { id: true, firstName: true, lastName: true, userId: true } } }
     });
 
     if (!gemMember) {
@@ -174,13 +203,31 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         where: {
           gemId: params.id,
           isLeader: false
-        }
+        },
+        include: { member: true }
       });
 
+      const gemRole = await prisma.role.findFirst({ where: { name: 'RESPONSABLE_GEM' } });
+      
       if (newLeader) {
         await prisma.gemMember.update({
           where: { id: newLeader.id },
           data: { isLeader: true }
+        });
+
+        if (gemRole && newLeader.member.userId) {
+          await prisma.userRole.upsert({
+            where: { userId_roleId: { userId: newLeader.member.userId, roleId: gemRole.id } },
+            create: { userId: newLeader.member.userId, roleId: gemRole.id },
+            update: {}
+          });
+        }
+      }
+
+      // Remove role from the deleted leader
+      if (gemRole && gemMember.member.userId) {
+        await prisma.userRole.deleteMany({
+          where: { userId: gemMember.member.userId, roleId: gemRole.id }
         });
       }
     }

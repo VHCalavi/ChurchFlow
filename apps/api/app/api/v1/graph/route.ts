@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../../lib/auth';
-import { getAuthUser } from '../../../lib/auth';
+import { auth } from '../../../../lib/auth';
+import { getAuthUser } from '../../../../lib/auth';
 import { prisma } from '@churchflow/database';
-import { requireAuth } from '../../../src/lib/rbac';
+import { requireAuth } from '../../../../src/lib/rbac';
 
 export interface GraphNode {
   id: string;
@@ -44,14 +44,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const showPastoral = searchParams.get('showPastoral') !== 'false';
+  const showGroups = searchParams.get('showGroups') !== 'false';
+  const showGems = searchParams.get('showGems') !== 'false';
+  const showFamily = searchParams.get('showFamily') !== 'false';
+  const showMembers = searchParams.get('showMembers') === 'true';
+
   try {
     // Récupérer toutes les données nécessaires en parallèle
     const [members, groups, gems, familyRelations, memberGroups, memberGems, memberReports] = await Promise.all([
       prisma.member.findMany({
         where: {
           churchId: user.churchId,
-          // Exclure les comptes administratifs
-          userId: { not: null }
         },
         select: {
           id: true,
@@ -60,7 +65,7 @@ export async function GET(request: NextRequest) {
           status: true,
           supervisorId: true,
           photoUrl: true,
-          _count: { select: { supervisedMembers: true, reportsWritten: true } }
+          _count: { select: { subordinates: true, reportsWritten: true } }
         },
         orderBy: { firstName: 'asc' }
       }),
@@ -137,81 +142,105 @@ export async function GET(request: NextRequest) {
     });
 
     // Nœuds de GEMs
-    gems.forEach(gem => {
-      const node: GraphNode = {
-        id: `gem-${gem.id}`,
-        type: 'gem',
-        position: generatePosition(nodes.length, members.length + groups.length + gems.length),
-        data: {
-          label: gem.name,
-          memberCount: gem._count.members,
-          groupCount: group._count?.reports || 0
-        }
-      };
-      nodes.push(node);
-      nodeMap.set(`gem-${gem.id}`, node);
-    });
+    if (showGems) {
+      gems.forEach(gem => {
+        const node: GraphNode = {
+          id: `gem-${gem.id}`,
+          type: 'gem',
+          position: generatePosition(nodes.length, members.length + groups.length + gems.length),
+          data: {
+            label: gem.name,
+            memberCount: gem._count.members,
+            groupCount: 0
+          }
+        };
+        nodes.push(node);
+        nodeMap.set(`gem-${gem.id}`, node);
+      });
+    }
 
     // Construire les connexions (arêtes)
     const edges: GraphEdge[] = [];
 
     // Connexions superviseur → subordonné
-    members.forEach(member => {
-      if (member.supervisorId && nodeMap.has(member.supervisorId)) {
-        edges.push({
-          id: `edge-${member.supervisorId}-${member.id}`,
-          source: member.supervisorId,
-          target: member.id,
-          type: 'supervises'
-        });
-      }
-    });
+    if (showPastoral) {
+      members.forEach(member => {
+        if (member.supervisorId && nodeMap.has(member.supervisorId)) {
+          edges.push({
+            id: `edge-${member.supervisorId}-${member.id}`,
+            source: member.supervisorId,
+            target: member.id,
+            type: 'supervises'
+          });
+        }
+      });
+    }
 
     // Connexions membre → groupe
-    memberGroups.forEach(mg => {
-      const source = mg.memberId;
-      const target = `group-${mg.groupId}`;
-      if (nodeMap.has(source) && nodeMap.has(target)) {
-        edges.push({
-          id: `edge-${source}-${target}`,
-          source,
-          target,
-          type: 'belongs_to'
-        });
-      }
-    });
+    if (showGroups) {
+      memberGroups.forEach(mg => {
+        const source = mg.memberId;
+        const target = `group-${mg.groupId}`;
+        if (nodeMap.has(source) && nodeMap.has(target)) {
+          edges.push({
+            id: `edge-${source}-${target}`,
+            source,
+            target,
+            type: 'belongs_to'
+          });
+        }
+      });
+    }
 
     // Connexions membre → GEM
-    memberGems.forEach(mg => {
-      const source = mg.memberId;
-      const target = `gem-${mg.gemId}`;
-      if (nodeMap.has(source) && nodeMap.has(target)) {
-        edges.push({
-          id: `edge-${source}-${target}`,
-          source,
-          target,
-          type: 'member_of'
-        });
-      }
-    });
+    if (showGems) {
+      memberGems.forEach(mg => {
+        const source = mg.memberId;
+        const target = `gem-${mg.gemId}`;
+        if (nodeMap.has(source) && nodeMap.has(target)) {
+          edges.push({
+            id: `edge-${source}-${target}`,
+            source,
+            target,
+            type: 'member_of'
+          });
+        }
+      });
+    }
 
     // Familles
-    familyRelations.forEach(relation => {
-      const source = relation.memberId;
-      const target = relation.relatedMemberId;
-      if (nodeMap.has(source) && nodeMap.has(target)) {
-        edges.push({
-          id: `edge-family-${source}-${target}`,
-          source,
-          target,
-          type: 'member_of' // Utiliser le même type pour l'instant
-        });
-      }
-    });
+    if (showFamily) {
+      familyRelations.forEach(relation => {
+        const source = relation.memberId;
+        const target = relation.relativeId; // Fix field name
+        if (nodeMap.has(source) && nodeMap.has(target)) {
+          edges.push({
+            id: `edge-family-${source}-${target}`,
+            source,
+            target,
+            type: relation.relationType // e.g. PARENT, SIBLING, SPOUSE
+          });
+        }
+      });
+    }
 
-    // Filtrer selon les rôles
+    // Filtrer selon les rôles et showMembers
     let filteredNodes = nodes;
     let filteredEdges = edges;
+
+    // Si on ne veut pas afficher "tous les membres", on cache les membres isolés
+    if (!showMembers) {
+      const connectedNodeIds = new Set<string>();
+      edges.forEach(e => {
+        connectedNodeIds.add(e.source);
+        connectedNodeIds.add(e.target);
+      });
+      
+      filteredNodes = nodes.filter(n => {
+        if (n.type !== 'member') return true; // on garde toujours les groupes et gems (selon leurs filtres respectifs)
+        return connectedNodeIds.has(n.id);
+      });
+    }
 
     if (!user.roles.includes('ADMIN')) {
       // Pour les non-admins, ne montrer que les éléments pertinents

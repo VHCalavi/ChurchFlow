@@ -47,6 +47,7 @@ const CustomEdge = ({
   markerEnd,
   label,
   data,
+  animated,
 }: EdgeProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -85,7 +86,21 @@ const CustomEdge = ({
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={style} />
+      <path
+        d={edgePath}
+        fill="none"
+        strokeOpacity={0}
+        strokeWidth={20}
+        className="react-flow__edge-path cursor-pointer"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      />
+      <BaseEdge 
+        path={edgePath} 
+        markerEnd={markerEnd} 
+        style={{ ...style, stroke: isHovered ? '#006C69' : style.stroke, strokeWidth: isHovered ? 2 : style.strokeWidth }} 
+        className={animated ? 'react-flow__edge-animated' : ''}
+      />
       <EdgeLabelRenderer>
         <div
           onMouseEnter={() => setIsHovered(true)}
@@ -103,7 +118,7 @@ const CustomEdge = ({
             display: 'flex',
             alignItems: 'center',
             gap: '4px',
-            zIndex: isHovered ? 1000 : 1,
+            zIndex: isHovered ? 9999 : 0,
             boxShadow: isHovered ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' : 'none'
           }}
           className="nodrag nopan transition-shadow"
@@ -174,7 +189,13 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
   const [relations, setRelations] = useState<any[]>([]);
   const [groups, setGroups] = useState<any[]>([]);
   const [attendances, setAttendances] = useState<any[]>([]);
+  const [memberReports, setMemberReports] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
   const [loadingTab, setLoadingTab] = useState(false);
+  
+  // Tree Filters
+  const [showFamily, setShowFamily] = useState(true);
+  const [showGem, setShowGem] = useState(true);
 
   // Lists for dropdowns
   const [allGroups, setAllGroups] = useState<any[]>([]);
@@ -354,7 +375,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
         target: r.relative.id,
         label: toFr(r.relationType),
         type: 'custom',
-        animated: false,
+        animated: true,
         style: { stroke: color, strokeWidth: 2 },
         labelStyle: { fill: '#1B2559', fontWeight: 700, fontSize: 10 },
         labelBgStyle: { fill: '#F4F7FE', fillOpacity: 0.9 },
@@ -410,14 +431,18 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
       fetchTab(`/api/v1/members/${params.id}/interviews`, setInterviews);
     } else if (activeTab === "documents" && documents.length === 0) {
       fetchTab(`/api/v1/members/${params.id}/documents`, setDocuments);
-    } else if (activeTab === "arbre" && relations.length === 0) {
-      fetchTab(`/api/v1/members/${params.id}/family-relations?includeFamily=true&includeGem=true`, setRelations);
+    } else if (activeTab === "arbre") {
+      fetchTab(`/api/v1/members/${params.id}/family-relations?includeFamily=${showFamily}&includeGem=${showGem}`, setRelations);
     } else if (activeTab === "groupes" && groups.length === 0) {
       fetchTab(`/api/v1/members/${params.id}/groups`, setGroups);
     } else if (activeTab === "presences" && attendances.length === 0) {
       fetchTab(`/api/v1/members/${params.id}/attendance`, setAttendances);
+    } else if (activeTab === "reports" && memberReports.length === 0) {
+      fetchTab(`/api/v1/reports?authorId=${params.id}`, setMemberReports);
+    } else if (activeTab === "activities" && activities.length === 0) {
+      fetchTab(`/api/v1/members/${params.id}/activities`, setActivities);
     }
-  }, [activeTab, params.id]);
+  }, [activeTab, params.id, showFamily, showGem]);
 
   useEffect(() => {
     async function loadMember() {
@@ -717,6 +742,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
     { id: "entretiens", label: "Entretiens", icon: <FileText className="w-4 h-4" /> },
     { id: "reports", label: "Rapports", icon: <FileText className="w-4 h-4" /> },
     { id: "documents", label: "Documents", icon: <File className="w-4 h-4" /> },
+    { id: "activities", label: "Activités", icon: <Calendar className="w-4 h-4" /> },
     { id: "arbre", label: "Arbre", icon: <Network className="w-4 h-4" /> },
   ];
 
@@ -1067,22 +1093,25 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
               </div>
               {loadingTab ? (
                 <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
-              ) : relations.filter(r => r.type === 'REPORT').length > 0 ? (
+              ) : memberReports.length > 0 ? (
                 <div className="space-y-4">
-                  {relations
-                    .filter(r => r.type === 'REPORT')
-                    .map(report => (
+                  {memberReports.map((report: any) => (
                       <div key={report.id} className="horizon-card p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h4 className="text-base font-bold text-[#1B2559]">{report.title}</h4>
                             <div className="flex items-center gap-3 mt-2">
                               <span className="px-2 py-1 rounded-full text-xs font-semibold border border-[#D6D1CE] text-[#6D6E71]">
-                                {report.reportType || 'ACTIVITY'}
+                                {report.type || 'ACTIVITY'}
                               </span>
                               <span className="text-sm text-[#6D6E71]">
-                                {new Date(report.createdAt).toLocaleDateString()}
+                                {new Date(report.submittedAt).toLocaleDateString()}
                               </span>
+                              {report.gem && (
+                                <span className="text-xs px-2 py-1 bg-[#006C69]/10 text-[#006C69] rounded-full">
+                                  {report.gem.name}
+                                </span>
+                              )}
                             </div>
                             <p className="text-sm text-[#6D6E71] mt-2 line-clamp-2">
                               {report.content}
@@ -1098,7 +1127,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
               ) : (
                 <div className="flex flex-col items-center justify-center py-10 text-[#A3AED0] bg-[#F4F7FE] rounded-2xl border border-dashed border-[#A3AED0]">
                   <FileText className="w-12 h-12 mx-auto mb-4" />
-                  <p className="text-[#6D6E71]">Aucun rapport trouvé pour ce membre.</p>
+                  <p className="text-[#6D6E71]">Aucun rapport soumis par ce membre.</p>
                 </div>
               )}
             </div>
@@ -1159,12 +1188,54 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
             </div>
           )}
 
+          {/* ACTIVITIES */}
+          {activeTab === "activities" && (
+            <div className="animate-fade-in">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-[#1B2559]">Timeline des Activités</h3>
+              </div>
+              {loadingTab ? (
+                <div className="flex justify-center py-10"><div className="w-6 h-6 border-2 border-[#006C69] border-t-transparent rounded-full animate-spin" /></div>
+              ) : activities.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-[#A3AED0] bg-[#F4F7FE] rounded-2xl border border-dashed border-[#A3AED0]">
+                  <Calendar className="w-10 h-10 mb-3 opacity-50" />
+                  <p className="font-bold text-sm">Aucune activité enregistrée.</p>
+                </div>
+              ) : (
+                <div className="relative border-l-2 border-[#E0E5F2] ml-4 space-y-6 py-4">
+                  {activities.map((a: any) => (
+                    <div key={a.id} className="relative pl-6">
+                      <div className="absolute w-4 h-4 bg-[#CEAD1E] rounded-full -left-[9px] top-1 border-4 border-white shadow-sm" />
+                      <div>
+                        <p className="text-sm font-bold text-[#A3AED0] mb-0.5">
+                          {new Date(a.date).toLocaleDateString('fr-FR')} à {new Date(a.date).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}
+                        </p>
+                        <div className="p-4 bg-[#F4F7FE] rounded-xl inline-block shadow-sm mt-1">
+                          <p className="text-sm font-bold text-[#1B2559]">{a.activityType}</p>
+                          <p className="text-sm text-[#1B2559] mt-1">{a.details}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ARBRE */}
           {activeTab === "arbre" && (
             <div className="animate-fade-in">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-bold text-[#1B2559]">Arbre des relations</h3>
                 <div className="flex gap-2">
+                  <label className="flex items-center space-x-2 text-sm text-[#1B2559] font-semibold bg-[#F4F7FE] px-3 py-1.5 rounded-full cursor-pointer">
+                    <input type="checkbox" checked={showFamily} onChange={(e) => setShowFamily(e.target.checked)} className="rounded text-[#006C69] focus:ring-[#006C69]" />
+                    <span>Famille</span>
+                  </label>
+                  <label className="flex items-center space-x-2 text-sm text-[#1B2559] font-semibold bg-[#F4F7FE] px-3 py-1.5 rounded-full cursor-pointer mr-4">
+                    <input type="checkbox" checked={showGem} onChange={(e) => setShowGem(e.target.checked)} className="rounded text-[#006C69] focus:ring-[#006C69]" />
+                    <span>GEM / Partenaires</span>
+                  </label>
                   <button
                     onClick={() => {
                       if (isCurrentMemberInGem) {
@@ -1584,10 +1655,13 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
                                 {isSelected ? <Check className="w-3.5 h-3.5" /> : `${m.firstName?.[0] || ''}${m.lastName?.[0] || ''}`}
                               </div>
                               <div className="flex-1 min-w-0 text-left">
-                                <p className={`text-sm font-bold truncate ${isDisabled ? 'text-[#A3AED0]' : 'text-[#1B2559]'}`}>{m.firstName} {m.lastName}</p>
-                                {memberGem ? (
-                                  <p className="text-xs text-[#CEAD1E] font-semibold truncate">GEM : {memberGem.name}</p>
-                                ) : m.email ? (
+                                <p className={`text-sm font-bold truncate ${isDisabled ? 'text-[#A3AED0]' : 'text-[#1B2559]'}`}>
+                                  {m.firstName} {m.lastName}
+                                  {isAlreadyInGem && (
+                                    <span className="ml-2 text-xs text-[#CEAD1E] font-semibold">({memberGem.name})</span>
+                                  )}
+                                </p>
+                                {m.email ? (
                                   <p className="text-xs text-[#A3AED0] truncate">{m.email}</p>
                                 ) : null}
                               </div>
