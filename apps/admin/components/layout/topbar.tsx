@@ -14,6 +14,7 @@ import {
   LogOut,
   Menu,
 } from "lucide-react";
+import { GlobalSearch } from "./global-search";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Minimal dark-mode hook: reads/toggles the `.dark` class on <html>
@@ -70,7 +71,6 @@ export function Topbar({ title = "Tableau de Bord Global", onHamburgerClick }: T
   const [activeNotifTab, setActiveNotifTab] = useState<
     "ALL" | "INBOX" | "TEAM" | "FOLLOWING"
   >("ALL");
-  const [activeSearchTab, setActiveSearchTab] = useState("ALL");
 
   // ── Horizon scroll-reactive shadow (changeNavbar) ──────────────────────────
   const [scrolled, setScrolled] = useState(false);
@@ -560,141 +560,11 @@ false &&
       {/* ════════════════════════════════════════════════════════════════════
           SEARCH MODAL
       ════════════════════════════════════════════════════════════════════ */}
-      {isSearchOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-start justify-center pt-28 px-4"
-          style={{
-            background: "rgba(11,20,55,0.40)",
-            backdropFilter: "blur(2px)",
-          }}
-          onClick={() => setIsSearchOpen(false)}
-        >
-          <div
-            className="w-full max-w-xl flex flex-col overflow-hidden"
-            style={{
-              background: menuBg,
-              boxShadow: menuShadow,
-              borderRadius: "20px",
-              maxHeight: "70vh",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Input row */}
-            <div
-              className="flex items-center px-5 py-4 gap-3"
-              style={{ borderBottom: `1px solid ${borderColor}` }}
-            >
-              <Search className={`w-5 h-5 flex-shrink-0 ${iconCls}`} />
-              <input
-                type="text"
-                autoFocus
-                placeholder="Rechercher des membres, groupes, rapports..."
-                className={`w-full bg-transparent text-sm font-semibold focus:outline-none ${textCls} placeholder:opacity-60`}
-              />
-              <button
-                onClick={() => setIsSearchOpen(false)}
-                className={`p-1 rounded-lg hover:opacity-70 transition-all ${iconCls}`}
-              >
-                <X className="w-4.5 h-4.5" />
-              </button>
-            </div>
-
-            {/* Sub-tabs */}
-            <div
-              className="flex items-center px-5 overflow-x-auto"
-              style={{
-                borderBottom: `1px solid ${borderColor}`,
-                scrollbarWidth: "none",
-              }}
-            >
-              {[
-                { id: "ALL", label: "Général" },
-                { id: "MEMBERS", label: "Membres" },
-                { id: "GROUPS", label: "Groupes & GEMs" },
-                { id: "SETTINGS", label: "Paramètres" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveSearchTab(tab.id)}
-                  className={`py-3.5 px-3 text-xs font-bold border-b-2 whitespace-nowrap transition-all ${
-                    activeSearchTab === tab.id
-                      ? isDark
-                        ? `border-${primaryColor} text-${primaryColor}`
-                        : `border-${primaryColor} text-${primaryColor}`
-                      : `border-transparent ${iconCls} hover:opacity-70`
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Results */}
-            <div
-              className="flex-1 overflow-y-auto p-5 space-y-5"
-              style={{
-                background: isDark
-                  ? "rgba(11,20,55,0.3)"
-                  : "rgba(244,247,254,0.3)",
-                scrollbarWidth: "none",
-              }}
-            >
-              <div className="space-y-3">
-                <h4
-                  className={`text-xs font-bold uppercase tracking-widest ${iconCls}`}
-                >
-                  Actions rapides
-                </h4>
-                <div className="flex flex-col gap-2">
-                  {[
-                    {
-                      href: "/dashboard/profile",
-                      icon: <User className="w-4 h-4" />,
-                      label: "Mon profil",
-                      bg: "#E6FAF5",
-                      color: primaryColor,
-                    },
-                    {
-                      href: "/dashboard/administration",
-                      icon: <Settings className="w-4 h-4" />,
-                      label: "Configuration de l'application",
-                      bg: "#E6FAF5",
-                      color: primaryColor,
-                    },
-                  ].map(({ href, icon, label, bg, color }) => (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => setIsSearchOpen(false)}
-                      className={`flex items-center gap-3 p-2.5 transition-all ${textCls}`}
-                      style={{
-                        background: menuBg,
-                        border: `1px solid ${borderColor}`,
-                        borderRadius: "12px",
-                        boxShadow: "0 1px 4px rgba(112,144,176,0.08)",
-                      }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.opacity = "0.8")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.opacity = "1")
-                      }
-                    >
-                      <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center"
-                        style={{ background: bg, color }}
-                      >
-                        {icon}
-                      </div>
-                      <span className="text-xs font-semibold">{label}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <GlobalSearch 
+        isOpen={isSearchOpen} 
+        onClose={() => setIsSearchOpen(false)} 
+        isDark={isDark} 
+      />
     </>
   );
 }
