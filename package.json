@@ -8,7 +8,11 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "db:migrate": "pnpm --filter @churchflow/database db:migrate",
+    "db:migrate:prod": "pnpm --filter @churchflow/database db:migrate:prod",
+    "db:generate": "pnpm --filter @churchflow/database db:generate",
+    "db:seed": "pnpm --filter @churchflow/database db:seed"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
