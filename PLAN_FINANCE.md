@@ -119,12 +119,12 @@ Admin UI (apps/admin/app/dashboard/finances/)
 
 ### PHASE 4 — Qualité & Polish
 
-- [ ] **4.1** Types partagés ajoutés dans `packages/types/src/index.ts`
+- [x] **4.1** Types partagés ajoutés dans `packages/types/src/index.ts`
   - `Transaction`, `FinanceCategory`, `ExpenseFamily`, `PaymentMethod`
-- [ ] **4.2** Validation Zod côté API complète sur tous les endpoints
-- [ ] **4.3** Responsive mobile pour la page finances
-- [ ] **4.4** Tests manuels des flux critiques (entrée offrande, dépense fonctionnement, suppression)
-- [ ] **4.5** Mise à jour de `STRUCTURE_API.md` avec les nouvelles routes finance
+- [x] **4.2** Validation Zod côté API complète sur tous les endpoints
+- [x] **4.3** Responsive mobile pour la page finances
+- [x] **4.4** Tests manuels des flux critiques (entrée offrande, dépense fonctionnement, suppression)
+- [x] **4.5** Mise à jour de `STRUCTURE_API.md` avec les nouvelles routes finance
 
 ---
 

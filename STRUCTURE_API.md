@@ -184,9 +184,21 @@ Crée une réunion.
 
 Retourne toutes les formations.
 
-### `POST /api/v1/formations`
+### `GET /api/v1/formations`
 
 Crée une formation. Types : `ACADEMIE`, `BAPTEME`, `PORTEURS_DE_VIE`, `ECOLE_DES_BERGERS`.
+
+### `GET /api/v1/finances/dashboard`
+
+Retourne les indicateurs clés (solde, entrées/sorties) et l'évolution sur 6 mois pour le module financier.
+
+### `GET /api/v1/finances/categories` | `POST` | `PUT /[id]` | `DELETE /[id]`
+
+Gère les catégories financières et les familles de dépenses.
+
+### `GET /api/v1/finances/transactions` | `POST` | `PUT /[id]` | `DELETE /[id]`
+
+Gère les transactions financières (entrées/sorties) avec filtres avancés.
 
 ---
 
@@ -198,8 +210,6 @@ Crée une formation. Types : `ACADEMIE`, `BAPTEME`, `PORTEURS_DE_VIE`, `ECOLE_DE
 | `/api/v1/groups/[id]` PUT + DELETE      | Haute    |
 | `/api/v1/meetings/[id]` PUT + DELETE    | Haute    |
 | `/api/v1/formations/[id]` PUT + DELETE  | Haute    |
-| `/api/v1/transactions` GET + POST       | Haute    |
-| `/api/v1/transactions/[id]`             | Moyenne  |
 | `/api/v1/materials` GET + POST          | Moyenne  |
 | `/api/v1/providers` GET + POST          | Moyenne  |
 | `/api/v1/purchases` GET + POST          | Moyenne  |

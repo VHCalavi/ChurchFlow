@@ -129,7 +129,7 @@ export function Topbar({ title = "Tableau de Bord Global", onHamburgerClick }: T
         style={{
           position: "fixed",
           top: "20px",
-          zIndex: 100,
+          zIndex: 50,
           minHeight: "75px",
           borderRadius: "16px",
           borderWidth: "1.5px",

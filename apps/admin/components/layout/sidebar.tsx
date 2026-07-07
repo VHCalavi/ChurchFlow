@@ -38,7 +38,12 @@ interface SidebarProps {
   onMobileClose?: () => void;
 }
 
-export function Sidebar({ isCollapsed, onToggle, isMobileOpen = false, onMobileClose }: SidebarProps) {
+export function Sidebar({
+  isCollapsed,
+  onToggle,
+  isMobileOpen = false,
+  onMobileClose,
+}: SidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname() || "";
   const [sidebarTheme, setSidebarTheme] = useState<"LIGHT" | "DARK">("LIGHT");
@@ -193,9 +198,9 @@ export function Sidebar({ isCollapsed, onToggle, isMobileOpen = false, onMobileC
       <aside
         suppressHydrationWarning={true}
         style={{ background: sidebarBg, boxShadow: sidebarShadow }}
-        className={`fixed inset-y-0 left-0 z-[200] flex flex-col my-5 ml-4 rounded-2xl transition-all duration-300 ease-in-out overflow-x-hidden
+        className={`fixed inset-y-0 left-0 z-35 flex flex-col my-5 ml-4 rounded-2xl transition-all duration-300 ease-in-out overflow-x-hidden
           /* Desktop */ md:translate-x-0
-          /* Mobile  */ ${isMobileOpen ? "translate-x-0" : "-translate-x-[120%] md:translate-x-0"}
+          /* Mobile  */ ${isMobileOpen ? "translate-x-0 !z-[200]" : "-translate-x-[120%] md:translate-x-0"}
           ${isCollapsed ? "w-[90px]" : "w-[300px]"}
         `}
       >
@@ -212,228 +217,226 @@ export function Sidebar({ isCollapsed, onToggle, isMobileOpen = false, onMobileC
         )}
 
         {/* ── Brand ──────────────────────────────────────────────── */}
-      {/* Horizon: Flex column, logo centré, puis HSeparator */}
-      <div className="flex flex-col items-center pt-8 pb-5 px-4">
-        <Link href="/dashboard" className="flex items-center gap-2.5 mb-8">
-          <div
-            className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
-            style={{
-              background: "linear-gradient(135deg, #006C69 0%, #09B5AF 100%)",
-            }}
-          >
-            <span className="font-extrabold text-sm text-white">CF</span>
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span
-                className="font-extrabold text-lg tracking-wide leading-none uppercase font-sans"
-                style={{ color: textActive }}
-              >
-                Church<span style={{ color: iconActive }}>Flow</span>
-              </span>
-              <span
-                className="text-xs font-bold uppercase tracking-widest mt-0.5"
-                style={{ color: textInactive }}
-              >
-                Vase d&apos;Honneur
-              </span>
+        {/* Horizon: Flex column, logo centré, puis HSeparator */}
+        <div className="flex flex-col items-center pt-8 pb-5 px-4">
+          <Link href="/dashboard" className="flex items-center gap-2.5 mb-8">
+            <div
+              className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #006C69 0%, #09B5AF 100%)",
+              }}
+            >
+              <span className="font-extrabold text-sm text-white">CF</span>
             </div>
-          )}
-        </Link>
-
-        {/* HSeparator — ligne horizontale fine */}
-        <div
-          className="w-full h-[1px] mb-5"
-          style={{ background: isDark ? "rgba(255,255,255,0.1)" : "#E0E5F2" }}
-        />
-      </div>
-
-      {/* ── Navigation Links ───────────────────────────────────── */}
-      {/* Horizon: ps=20px, pe=16px, spacing 22/26px, py=5px, ps=10px par lien */}
-      <nav className="flex-1 overflow-y-auto scrollbar-none px-5">
-        <div className="flex flex-col gap-0.5">
-          {filteredMenuItems.map((item, index) => {
-            const isActive = pathname === item.href;
-
-            if (item.isDisabled) {
-              return (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={() =>
-                    triggerToast(
-                      `Le module ${item.title} est en cours de développement.`,
-                    )
-                  }
-                  className="w-full flex items-center py-[5px] ps-[10px] cursor-not-allowed opacity-40"
-                  style={{ gap: "26px" }}
+            {!isCollapsed && (
+              <div className="flex flex-col">
+                <span
+                  className="font-extrabold text-lg tracking-wide leading-none uppercase font-sans"
+                  style={{ color: textActive }}
                 >
-                  <span style={{ color: textInactive }}>{item.icon}</span>
+                  Church<span style={{ color: iconActive }}>Flow</span>
+                </span>
+                <span
+                  className="text-xs font-bold uppercase tracking-widest mt-0.5"
+                  style={{ color: textInactive }}
+                >
+                  Vase d&apos;Honneur
+                </span>
+              </div>
+            )}
+          </Link>
+
+          {/* HSeparator — ligne horizontale fine */}
+          <div
+            className="w-full h-[1px] mb-5"
+            style={{ background: isDark ? "rgba(255,255,255,0.1)" : "#E0E5F2" }}
+          />
+        </div>
+
+        {/* ── Navigation Links ───────────────────────────────────── */}
+        {/* Horizon: ps=20px, pe=16px, spacing 22/26px, py=5px, ps=10px par lien */}
+        <nav className="flex-1 overflow-y-auto scrollbar-none px-5">
+          <div className="flex flex-col gap-0.5">
+            {filteredMenuItems.map((item, index) => {
+              const isActive = pathname === item.href;
+
+              if (item.isDisabled) {
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() =>
+                      triggerToast(
+                        `Le module ${item.title} est en cours de développement.`,
+                      )
+                    }
+                    className="w-full flex items-center py-[5px] ps-[10px] cursor-not-allowed opacity-40"
+                    style={{ gap: "26px" }}
+                  >
+                    <span style={{ color: textInactive }}>{item.icon}</span>
+                    {!isCollapsed && (
+                      <span
+                        className="text-sm flex-1 text-left"
+                        style={{ color: textInactive }}
+                      >
+                        {item.title}
+                      </span>
+                    )}
+                  </button>
+                );
+              }
+
+              return (
+                <Link
+                  key={index}
+                  href={item.href}
+                  className="flex items-center py-[5px] ps-[10px] w-full"
+                  style={{ gap: isActive ? "22px" : "26px" }}
+                >
+                  {/* Icon */}
+                  <span
+                    className="flex items-center justify-center transition-colors duration-150 flex-shrink-0"
+                    style={{
+                      color: isActive ? iconActive : textInactive,
+                      marginRight: "18px",
+                    }}
+                  >
+                    {item.icon}
+                  </span>
+
+                  {/* Label */}
                   {!isCollapsed && (
                     <span
-                      className="text-sm flex-1 text-left"
-                      style={{ color: textInactive }}
+                      className="text-sm flex-1 text-left transition-colors duration-150"
+                      style={{
+                        color: isActive ? textActive : textInactive,
+                        fontWeight: isActive ? "700" : "400",
+                      }}
                     >
                       {item.title}
                     </span>
                   )}
-                </button>
-              );
-            }
 
-            return (
-              <Link
-                key={index}
-                href={item.href}
-                className="flex items-center py-[5px] ps-[10px] w-full"
-                style={{ gap: isActive ? "22px" : "26px" }}
-              >
-                {/* Icon */}
-                <span
-                  className="flex items-center justify-center transition-colors duration-150 flex-shrink-0"
-                  style={{
-                    color: isActive ? iconActive : textInactive,
-                    marginRight: "18px",
-                  }}
-                >
-                  {item.icon}
-                </span>
-
-                {/* Label */}
-                {!isCollapsed && (
-                  <span
-                    className="text-sm flex-1 text-left transition-colors duration-150"
+                  {/* Active Bar — Horizon right border indicator */}
+                  <div
+                    className="rounded-l-md flex-shrink-0 transition-all duration-200"
                     style={{
-                      color: isActive ? textActive : textInactive,
-                      fontWeight: isActive ? "700" : "400",
+                      height: "36px",
+                      width: "4px",
+                      background: isActive ? barColor : "transparent",
+                      borderRadius: "5px",
                     }}
-                  >
-                    {item.title}
-                  </span>
-                )}
+                  />
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
 
-                {/* Active Bar — Horizon right border indicator */}
-                <div
-                  className="rounded-l-md flex-shrink-0 transition-all duration-200"
-                  style={{
-                    height: "36px",
-                    width: "4px",
-                    background: isActive ? barColor : "transparent",
-                    borderRadius: "5px",
-                  }}
-                />
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-
-      {/* ── Footer ─────────────────────────────────────────────── */}
-      <div className="mt-auto">
-        {/* HSeparator */}
-        <div
-          className="mx-4 h-[1px] mb-4"
-          style={{ background: isDark ? "rgba(255,255,255,0.1)" : "#E0E5F2" }}
-        />
-
-        {/* Theme Toggle Row */}
-        {
-          false &&
-        <div
-          className={`flex items-center py-3 transition-all duration-300 ${
-            isCollapsed ? "px-4 justify-center" : "px-8 justify-between"
-          }`}
-        >
-          {!isCollapsed && (
-            <span
-              className="text-xs font-bold uppercase tracking-wider"
-              style={{ color: textInactive }}
-            >
-              Mode Sombre
-            </span>
-          )}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl transition-all duration-200 cursor-pointer"
-            style={{
-              background: isDark ? "#0b1437" : "#F4F7FE",
-              color: isDark ? "#FFB547" : textInactive,
-            }}
-          >
-            {isDark ? (
-              <Sun className="w-4 h-4" />
-            ) : (
-              <Moon className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-
-        }
-
-        {/* User Info / Logout */}
-        <div className="p-4 pb-6">
+        {/* ── Footer ─────────────────────────────────────────────── */}
+        <div className="mt-auto">
+          {/* HSeparator */}
           <div
-            className={`flex items-center gap-3 rounded-2xl p-2 ${
-              isCollapsed ? "justify-center" : ""
-            }`}
-            style={{ background: isDark ? "#0b1437" : "#F4F7FE" }}
-          >
-            {/* Collapse toggle */}
-            <button
-              onClick={onToggle}
-              className="p-1.5 rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer"
-              style={{ color: textInactive }}
-              title={isCollapsed ? "Développer" : "Réduire"}
-            >
-              <ChevronLeft
-                className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`}
-              />
-            </button>
+            className="mx-4 h-[1px] mb-4"
+            style={{ background: isDark ? "rgba(255,255,255,0.1)" : "#E0E5F2" }}
+          />
 
-            {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p
-                  className="text-xs font-bold truncate leading-tight"
-                  style={{ color: textActive }}
-                >
-                  {session?.user?.name || session?.user?.email || "Admin"}
-                </p>
-                <p
-                  className="text-xs font-semibold uppercase tracking-widest"
+          {/* Theme Toggle Row */}
+          {false && (
+            <div
+              className={`flex items-center py-3 transition-all duration-300 ${
+                isCollapsed ? "px-4 justify-center" : "px-8 justify-between"
+              }`}
+            >
+              {!isCollapsed && (
+                <span
+                  className="text-xs font-bold uppercase tracking-wider"
                   style={{ color: textInactive }}
                 >
-                  Connecté
-                </p>
-              </div>
-            )}
+                  Mode Sombre
+                </span>
+              )}
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-xl transition-all duration-200 cursor-pointer"
+                style={{
+                  background: isDark ? "#0b1437" : "#F4F7FE",
+                  color: isDark ? "#FFB547" : textInactive,
+                }}
+              >
+                {isDark ? (
+                  <Sun className="w-4 h-4" />
+                ) : (
+                  <Moon className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+          )}
 
-            <button
-              onClick={() => signOut({ callbackUrl: "/login" })}
-              className="p-1.5 rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer"
-              style={{ color: iconActive }}
-              title="Déconnexion"
+          {/* User Info / Logout */}
+          <div className="p-4 pb-6">
+            <div
+              className={`flex items-center gap-3 rounded-2xl p-2 ${
+                isCollapsed ? "justify-center" : ""
+              }`}
+              style={{ background: isDark ? "#0b1437" : "#F4F7FE" }}
             >
-              <LogOut className="w-4 h-4" />
-            </button>
+              {/* Collapse toggle */}
+              <button
+                onClick={onToggle}
+                className="p-1.5 rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer"
+                style={{ color: textInactive }}
+                title={isCollapsed ? "Développer" : "Réduire"}
+              >
+                <ChevronLeft
+                  className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {!isCollapsed && (
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="text-xs font-bold truncate leading-tight"
+                    style={{ color: textActive }}
+                  >
+                    {session?.user?.name || session?.user?.email || "Admin"}
+                  </p>
+                  <p
+                    className="text-xs font-semibold uppercase tracking-widest"
+                    style={{ color: textInactive }}
+                  >
+                    Connecté
+                  </p>
+                </div>
+              )}
+
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="p-1.5 rounded-xl transition-all duration-200 flex-shrink-0 cursor-pointer"
+                style={{ color: iconActive }}
+                title="Déconnexion"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Toast */}
-      {toastMessage && (
-        <div
-          className="fixed bottom-6 left-6 z-50 flex items-center px-4 py-3 rounded-2xl text-xs font-bold shadow-lg animate-fade-in-up"
-          style={{
-            background: "#FFF6DA",
-            color: "#1B2559",
-            boxShadow: "14px 17px 40px 4px rgba(112,144,176,0.18)",
-          }}
-        >
-          <span className="w-2 h-2 rounded-full bg-amber-500 mr-2.5 animate-pulse" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
-    </aside>
+        {/* Toast */}
+        {toastMessage && (
+          <div
+            className="fixed bottom-6 left-6 z-50 flex items-center px-4 py-3 rounded-2xl text-xs font-bold shadow-lg animate-fade-in-up"
+            style={{
+              background: "#FFF6DA",
+              color: "#1B2559",
+              boxShadow: "14px 17px 40px 4px rgba(112,144,176,0.18)",
+            }}
+          >
+            <span className="w-2 h-2 rounded-full bg-amber-500 mr-2.5 animate-pulse" />
+            <span>{toastMessage}</span>
+          </div>
+        )}
+      </aside>
     </>
   );
 }

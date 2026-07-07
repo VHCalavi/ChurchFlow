@@ -1,8 +1,26 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import ReactDOM from "react-dom";
 import { Users, Loader2, AlertCircle, Tag, X, Check } from "lucide-react";
 import { MeetingType } from "@churchflow/types";
+
+// ─── Portal Tooltip ───────────────────────────────────────────────────────────
+function TooltipPortal({ children, x, y }: { children: React.ReactNode; x: number; y: number }) {
+  if (typeof document === "undefined") return null;
+  const style: React.CSSProperties = {
+    position: "fixed",
+    left: x,
+    top: y,
+    transform: "translateX(-50%) translateY(calc(-100% - 10px))",
+    zIndex: 9999,
+    pointerEvents: "none",
+  };
+  return ReactDOM.createPortal(
+    <div style={style}>{children}</div>,
+    document.body
+  );
+}
 
 interface DataPoint {
   label: string;
@@ -59,6 +77,24 @@ export function MeetingsAttendanceChart() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+
+  // Portal tooltip for line chart — tracks real mouse coords
+  const [lineTooltip, setLineTooltip] = useState<{
+    type: MeetingType;
+    point: DataPoint;
+    mouseX: number;
+    mouseY: number;
+  } | null>(null);
+
+  // Portal tooltip for donut chart
+  const [donutTooltip, setDonutTooltip] = useState<{
+    label: string;
+    color: string;
+    count: number;
+    percent: number;
+    mouseX: number;
+    mouseY: number;
+  } | null>(null);
 
   // Extraire tous les tags uniques
   useEffect(() => {
@@ -328,19 +364,36 @@ export function MeetingsAttendanceChart() {
 
   const totalCount = distribution.reduce((sum, item) => sum + item.count, 0);
 
-  let accumulatedPercent = 0;
+  let accumulatedAngle = 0;
   const segments = distribution.map((item) => {
     const percent = totalCount > 0 ? (item.count / totalCount) * 100 : 0;
-    const dashArray = `${percent} ${100 - percent}`;
-    const dashOffset = (100 - accumulatedPercent + 25) % 100;
-    accumulatedPercent += percent;
+    const angle = (percent / 100) * 360;
+    const startAngle = accumulatedAngle;
+    const endAngle = accumulatedAngle + angle;
+    accumulatedAngle += angle;
     return {
       ...item,
       percent,
-      dashArray,
-      dashOffset,
+      startAngle,
+      endAngle,
     };
   });
+
+  // Helper to generate SVG arc paths
+  const getArcPath = (cx: number, cy: number, r: number, startAngle: number, endAngle: number) => {
+    // If it's a full 360 circle
+    if (endAngle - startAngle >= 359.99) {
+      return `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy + r} A ${r} ${r} 0 1 1 ${cx} ${cy - r}`;
+    }
+    const startRad = (startAngle - 90) * (Math.PI / 180.0);
+    const endRad = (endAngle - 90) * (Math.PI / 180.0);
+    const x1 = cx + r * Math.cos(startRad);
+    const y1 = cy + r * Math.sin(startRad);
+    const x2 = cx + r * Math.cos(endRad);
+    const y2 = cy + r * Math.sin(endRad);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} 1 ${x2} ${y2}`;
+  };
 
   // Render variables for SVG line chart
   const width = 600;
@@ -597,7 +650,7 @@ export function MeetingsAttendanceChart() {
                 <div className="relative w-44 h-44 flex items-center justify-center my-4">
                   <svg
                     viewBox="0 0 42 42"
-                    className="w-full h-full transform -rotate-90"
+                    className="w-full h-full"
                   >
                     <circle
                       cx="21"
@@ -608,18 +661,27 @@ export function MeetingsAttendanceChart() {
                       strokeWidth="4.2"
                     />
                     {segments.map((seg, idx) => (
-                      <circle
+                      <path
                         key={idx}
-                        cx="21"
-                        cy="21"
-                        r="15.91549430918954"
-                        fill="transparent"
+                        d={getArcPath(21, 21, 15.91549430918954, seg.startAngle, seg.endAngle)}
+                        fill="none"
                         stroke={seg.color}
-                        strokeWidth="4.2"
-                        strokeDasharray={seg.dashArray}
-                        strokeDashoffset={seg.dashOffset}
-                        className="transition-all duration-500 ease-in-out"
-                      />
+                        className="transition-all duration-300 ease-in-out cursor-pointer"
+                        style={{ strokeWidth: donutTooltip?.label === seg.label ? 5.5 : 4.2 }}
+                        onMouseMove={(e) =>
+                          setDonutTooltip({
+                            label: seg.label,
+                            color: seg.color,
+                            count: seg.count,
+                            percent: seg.percent,
+                            mouseX: e.clientX,
+                            mouseY: e.clientY,
+                          })
+                        }
+                        onMouseLeave={() => setDonutTooltip(null)}
+                      >
+                        <title>{`${seg.label}: ${seg.count} (${Math.round(seg.percent)}%)`}</title>
+                      </path>
                     ))}
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -667,7 +729,7 @@ export function MeetingsAttendanceChart() {
               </div>
 
               {/* Diagramme Line Chart SVG */}
-              <div className="relative w-full overflow-hidden my-4">
+              <div className="relative w-full my-4">
                 <svg
                   viewBox={`0 0 ${width} ${height}`}
                   className="w-full h-auto overflow-visible"
@@ -783,13 +845,27 @@ export function MeetingsAttendanceChart() {
                           const y = getY(point.value);
                           return (
                             <g key={index}>
+                              {/* Invisible hit area for hover */}
                               <circle
                                 cx={x}
                                 cy={y}
-                                r="3"
+                                r="12"
+                                fill="transparent"
+                                className="cursor-pointer"
+                                onMouseMove={(e) =>
+                                  setLineTooltip({ type: type as MeetingType, point, mouseX: e.clientX, mouseY: e.clientY })
+                                }
+                                onMouseLeave={() => setLineTooltip(null)}
+                              />
+                              {/* Visible dot */}
+                              <circle
+                                cx={x}
+                                cy={y}
+                                r={lineTooltip?.point === point ? "5" : "3"}
                                 fill={color}
                                 stroke="white"
-                                strokeWidth="1"
+                                strokeWidth="1.5"
+                                className="transition-all duration-150 pointer-events-none"
                               />
                               <text
                                 x={x}
@@ -809,6 +885,33 @@ export function MeetingsAttendanceChart() {
                   })}
                 </svg>
               </div>
+
+              {/* Portal tooltip — line chart */}
+              {lineTooltip && (
+                <TooltipPortal x={lineTooltip.mouseX} y={lineTooltip.mouseY}>
+                  <div className="min-w-[180px] rounded-xl bg-[#1B2559] text-white text-xs shadow-xl px-3 py-2.5">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full inline-block mr-1.5 mb-0.5 align-middle"
+                      style={{ backgroundColor: TYPE_COLORS[lineTooltip.type] }}
+                    />
+                    <span className="font-bold text-sm">{TYPE_LABELS[lineTooltip.type]}</span>
+                    <div className="border-t border-white/20 mt-1.5 pt-1.5 space-y-1">
+                      <div className="flex justify-between gap-3">
+                        <span className="text-white/70">Date</span>
+                        <span className="font-semibold">{lineTooltip.point.label}</span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className="text-white/70">Présence</span>
+                        <span className="font-bold text-green-400">{lineTooltip.point.value}%</span>
+                      </div>
+                      <div className="flex justify-between gap-3">
+                        <span className="text-white/70">Présents</span>
+                        <span className="font-semibold">{lineTooltip.point.presentCount} / {lineTooltip.point.totalRecorded}</span>
+                      </div>
+                    </div>
+                  </div>
+                </TooltipPortal>
+              )}
 
               {/* Légende du Diagramme */}
               <div className="flex flex-wrap gap-4 justify-center pt-4 border-t border-border">
@@ -844,6 +947,31 @@ export function MeetingsAttendanceChart() {
             Aucune rencontre ne correspond aux critères de sélection.
           </p>
         </div>
+      )}
+
+      {/* Portal tooltip — donut chart */}
+      {donutTooltip && (
+        <TooltipPortal x={donutTooltip.mouseX} y={donutTooltip.mouseY}>
+          <div className="min-w-[160px] rounded-xl bg-[#1B2559] text-white text-xs shadow-xl px-3 py-2.5">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0"
+                style={{ backgroundColor: donutTooltip.color }}
+              />
+              <span className="font-bold text-sm">{donutTooltip.label}</span>
+            </div>
+            <div className="border-t border-white/20 pt-1.5 space-y-1">
+              <div className="flex justify-between gap-4">
+                <span className="text-white/70">Rencontres</span>
+                <span className="font-bold">{donutTooltip.count}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-white/70">Part</span>
+                <span className="font-bold">{Math.round(donutTooltip.percent)}%</span>
+              </div>
+            </div>
+          </div>
+        </TooltipPortal>
       )}
     </div>
   );

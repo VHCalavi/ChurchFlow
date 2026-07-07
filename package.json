@@ -12,7 +12,8 @@
     "db:migrate": "pnpm --filter @churchflow/database db:migrate",
     "db:migrate:prod": "pnpm --filter @churchflow/database db:migrate:prod",
     "db:generate": "pnpm --filter @churchflow/database db:generate",
-    "db:seed": "pnpm --filter @churchflow/database db:seed"
+    "db:seed": "pnpm --filter @churchflow/database db:seed",
+    "db:seed:prod": "pnpm --filter @churchflow/database db:seed:prod"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

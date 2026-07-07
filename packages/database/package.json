@@ -11,7 +11,8 @@
     "db:migrate:prod": "prisma migrate deploy --schema=./prisma/schema.prisma",
     "db:studio": "prisma studio --schema=./prisma/schema.prisma",
     "db:seed": "tsx prisma/seed.ts",
-    "db:seed:full": "tsx prisma/seed-full.ts"
+    "db:seed:full": "tsx prisma/seed-full.ts",
+    "db:seed:prod": "tsx prisma/seed-prod.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.13.0"

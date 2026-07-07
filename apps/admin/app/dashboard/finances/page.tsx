@@ -18,44 +18,16 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
+import { 
+  Transaction, 
+  FinanceCategory, 
+  ExpenseFamily, 
+  PaymentMethod,
+  FinanceDashboard,
+  TransactionType
+} from "@churchflow/types";
+
 // ─── Types ───────────────────────────────────────────────────────────────────
-
-type FlowType = "ENTREE" | "SORTIE";
-type ExpenseFamily = "FONCTIONNEMENT" | "INVESTISSEMENT" | "EXCEPTIONNEL";
-type PaymentMethod = "ESPECES" | "MOBILE_MONEY" | "CHEQUE" | "VIREMENT";
-
-interface FinanceCategory {
-  id: string;
-  name: string;
-  flowType: FlowType;
-  family: ExpenseFamily | null;
-  color: string | null;
-  isDefault: boolean;
-}
-
-interface Transaction {
-  id: string;
-  label: string;
-  amount: number;
-  type: FlowType;
-  expenseFamily: ExpenseFamily | null;
-  paymentMethod: PaymentMethod;
-  date: string;
-  donorName: string | null;
-  reference: string | null;
-  notes: string | null;
-  category: FinanceCategory | null;
-  categoryId: string | null;
-}
-
-interface DashboardData {
-  solde: number;
-  totalEntrees: number;
-  totalSorties: number;
-  entreesThisMois: number;
-  sortiesByFamily: Record<ExpenseFamily, number>;
-  evolution6mois: { label: string; entrees: number; sorties: number }[];
-}
 
 interface CategoriesGrouped {
   entrees: FinanceCategory[];
@@ -68,7 +40,7 @@ interface CategoriesGrouped {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const API = "http://localhost:3000/api/v1/finances";
+const API = "/api/v1/finances";
 
 const fmt = (n: number) => n.toLocaleString("fr-FR") + " F CFA";
 
@@ -94,7 +66,7 @@ const PAYMENT_LABELS: Record<PaymentMethod, string> = {
 const emptyForm = () => ({
   label: "",
   amount: "",
-  type: "ENTREE" as FlowType,
+  type: "ENTREE" as TransactionType,
   expenseFamily: "" as ExpenseFamily | "",
   categoryId: "",
   paymentMethod: "ESPECES" as PaymentMethod,
@@ -107,7 +79,7 @@ const emptyForm = () => ({
 
 export default function FinancesPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [dashboard, setDashboard] = useState<FinanceDashboard | null>(null);
   const [categories, setCategories] = useState<CategoriesGrouped | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -124,8 +96,17 @@ export default function FinancesPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Tooltip for the bar chart
+  const [chartTooltip, setChartTooltip] = useState<{
+    label: string;
+    entrees: number;
+    sorties: number;
+    x: number;
+    y: number;
+  } | null>(null);
+
   const [newCatName, setNewCatName] = useState("");
-  const [newCatFlow, setNewCatFlow] = useState<FlowType>("SORTIE");
+  const [newCatFlow, setNewCatFlow] = useState<TransactionType>("SORTIE");
   const [newCatFamily, setNewCatFamily] = useState<ExpenseFamily>("FONCTIONNEMENT");
 
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
@@ -431,28 +412,49 @@ export default function FinancesPage() {
           <h3 className="text-base font-bold text-foreground mb-4">
             Évolution mensuelle — 6 derniers mois
           </h3>
-          <div className="flex items-end gap-3 h-32">
+          <div className="relative flex items-end gap-3 h-32">
             {dashboard.evolution6mois.map((m) => (
               <div
                 key={m.label}
                 className="flex-1 flex flex-col items-center gap-1"
+                onMouseLeave={() => setChartTooltip(null)}
               >
                 <div className="w-full flex items-end gap-1 h-24">
                   <div
-                    className="flex-1 bg-primary/80 rounded-t"
+                    className="flex-1 bg-primary/80 hover:bg-primary rounded-t cursor-pointer transition-colors"
                     style={{
                       height: `${(m.entrees / chartMax) * 100}%`,
                       minHeight: m.entrees > 0 ? 4 : 0,
                     }}
-                    title={`Entrées: ${fmt(m.entrees)}`}
+                    onMouseEnter={(e) => {
+                      const rect = (e.currentTarget.closest('.relative') as HTMLElement)?.getBoundingClientRect();
+                      const barRect = e.currentTarget.getBoundingClientRect();
+                      setChartTooltip({
+                        label: m.label,
+                        entrees: m.entrees,
+                        sorties: m.sorties,
+                        x: barRect.left - (rect?.left ?? 0) + barRect.width / 2,
+                        y: barRect.top - (rect?.top ?? 0),
+                      });
+                    }}
                   />
                   <div
-                    className="flex-1 bg-[#CD3C14]/70 rounded-t"
+                    className="flex-1 bg-[#CD3C14]/70 hover:bg-[#CD3C14] rounded-t cursor-pointer transition-colors"
                     style={{
                       height: `${(m.sorties / chartMax) * 100}%`,
                       minHeight: m.sorties > 0 ? 4 : 0,
                     }}
-                    title={`Sorties: ${fmt(m.sorties)}`}
+                    onMouseEnter={(e) => {
+                      const rect = (e.currentTarget.closest('.relative') as HTMLElement)?.getBoundingClientRect();
+                      const barRect = e.currentTarget.getBoundingClientRect();
+                      setChartTooltip({
+                        label: m.label,
+                        entrees: m.entrees,
+                        sorties: m.sorties,
+                        x: barRect.left - (rect?.left ?? 0) + barRect.width / 2,
+                        y: barRect.top - (rect?.top ?? 0),
+                      });
+                    }}
                   />
                 </div>
                 <span className="text-sm font-medium text-muted-foreground capitalize">
@@ -460,6 +462,32 @@ export default function FinancesPage() {
                 </span>
               </div>
             ))}
+
+            {/* Tooltip */}
+            {chartTooltip && (
+              <div
+                className="pointer-events-none absolute z-20 min-w-[160px] rounded-xl bg-[#1B2559] text-white text-xs shadow-xl px-3 py-2.5 -translate-x-1/2 -translate-y-full"
+                style={{ left: chartTooltip.x, top: chartTooltip.y - 8 }}
+              >
+                <p className="font-bold text-sm capitalize mb-1.5 border-b border-white/20 pb-1">{chartTooltip.label}</p>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-primary/80 inline-block" />
+                  <span className="text-white/80">Entrées :</span>
+                  <span className="font-bold ml-auto">{fmt(chartTooltip.entrees)}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#CD3C14]/80 inline-block" />
+                  <span className="text-white/80">Sorties :</span>
+                  <span className="font-bold ml-auto">{fmt(chartTooltip.sorties)}</span>
+                </div>
+                <div className="mt-1.5 pt-1.5 border-t border-white/20 flex items-center justify-between">
+                  <span className="text-white/60">Solde</span>
+                  <span className={`font-bold ${chartTooltip.entrees - chartTooltip.sorties >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {chartTooltip.entrees - chartTooltip.sorties >= 0 ? '+' : ''}{fmt(chartTooltip.entrees - chartTooltip.sorties)}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-4 mt-2">
             <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -475,63 +503,77 @@ export default function FinancesPage() {
       )}
 
       {/* Controls */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-3 p-4 mb-5 rounded-xl border border-border bg-card shadow-sm">
-        <div className="relative w-full md:w-80">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Rechercher un libellé, donateur…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
-          />
+      <div className="flex flex-col gap-4 p-4 mb-5 rounded-xl border border-border bg-card shadow-sm">
+        {/* Top bar: Search & Main Action */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="relative w-full sm:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Rechercher un libellé, donateur…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
+            />
+          </div>
+          <button
+            onClick={openCreate}
+            className="w-full sm:w-auto btn-horizon btn-horizon-primary shrink-0"
+          >
+            <Plus className="w-4 h-4" /> Saisir
+          </button>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative">
-            <SlidersHorizontal className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full border-t border-border/50 pt-4">
+          <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+            <SlidersHorizontal className="w-4 h-4 text-muted-foreground hidden sm:block" />
+            <span className="text-sm font-medium text-muted-foreground hidden sm:block">Filtres :</span>
+          </div>
+          
+          <div className="grid grid-cols-2 lg:flex items-center gap-2 w-full">
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
+              className="w-full lg:w-auto px-4 py-2.5 text-sm font-semibold rounded-lg border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
             >
               <option value="ALL">Tous les flux</option>
               <option value="ENTREE">Entrées</option>
               <option value="SORTIE">Sorties</option>
             </select>
+
+            <select
+              value={filterFamily}
+              onChange={(e) => setFilterFamily(e.target.value)}
+              className="w-full lg:w-auto px-4 py-2.5 text-sm font-semibold rounded-lg border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
+            >
+              <option value="ALL">Toutes familles</option>
+              <option value="FONCTIONNEMENT">Fonctionnement</option>
+              <option value="INVESTISSEMENT">Investissement</option>
+              <option value="EXCEPTIONNEL">Exceptionnel</option>
+            </select>
+
+            <select
+              value={filterPayment}
+              onChange={(e) => setFilterPayment(e.target.value)}
+              className="w-full lg:w-auto px-4 py-2.5 text-sm font-semibold rounded-lg border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all col-span-2 lg:col-span-1"
+            >
+              <option value="ALL">Tous modes</option>
+              <option value="ESPECES">Espèces</option>
+              <option value="MOBILE_MONEY">Mobile Money</option>
+              <option value="CHEQUE">Chèque</option>
+              <option value="VIREMENT">Virement</option>
+            </select>
+
+            <div className="lg:ml-auto w-full lg:w-auto col-span-2 lg:col-span-1 mt-1 lg:mt-0">
+               <button
+                  onClick={() => setCatPanelOpen(true)}
+                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-lg border border-border bg-white text-[#1B2559] hover:bg-slate-50 transition-all shadow-sm"
+                >
+                  <Settings2 className="w-3.5 h-3.5" /> Gérer les Catégories
+                </button>
+            </div>
           </div>
-          <select
-            value={filterFamily}
-            onChange={(e) => setFilterFamily(e.target.value)}
-            className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
-          >
-            <option value="ALL">Toutes familles</option>
-            <option value="FONCTIONNEMENT">Fonctionnement</option>
-            <option value="INVESTISSEMENT">Investissement</option>
-            <option value="EXCEPTIONNEL">Exceptionnel</option>
-          </select>
-          <select
-            value={filterPayment}
-            onChange={(e) => setFilterPayment(e.target.value)}
-            className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
-          >
-            <option value="ALL">Tous modes</option>
-            <option value="ESPECES">Espèces</option>
-            <option value="MOBILE_MONEY">Mobile Money</option>
-            <option value="CHEQUE">Chèque</option>
-            <option value="VIREMENT">Virement</option>
-          </select>
-          <button
-            onClick={() => setCatPanelOpen(true)}
-            className="flex items-center gap-1.5 px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] hover:bg-[#F4F7FE]/90 transition-all"
-          >
-            <Settings2 className="w-3.5 h-3.5" /> Catégories
-          </button>
-          <button
-            onClick={openCreate}
-            className="btn-horizon btn-horizon-primary"
-          >
-            <Plus className="w-4 h-4" /> Saisir
-          </button>
         </div>
       </div>
 
@@ -671,7 +713,7 @@ export default function FinancesPage() {
                   Type de flux *
                 </label>
                 <div className="flex rounded-lg border border-border overflow-hidden">
-                  {(["ENTREE", "SORTIE"] as FlowType[]).map((t) => (
+                  {(["ENTREE", "SORTIE"] as TransactionType[]).map((t) => (
                     <button
                       key={t}
                       type="button"
@@ -947,7 +989,7 @@ export default function FinancesPage() {
                 <div className="flex gap-2">
                   <select
                     value={newCatFlow}
-                    onChange={(e) => setNewCatFlow(e.target.value as FlowType)}
+                    onChange={(e) => setNewCatFlow(e.target.value as TransactionType)}
                     className="flex-1 px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
                   >
                     <option value="ENTREE">Entrée</option>

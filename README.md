@@ -109,11 +109,16 @@ pnpm db:generate
 Le seed crée les données initiales indispensables au fonctionnement de l'application :
 
 ```bash
-# Depuis la racine du monorepo
+# En DÉVELOPPEMENT (crée les paramètres + données fictives de test)
 pnpm db:seed
+
+# ⚠️ EN PRODUCTION (Vrai base de données en ligne) :
+# Crée UNIQUEMENT l'Église, les Permissions, les Rôles et l'Administrateur par défaut. 
+# Aucune donnée de test n'est générée et aucune donnée existante n'est supprimée.
+pnpm db:seed:prod
 ```
 
-### Ce que le seed crée :
+### Ce que le seed (Développement) crée :
 
 | Catégorie | Contenu |
 |---|---|
@@ -125,9 +130,9 @@ pnpm db:seed
 | **Groupes test** | Département de Louange, GEM Victoire, GEM Paix |
 | **Réunions test** | Culte, Répétition Chorale, Temps de Prière |
 
-> ⚠️ **Note sur les données de test :** Le seed insère des membres et réunions de démonstration. Si vous ne souhaitez pas ces données fictives, vous pouvez supprimer les membres via l'interface admin après le démarrage, ou commenter les sections 6, 7 et 8 du fichier `packages/database/prisma/seed.ts` avant de lancer le seed.
->
-> Le seed est **idempotent** : le relancer ne crée pas de doublons sur l'église, les rôles et l'admin (utilisation de `upsert`). En revanche, il **efface et recrée** les membres, groupes et réunions de test à chaque exécution.
+> ⚠️ **Note sur les données de test :** La commande `db:seed` (dev) **efface et recrée** les membres, groupes et réunions fictives à chaque exécution. C'est idéal pour le développement mais **destructeur en production**.
+> 
+> En production, utilisez **TOUJOURS** `pnpm db:seed:prod`. Cette commande est **idempotente** (sans danger) : elle initialise l'admin et les permissions si elles manquent, mais ne touche jamais à vos vrais membres ou réunions.
 
 ---
 
