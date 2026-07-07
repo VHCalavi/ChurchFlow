@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
-import { Settings, Download } from "lucide-react";
+import { Settings, Download, RotateCcw } from "lucide-react";
 import { HorizonCard } from "@/components/ui/horizon-card";
-import { ReactFlow, Background, Controls, Node, Edge, Position, MarkerType, Handle, useNodesState, useEdgesState } from '@xyflow/react';
+import { ReactFlow, Background, Controls, Node, Edge, Position, MarkerType, Handle, useNodesState, useEdgesState, ReactFlowInstance } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
 import { useRouter } from 'next/navigation';
@@ -90,6 +90,49 @@ export default function GraphPage() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
+
+  const resetLayout = useCallback(() => {
+    if (!graphData) return;
+    const rfNodes: Node[] = graphData.nodes.map((n: any) => ({
+      id: n.id,
+      type: 'entityNode',
+      position: { x: 0, y: 0 },
+      data: { ...n.data, type: n.type },
+    }));
+    const rfEdges: Edge[] = graphData.edges.map((e: any) => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      label: e.type,
+      animated: e.type !== 'supervises',
+      style: { stroke: '#A3AED0', strokeWidth: 1.5 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#A3AED0' },
+      labelStyle: { fill: '#1B2559', fontWeight: 700, fontSize: 10 },
+      labelBgStyle: { fill: '#F4F7FE', fillOpacity: 0.9 },
+      labelBgPadding: [4, 2] as [number, number],
+      labelBgBorderRadius: 4,
+    }));
+    const { nodes: ln, edges: le } = getLayoutedElements(rfNodes, rfEdges);
+    setNodes(ln);
+    setEdges(le);
+    setTimeout(() => rfInstanceRef.current?.fitView({ padding: 0.1 }), 50);
+  }, [graphData, setNodes, setEdges]);
+
+  const exportPng = useCallback(async () => {
+    const viewport = document.querySelector('.react-flow__viewport') as HTMLElement | null;
+    if (!viewport) return;
+    try {
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(viewport, { cacheBust: true, pixelRatio: 2 });
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = 'graphique-organisationnel.png';
+      link.click();
+    } catch (err) {
+      console.error('Export PNG failed:', err);
+    }
+  }, []);
 
   const loadGraphData = useCallback(async () => {
     try {
@@ -185,10 +228,20 @@ export default function GraphPage() {
             <h1 className="text-2xl font-bold text-[#1B2559]">Graphique Organisationnel</h1>
             <p className="text-[#6D6E71] mt-2">Visualiser la structure de l'église (Groupes, GEMs, Hiérarchie pastorale)</p>
           </div>
-          <div className="flex gap-2">
-            <button className="btn-horizon btn-horizon-primary">
-              <Settings className="w-4 h-4 mr-2" />
-              <span>Filtres</span>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={resetLayout}
+              className="btn-horizon flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-[#F4F7FE] text-[#1B2559] hover:bg-[#E0E5F2] transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">Réinitialiser</span>
+            </button>
+            <button
+              onClick={exportPng}
+              className="btn-horizon flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold bg-[#F4F7FE] text-[#1B2559] hover:bg-[#E0E5F2] transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Exporter PNG</span>
             </button>
           </div>
         </div>
@@ -245,6 +298,7 @@ export default function GraphPage() {
                 onEdgesChange={onEdgesChange}
                 nodeTypes={nodeTypes}
                 onNodeClick={onNodeClick}
+                onInit={(instance) => { rfInstanceRef.current = instance; }}
                 fitView
                 minZoom={0.1}
                 maxZoom={2}

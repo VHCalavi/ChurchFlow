@@ -272,6 +272,7 @@ model Member {
   status  MemberStatus
   grade   MemberGrade? // uniquement pour RESPONSABLE
   echelon MemberEchelon? // uniquement pour RESPONSABLE
+  pastorLevel PastorLevel? // uniquement pour les pasteurs/superviseurs
 
   churchId String
   church   Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
@@ -691,4 +692,12 @@ model Report {
   church   Church @relation(fields: [churchId], references: [id])
 
   @@map("reports")
+}
+
+enum PastorLevel {
+  SUPERVISEUR
+  RESIDENT
+  PAYS
+  ZONE
+  SOUS_ZONE
 }

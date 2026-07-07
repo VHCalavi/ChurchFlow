@@ -12,6 +12,7 @@ import {
   Moon,
   Sun,
   LogOut,
+  Menu,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -48,6 +49,7 @@ function useDarkMode() {
 // ─────────────────────────────────────────────────────────────────────────────
 interface TopbarProps {
   title?: string;
+  onHamburgerClick?: () => void;
 }
 
 interface SessionUser {
@@ -57,7 +59,7 @@ interface SessionUser {
 // ─────────────────────────────────────────────────────────────────────────────
 // Topbar Component — Horizon UI NavbarAdmin faithful port
 // ─────────────────────────────────────────────────────────────────────────────
-export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
+export function Topbar({ title = "Tableau de Bord Global", onHamburgerClick }: TopbarProps) {
   const { data: session } = useSession();
   const { isDark, toggle: toggleTheme } = useDarkMode();
 
@@ -127,9 +129,7 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
         style={{
           position: "fixed",
           top: "20px",
-          right: "20px",
-          width: "calc(100vw - 365px)",
-          zIndex: 10,
+          zIndex: 100,
           minHeight: "75px",
           borderRadius: "16px",
           borderWidth: "1.5px",
@@ -143,27 +143,40 @@ export function Topbar({ title = "Tableau de Bord Global" }: TopbarProps) {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingLeft: "1.2rem",
-          paddingRight: "1.5rem",
           paddingTop: "8px",
           paddingBottom: "8px",
         }}
+        className="md:!w-[calc(100vw-365px)] !w-[calc(100vw-10px)] px-[0.5rem] md:pl-[1.5rem] md:pl-[1.2rem] right-[5px] md:right-[20px]"
       >
+        {/* Mobile hamburger button — only visible below md breakpoint */}
+        {onHamburgerClick && (
+          <button
+            onClick={onHamburgerClick}
+            className="md:hidden flex items-center justify-center p-2 rounded-xl mr-3 flex-shrink-0"
+            style={{
+              background: isDark ? "rgba(11,20,55,0.8)" : "#F4F7FE",
+              color: "#1B2559",
+            }}
+            aria-label="Ouvrir le menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
+
         {/* ── Left: Breadcrumb + Brand title ──────────────────────────── */}
-        <div style={{ marginBottom: "0px" }}>
+        <div style={{ marginBottom: "0px" }} className="flex-1 min-w-0  pr-4">
           {/* Breadcrumb — "Pages / brandText" (sm fontSize, gray.700/white) */}
           <nav
-            className="flex items-center gap-1.5 mb-[5px]"
+            className=" items-center gap-1.5  truncate "
             aria-label="breadcrumb"
           >
-            <span className={`text-sm font-normal ${subTextCls}`}>Pages</span>
-            <span className={`text-sm font-normal ${subTextCls}`}>/</span>
-            <span className={`text-sm font-normal ${subTextCls}`}>{title}</span>
+            <span className={`hidden md:inline text-sm font-normal ${subTextCls}`}>Pages</span>
+            <span className={`text-xs md:text-sm  text-sm font-normal ${subTextCls}`}>/</span>
+            <span className={`text-xs md:text-sm font-normal ${subTextCls}`}>{title}</span>
           </nav>
           {/* Brand title — Horizon: fontSize 34px, fontWeight bold, navy.700 / white */}
           <h1
-            className={`font-bold leading-none ${textCls}`}
-            style={{ fontSize: "34px" }}
+            className={`font-bold leading-none ${textCls} text-sm md:text-[34px] truncate`}
           >
             {title}
           </h1>

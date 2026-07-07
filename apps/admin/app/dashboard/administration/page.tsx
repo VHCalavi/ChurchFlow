@@ -385,7 +385,7 @@ export default function AdministrationPage() {
                 </table>
               </div>
             </div>
-          ) : (
+          ) : activeTab === "PROVIDERS" ? (
             <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">

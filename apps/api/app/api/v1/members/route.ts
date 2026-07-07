@@ -28,6 +28,13 @@ const createMemberSchema = z.object({
     "GA_C50",
     "GA_C100"
   ]).optional().nullable(),
+  pastorLevel: z.enum([
+    "SUPERVISEUR",
+    "RESIDENT",
+    "PAYS",
+    "ZONE",
+    "SOUS_ZONE"
+  ]).optional().nullable(),
   churchId: z.string().optional(),
   supervisorId: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
@@ -76,12 +83,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const { status, grade, echelon } = result.data;
+    const { status, grade, echelon, pastorLevel } = result.data;
 
     // Validation de la logique hiérarchique
-    if (status !== "RESPONSABLE" && (grade || echelon)) {
+    if (status !== "RESPONSABLE" && (grade || echelon || pastorLevel)) {
       return NextResponse.json(
-        { success: false, error: "Les grades et échelons ne s'appliquent qu'aux responsables" },
+        { success: false, error: "Les grades, échelons et niveaux pastoraux ne s'appliquent qu'aux responsables" },
         { status: 400 }
       );
     }
@@ -105,6 +112,7 @@ export async function POST(request: Request) {
         status: result.data.status,
         grade: result.data.grade || null,
         echelon: result.data.echelon || null,
+        pastorLevel: result.data.pastorLevel || null,
         churchId: user.churchId,
         supervisorId: result.data.supervisorId || null,
         notes: result.data.notes,

@@ -20,6 +20,7 @@ import {
   UserCircle,
   FileText,
   BarChart3,
+  X,
 } from "lucide-react";
 
 interface SidebarItem {
@@ -33,9 +34,11 @@ interface SidebarItem {
 interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
+export function Sidebar({ isCollapsed, onToggle, isMobileOpen = false, onMobileClose }: SidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname() || "";
   const [sidebarTheme, setSidebarTheme] = useState<"LIGHT" | "DARK">("LIGHT");
@@ -178,14 +181,37 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const barColor = "#006C69"; /* Couleur primary VH */
 
   return (
-    <aside
-      suppressHydrationWarning={true}
-      style={{ background: sidebarBg, boxShadow: sidebarShadow }}
-      className={`fixed inset-y-0 left-0 z-35 flex flex-col my-5 ml-4 rounded-2xl transition-all duration-300 ease-in-out overflow-x-hidden ${
-        isCollapsed ? "w-[90px]" : "w-[300px]"
-      }`}
-    >
-      {/* ── Brand ──────────────────────────────────────────────── */}
+    <>
+      {/* ── Mobile overlay (behind sidebar, click to close) ─────────── */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 z-[190] bg-slate-900/50 backdrop-blur-sm md:hidden"
+          onClick={onMobileClose}
+        />
+      )}
+
+      <aside
+        suppressHydrationWarning={true}
+        style={{ background: sidebarBg, boxShadow: sidebarShadow }}
+        className={`fixed inset-y-0 left-0 z-[200] flex flex-col my-5 ml-4 rounded-2xl transition-all duration-300 ease-in-out overflow-x-hidden
+          /* Desktop */ md:translate-x-0
+          /* Mobile  */ ${isMobileOpen ? "translate-x-0" : "-translate-x-[120%] md:translate-x-0"}
+          ${isCollapsed ? "w-[90px]" : "w-[300px]"}
+        `}
+      >
+        {/* Mobile close button — top right, only visible on mobile */}
+        {!isCollapsed && (
+          <button
+            onClick={onMobileClose}
+            className="md:hidden absolute top-4 right-4 z-50 p-1.5 rounded-xl transition-colors"
+            style={{ color: textInactive }}
+            aria-label="Fermer le menu"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* ── Brand ──────────────────────────────────────────────── */}
       {/* Horizon: Flex column, logo centré, puis HSeparator */}
       <div className="flex flex-col items-center pt-8 pb-5 px-4">
         <Link href="/dashboard" className="flex items-center gap-2.5 mb-8">
@@ -408,5 +434,6 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         </div>
       )}
     </aside>
+    </>
   );
 }

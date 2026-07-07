@@ -497,6 +497,11 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
       phone: e.target.phone.value,
       gender: e.target.gender.value,
       address: e.target.address.value,
+      maritalStatus: e.target.maritalStatus?.value || null,
+      occupation: e.target.occupation?.value || null,
+      nationality: e.target.nationality?.value || null,
+      nationalId: e.target.nationalId?.value || null,
+      pastorLevel: e.target.pastorLevel?.value || null,
     };
     try {
       const res = await fetch(`/api/v1/members/${params.id}`, {
@@ -515,6 +520,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
       setSubmitting(false);
     }
   };
+
 
   const handleAddInterview = async (e: any) => {
     e.preventDefault();
@@ -897,6 +903,16 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
                   <p className="text-xs text-[#A3AED0] font-bold uppercase mb-1">CNI / Passeport</p>
                   <p className="text-sm font-bold text-[#1B2559]">{member.nationalId || "Non renseigné"}</p>
                 </div>
+                {member.status === 'RESPONSABLE' && (
+                  <div className="p-4 rounded-2xl" style={{ background: 'linear-gradient(135deg, #006C6915 0%, #09B5AF15 100%)', border: '1px solid #006C6930' }}>
+                    <p className="text-xs font-bold uppercase mb-1" style={{ color: '#006C69' }}>Niveau Pastoral</p>
+                    <p className="text-sm font-bold text-[#1B2559]">
+                      {member.pastorLevel
+                        ? { SUPERVISEUR: 'Superviseur', RESIDENT: 'Résident', PAYS: 'Pays', ZONE: 'Zone', SOUS_ZONE: 'Sous-Zone' }[member.pastorLevel as string] ?? member.pastorLevel
+                        : 'Non assigné'}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1361,6 +1377,20 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
                     <input name="nationalId" defaultValue={member.nationalId} placeholder="Numéro de pièce" className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium" />
                   </div>
                 </div>
+
+                {member.status === 'RESPONSABLE' && (
+                  <div>
+                    <label className="block text-sm font-bold mb-1 text-[#A3AED0]">Niveau Pastoral</label>
+                    <select name="pastorLevel" defaultValue={member.pastorLevel || ""} className="w-full px-4 py-2 bg-[#F4F7FE] border border-transparent focus:border-[#006C69] rounded-lg text-sm font-medium">
+                      <option value="">Aucun</option>
+                      <option value="SOUS_ZONE">Sous-Zone</option>
+                      <option value="ZONE">Zone</option>
+                      <option value="RESIDENT">Résident</option>
+                      <option value="PAYS">Pays</option>
+                      <option value="SUPERVISEUR">Superviseur</option>
+                    </select>
+                  </div>
+                )}
                 
                 <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-[#E0E5F2]">
                   <button type="button" onClick={() => setShowEditModal(false)} className="px-4 py-2 rounded-full font-bold text-[#A3AED0] hover:bg-[#F4F7FE] transition-colors">Annuler</button>
