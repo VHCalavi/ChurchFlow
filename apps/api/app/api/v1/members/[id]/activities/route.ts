@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@churchflow/database';
-import { requireAuth } from '../../../../../../src/lib/rbac';
+import { requireAuth } from '@/src/lib/rbac';
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const user = await requireAuth(request);

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { familyRelationService } from '../../../../../../src/services/family-relation-service';
+import { familyRelationService } from '@/src/services/family-relation-service';
 import { prisma } from '@churchflow/database';
 
 /**

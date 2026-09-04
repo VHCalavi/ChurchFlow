@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
-import { auth, getAuthUser, unauthorized, forbidden } from "../../../../../lib/auth";
+import { auth, getAuthUser, unauthorized, forbidden } from '@/lib/auth';
 
 const updateMemberSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis").optional(),

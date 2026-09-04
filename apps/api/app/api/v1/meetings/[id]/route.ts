@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
-import { auth, getAuthUser, unauthorized } from "../../../../../lib/auth";
+import { auth, getAuthUser, unauthorized } from '@/lib/auth';
 
 const updateMeetingSchema = z.object({
   title: z.string().min(1, "Le titre de la réunion est requis").optional(),

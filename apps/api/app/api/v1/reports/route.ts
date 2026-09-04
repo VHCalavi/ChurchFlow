@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../../../lib/auth';
-import { getAuthUser } from '../../../../lib/auth';
+import { auth } from '@/lib/auth';
+import { getAuthUser } from '@/lib/auth';
 import { prisma } from '@churchflow/database';
 import { z } from 'zod';
-import { reportService } from '../../../../src/services/report-service';
-import { requireAuth, hasRole } from '../../../../src/lib/rbac';
+import { reportService } from '@/src/services/report-service';
+import { requireAuth, hasRole } from '@/src/lib/rbac';
 
 const createReportSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
-import { auth, getAuthUser, unauthorized } from "../../../../../../lib/auth";
+import { auth, getAuthUser, unauthorized } from '@/lib/auth';
 
 const addMemberSchema = z.object({
   memberId: z.string().min(1, "L'identifiant du membre est requis"),

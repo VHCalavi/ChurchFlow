@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
-import { auth, getAuthUser, unauthorized } from "../../../../../lib/auth";
+import { auth, getAuthUser, unauthorized } from '@/lib/auth';
 
 const createCategorySchema = z.object({
   name: z.string().min(1, "Le nom est requis").max(100),

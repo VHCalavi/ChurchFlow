@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
-import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
+import { auth, getAuthUser, unauthorized } from '@/lib/auth';
 
 const createGroupSchema = z.object({
   name: z.string().min(1, "Le nom du groupe est requis"),

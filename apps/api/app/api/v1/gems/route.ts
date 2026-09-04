@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../../../lib/auth';
-import { getAuthUser } from '../../../../lib/auth';
+import { auth } from '@/lib/auth';
+import { getAuthUser } from '@/lib/auth';
 import { prisma } from '@churchflow/database';
 import { z } from 'zod';
-import { requireAuth, hasPermission, checkGemPermissions } from '../../../../src/lib/rbac';
+import { requireAuth, hasPermission, checkGemPermissions } from '@/src/lib/rbac';
 
 const createGemSchema = z.object({
   name: z.string().min(1, "Le nom est requis"),

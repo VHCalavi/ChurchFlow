@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '../../../../../../lib/auth';
-import { getAuthUser } from '../../../../../../lib/auth';
+import { auth } from '@/lib/auth';
+import { getAuthUser } from '@/lib/auth';
 import { prisma } from '@churchflow/database';
 import { z } from 'zod';
-import { requireAuth, checkGemPermissions, requireOwnership } from '../../../../../../src/lib/rbac';
+import { requireAuth, checkGemPermissions, requireOwnership } from '@/src/lib/rbac';
 
 const addMemberSchema = z.object({
   memberId: z.string(),

@@ -1,17 +1,4 @@
 {
-  "buildCommand": "pnpm install --frozen-lockfile && pnpm turbo run build",
-  "devCommand": "pnpm run dev",
-  "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
-  "regions": [
-    "fra1"
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "functions": {
-    "apps/api/**/*.js": {
-      "maxDuration": 30
-    }
-  }
+  "regions": ["fra1"]
 }

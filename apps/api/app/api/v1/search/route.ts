@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
-import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
+import { auth, getAuthUser, unauthorized } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
-import { auth, getAuthUser, unauthorized } from "../../../../../lib/auth";
+import { auth, getAuthUser, unauthorized } from '@/lib/auth';
 
 const createTransactionSchema = z.object({
   label: z.string().min(1, "Le libellé est requis").max(255),

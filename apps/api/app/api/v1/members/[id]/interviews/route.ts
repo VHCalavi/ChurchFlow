@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { interviewService } from '../../../../../../src/services/interview-service';
+import { interviewService } from '@/src/services/interview-service';
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {

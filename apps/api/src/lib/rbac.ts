@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import { auth } from '../../lib/auth';
-import { getAuthUser } from '../../lib/auth';
+import { auth } from '@/lib/auth';
+import { getAuthUser } from '@/lib/auth';
 
 export interface UserWithRoles {
   id: string;
