@@ -44,6 +44,7 @@ enum GroupType {
   MAISON_D_HONNEUR
   CELLULE
   ASSEMBLEE
+  GEM
 }
 
 enum FormationType {
