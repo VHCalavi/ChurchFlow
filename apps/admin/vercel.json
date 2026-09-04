@@ -1,9 +1,17 @@
 {
-  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@churchflow/admin",
+  "buildCommand": "pnpm install --frozen-lockfile && pnpm turbo run build",
   "devCommand": "pnpm run dev",
-  "installCommand": "cd ../.. && NODE_ENV=development pnpm install",
+  "installCommand": "pnpm install --frozen-lockfile",
   "framework": "nextjs",
   "regions": [
     "fra1"
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "apps/api/**/*.js": {
+      "maxDuration": 30
+    }
+  }
 }
