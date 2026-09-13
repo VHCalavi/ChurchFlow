@@ -1,0 +1,16 @@
+{
+  "projectId": "prj_AbMR3jtngBTgTvpc0AyyZZkNSp7W",
+  "orgId": "team_wjKx6AKCgMtNc9DFKMvTLJQF",
+  "projectName": "churchflow-api",
+  "settings": {
+    "createdAt": 1788524108476,
+    "framework": "nextjs",
+    "devCommand": null,
+    "installCommand": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "rootDirectory": "apps/api",
+    "directoryListing": false,
+    "nodeVersion": "20.x"
+  }
+}

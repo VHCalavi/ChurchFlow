@@ -169,7 +169,7 @@ export default function FinancesPage() {
       expenseFamily: tx.expenseFamily ?? "",
       categoryId: tx.categoryId ?? "",
       paymentMethod: tx.paymentMethod,
-      date: tx.date.split("T")[0],
+      date: new Date(tx.date).toISOString().split("T")[0],
       donorName: tx.donorName ?? "",
       notes: tx.notes ?? "",
     });

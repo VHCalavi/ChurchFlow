@@ -26,39 +26,40 @@ export default function ReportsPage() {
   } | null>(null);
 
   // Load reports data
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
+  const loadReports = async () => {
+    try {
+      setLoading(true);
 
-        // Load reports
-        const reportParams = new URLSearchParams();
-        if (typeFilter !== "all") reportParams.append("type", typeFilter);
-        if (dateFilter.start) reportParams.append("startDate", dateFilter.start);
-        if (dateFilter.end) reportParams.append("endDate", dateFilter.end);
+      // Load reports
+      const reportParams = new URLSearchParams();
+      if (typeFilter !== "all") reportParams.append("type", typeFilter);
+      if (dateFilter.start) reportParams.append("startDate", dateFilter.start);
+      if (dateFilter.end) reportParams.append("endDate", dateFilter.end);
 
-        const [reportsRes, gemsRes] = await Promise.all([
-          fetch(`/api/v1/reports?${reportParams}`),
-          fetch("/api/v1/gems")
-        ]);
+      const [reportsRes, gemsRes] = await Promise.all([
+        fetch(`/api/v1/reports?${reportParams}`),
+        fetch("/api/v1/gems")
+      ]);
 
-        const reportsJson = await reportsRes.json();
-        const gemsJson = await gemsRes.json();
+      const reportsJson = await reportsRes.json();
+      const gemsJson = await gemsRes.json();
 
-        if (reportsJson.success && reportsJson.data) {
-          setReports(reportsJson.data);
-        }
-        if (gemsJson.success && gemsJson.data) {
-          setGems(gemsJson.data);
-        }
-      } catch (err) {
-        console.error("Error loading data:", err);
-        showNotification("Erreur lors du chargement des données", "error");
-      } finally {
-        setLoading(false);
+      if (reportsJson.success && reportsJson.data) {
+        setReports(reportsJson.data);
       }
+      if (gemsJson.success && gemsJson.data) {
+        setGems(gemsJson.data);
+      }
+    } catch (err) {
+      console.error("Error loading data:", err);
+      showNotification("Erreur lors du chargement des données", "error");
+    } finally {
+      setLoading(false);
     }
-    loadData();
+  };
+
+  useEffect(() => {
+    loadReports();
   }, [typeFilter, dateFilter]);
 
   // Filtered reports
