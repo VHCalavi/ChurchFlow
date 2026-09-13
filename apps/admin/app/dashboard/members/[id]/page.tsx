@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { DashboardLayout } from "../../../../components/layout/dashboard-layout";
-import { ArrowLeft, User, Users, Calendar, FileText, File, Network, Circle, X, Plus, Search, Eye, Pencil, Trash2, Camera, FileText as FileTextIcon } from "lucide-react";
+import { ArrowLeft, User, Users, Calendar, FileText, File, Network, Circle, X, Plus, Search, Eye, Pencil, Trash2, Camera, Check, FileText as FileTextIcon } from "lucide-react";
 import { ReactFlow, Background, Controls, Node, Edge, Position, MarkerType, Handle, BaseEdge, EdgeLabelRenderer, getBezierPath, EdgeProps } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
@@ -124,11 +124,11 @@ const CustomEdge = ({
           className="nodrag nopan transition-shadow"
         >
           {label as React.ReactNode}
-          {data?.onDelete && (
+          {Boolean(data?.onDelete) && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                if (typeof data.onDelete === 'function') data.onDelete(data.relationId);
+                if (typeof data?.onDelete === 'function') (data.onDelete as Function)(data?.relationId);
               }}
               className="hover:text-red-500 hover:bg-red-50 p-0.5 rounded transition-colors"
               title="Supprimer la relation"
