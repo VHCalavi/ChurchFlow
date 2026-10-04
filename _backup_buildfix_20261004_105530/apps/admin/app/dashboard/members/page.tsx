@@ -17,7 +17,7 @@ import {
   ShieldAlert,
   UserPlus,
 } from "lucide-react";
-import { memberStatusLabel } from "@/lib/labels";
+import { memberStatusLabel } from "../../../lib/labels";
 
 interface AssignableRole {
   id: string;

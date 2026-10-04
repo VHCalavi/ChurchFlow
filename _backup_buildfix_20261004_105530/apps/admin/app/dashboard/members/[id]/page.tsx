@@ -8,7 +8,7 @@ import { ArrowLeft, User, Users, Calendar, FileText, File, Network, Circle, X, P
 import { ReactFlow, Background, Controls, Node, Edge, Position, MarkerType, Handle, BaseEdge, EdgeLabelRenderer, getBezierPath, EdgeProps } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
-import { memberStatusLabel } from "@/lib/labels";
+import { memberStatusLabel } from "../../../lib/labels";
 
 const MemberNode = ({ data }: any) => {
   return (

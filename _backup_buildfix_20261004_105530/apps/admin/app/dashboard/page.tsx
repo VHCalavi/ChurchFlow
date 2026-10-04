@@ -22,7 +22,7 @@ import {
   FileText,
   DollarSign,
 } from "lucide-react";
-import { memberStatusLabel } from "@/lib/labels";
+import { memberStatusLabel } from "../../../lib/labels";
 
 interface ApiMember {
   id: string;
