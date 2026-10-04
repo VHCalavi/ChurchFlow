@@ -234,7 +234,7 @@ export default function GroupDetailPage() {
       : "bg-[#12BC7E]/10 text-[#12BC7E] border-[#12BC7E]/20";
 
   return (
-    <DashboardLayout title={group?.name || "Détail du Groupe / Tribu"}>
+    <DashboardLayout title={group?.name || "Détail du Groupe"}>
       {notification && (
         <div className={`fixed top-24 right-8 z-50 flex items-center px-4 py-3 rounded-2xl shadow-horizon-xl animate-fade-in ${
           notification.type === "success"
@@ -249,7 +249,7 @@ export default function GroupDetailPage() {
       {confirmDialog && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-horizon-xl animate-scale-up border border-[#E9EDF7]">
-            <h3 className="text-lg font-bold text-[#1B2559] mb-2">Confirmer le retrait du Groupe / Tribu / Tribu</h3>
+            <h3 className="text-lg font-bold text-[#1B2559] mb-2">Confirmer le retrait</h3>
             <p className="text-sm text-muted-foreground mb-6">
               Êtes-vous sûr de vouloir retirer <span className="font-semibold text-[#1B2559]">{confirmDialog.memberName}</span> de ce groupe ?
             </p>
@@ -280,7 +280,7 @@ export default function GroupDetailPage() {
             <div className="flex items-center justify-between pb-4 border-b border-[#E9EDF7] mb-4">
               <div className="flex items-center space-x-2">
                 <UserPlus className="w-5 h-5 text-[#12BC7E]" />
-                <h3 className="text-lg font-bold text-[#1B2559]">Ajouter un membre au Groupe / Tribu / Tribu / Tribu</h3>
+                <h3 className="text-lg font-bold text-[#1B2559]">Ajouter un membre au groupe</h3>
               </div>
               <button
                 onClick={() => setIsAddMemberModalOpen(false)}
@@ -392,7 +392,7 @@ export default function GroupDetailPage() {
       )}
 
       <button onClick={() => router.push("/dashboard/groups")} className="flex items-center space-x-2 text-sm font-medium text-muted-foreground hover:text-[#12BC7E] transition-colors mb-6">
-        <ArrowLeft className="w-4 h-4" /><span>Retour aux Groupe / Tribus</span>
+        <ArrowLeft className="w-4 h-4" /><span>Retour aux Groupes</span>
       </button>
 
       {/* Tabs */}
@@ -446,7 +446,7 @@ export default function GroupDetailPage() {
             <HorizonCard className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="text-lg font-bold text-[#1B2559]">Membres du Groupe / Tribu / Tribu</h3>
+                  <h3 className="text-lg font-bold text-[#1B2559]">Membres du Groupe</h3>
                   <p className="text-xs text-muted-foreground">Gérez les membres et modifiez leurs rôles dans ce groupe</p>
                 </div>
                 <button
@@ -540,7 +540,7 @@ export default function GroupDetailPage() {
                               })
                             }
                             className="p-1.5 text-muted-foreground hover:text-[#CD3C14] hover:bg-[#CD3C14]/10 rounded-lg transition-colors"
-                            title="Retirer du Groupe / Tribu / Tribu / Tribu"
+                            title="Retirer du groupe"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -622,7 +622,7 @@ export default function GroupDetailPage() {
           )}
         </div>
       ) : (
-        <div className="text-center py-20 text-muted-foreground text-sm font-medium">Groupe / Tribu / Tribu non trouvé.</div>
+        <div className="text-center py-20 text-muted-foreground text-sm font-medium">Groupe non trouvé.</div>
       )}
     </DashboardLayout>
   );

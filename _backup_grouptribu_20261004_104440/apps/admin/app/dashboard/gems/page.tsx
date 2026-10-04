@@ -163,7 +163,7 @@ export default function GemsPage() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-[#1B2559]">Gestion des GEMs</h1>
-            <p className="text-[#6D6E71] mt-2">Gérer vos Groupe / Tribus d&apos;Évangélisation et de Maison</p>
+            <p className="text-[#6D6E71] mt-2">Gérer vos Groupes d&apos;Évangélisation et de Maison</p>
           </div>
           <button onClick={openModal} className="btn-horizon btn-horizon-primary">
             <Plus className="w-4 h-4 mr-2" />
@@ -286,9 +286,9 @@ export default function GemsPage() {
                   />
                 </div>
 
-                {/* Groupe / Tribu / Tribu parent */}
+                {/* Groupe parent */}
                 <div>
-                  <label className="text-sm font-bold text-[#1B2559] block mb-2">Groupe / Tribu / Tribu parent</label>
+                  <label className="text-sm font-bold text-[#1B2559] block mb-2">Groupe parent</label>
                   <select
                     value={gemGroupId}
                     onChange={e => setGemGroupId(e.target.value)}

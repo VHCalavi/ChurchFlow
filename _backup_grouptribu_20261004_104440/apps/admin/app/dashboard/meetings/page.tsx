@@ -481,9 +481,7 @@ export default function MeetingsPage() {
               className="btn-horizon btn-horizon-primary flex items-center justify-center space-x-2 rounded-full !py-3 !px-6"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                Planifier une rencontre
-              </span>
+              <span className="text-sm font-medium">Planifier une rencontre</span>
             </button>
           </div>
 
@@ -491,7 +489,7 @@ export default function MeetingsPage() {
           {groups.length > 0 && (
             <div className="horizon-card mb-6 p-6">
               <h4 className="text-sm font-medium text-muted-foreground mb-3">
-                Filtrer par Groupe / Tribu / Tribu / Tribu invité
+                Filtrer par Groupe invité
               </h4>
               <div className="flex flex-wrap gap-2">
                 {groups.map((group) => {
@@ -581,13 +579,13 @@ export default function MeetingsPage() {
                           ))}
                         </div>
 
-                        {/* Groupe / Tribus Invités */}
+                        {/* Groupes Invités */}
                         {meeting.groupIds && meeting.groupIds.length > 0 && (
                           <div className="flex flex-wrap gap-1 items-center">
                             {meeting.groupIds.map((gid) => {
                               const groupName =
                                 groups.find((g) => g.id === gid)?.name ||
-                                "Groupe / Tribu / Tribu";
+                                "Groupe";
                               return (
                                 <span
                                   key={gid}
@@ -881,12 +879,12 @@ export default function MeetingsPage() {
 
               <div>
                 <label className="block text-sm font-bold text-foreground  mb-1.5 font-medium">
-                  Groupe / Tribus invités
+                  Groupes invités
                 </label>
                 <div className="flex flex-wrap gap-2 p-3 bg-[#F4F7FE] border border-border rounded-full max-h-32 overflow-y-auto">
                   {groups.length === 0 ? (
                     <p className="text-sm text-muted-foreground italic">
-                      Aucun Groupe / Tribu / Tribu disponible.
+                      Aucun groupe disponible.
                     </p>
                   ) : (
                     groups.map((group) => {
@@ -1148,12 +1146,12 @@ export default function MeetingsPage() {
 
               <div>
                 <label className="block text-sm font-bold text-foreground  mb-1.5 font-medium">
-                  Groupe / Tribus invités
+                  Groupes invités
                 </label>
                 <div className="flex flex-wrap gap-2 p-3 bg-[#F4F7FE] border border-border rounded-full max-h-32 overflow-y-auto">
                   {groups.length === 0 ? (
                     <p className="text-sm text-muted-foreground italic">
-                      Aucun Groupe / Tribu / Tribu disponible.
+                      Aucun groupe disponible.
                     </p>
                   ) : (
                     groups.map((group) => {

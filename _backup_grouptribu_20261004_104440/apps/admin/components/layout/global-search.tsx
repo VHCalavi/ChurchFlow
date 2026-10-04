@@ -2,15 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import {
-  Search,
-  X,
-  User,
-  Settings,
-  Users,
-  Network,
-  MapPin,
-} from "lucide-react";
+import { Search, X, User, Settings, Users, Network, MapPin } from "lucide-react";
 
 interface SearchResult {
   id: string;
@@ -32,7 +24,7 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("ALL");
-
+  
   // Debounce ref
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -66,9 +58,7 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
     setIsLoading(true);
     timeoutRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(
-          `/api/v1/search?q=${encodeURIComponent(query)}`,
-        );
+        const res = await fetch(`/api/v1/search?q=${encodeURIComponent(query)}`);
         const json = await res.json();
         if (json.success) {
           setResults(json.data);
@@ -87,7 +77,7 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
 
   if (!isOpen) return null;
 
-  const filteredResults = results.filter((r) => {
+  const filteredResults = results.filter(r => {
     if (activeTab === "ALL") return true;
     if (activeTab === "MEMBERS") return r.type === "MEMBERS";
     if (activeTab === "GROUPS") return r.type === "GROUPS" || r.type === "GEMS";
@@ -124,7 +114,7 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher des membres, groupes/tribus, GEMs..."
+            placeholder="Rechercher des membres, groupes, GEMs..."
             className={`w-full bg-transparent text-sm font-semibold focus:outline-none ${textCls} placeholder:opacity-60`}
           />
           {isLoading && (
@@ -149,7 +139,7 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
           {[
             { id: "ALL", label: "Général" },
             { id: "MEMBERS", label: "Membres" },
-            { id: "GROUPS", label: "Groupe / Tribus & GEMs" },
+            { id: "GROUPS", label: "Groupes & GEMs" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -169,33 +159,19 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
         <div
           className="flex-1 overflow-y-auto p-5 space-y-5"
           style={{
-            background: isDark ? "rgba(11,20,55,0.3)" : "rgba(244,247,254,0.3)",
+            background: isDark
+              ? "rgba(11,20,55,0.3)"
+              : "rgba(244,247,254,0.3)",
             scrollbarWidth: "none",
           }}
         >
           {query.length < 2 ? (
             <div className="space-y-3">
-              <h4
-                className={`text-xs font-bold uppercase tracking-widest ${iconCls}`}
-              >
-                Actions rapides
-              </h4>
+              <h4 className={`text-xs font-bold uppercase tracking-widest ${iconCls}`}>Actions rapides</h4>
               <div className="flex flex-col gap-2">
                 {[
-                  {
-                    href: "/dashboard/profile",
-                    icon: <User className="w-4 h-4" />,
-                    label: "Mon profil",
-                    bg: "#E6FAF5",
-                    color: primaryColor,
-                  },
-                  {
-                    href: "/dashboard/administration",
-                    icon: <Settings className="w-4 h-4" />,
-                    label: "Configuration de l'application",
-                    bg: "#E6FAF5",
-                    color: primaryColor,
-                  },
+                  { href: "/dashboard/profile", icon: <User className="w-4 h-4" />, label: "Mon profil", bg: "#E6FAF5", color: primaryColor },
+                  { href: "/dashboard/administration", icon: <Settings className="w-4 h-4" />, label: "Configuration de l'application", bg: "#E6FAF5", color: primaryColor },
                 ].map(({ href, icon, label, bg, color }) => (
                   <Link
                     key={href}
@@ -208,15 +184,10 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
                       borderRadius: "12px",
                       boxShadow: "0 1px 4px rgba(112,144,176,0.08)",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.opacity = "0.8")
-                    }
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
                     onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                   >
-                    <div
-                      className="w-7 h-7 rounded-lg flex items-center justify-center"
-                      style={{ background: bg, color }}
-                    >
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: bg, color }}>
                       {icon}
                     </div>
                     <span className="text-xs font-semibold">{label}</span>
@@ -226,11 +197,7 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
             </div>
           ) : filteredResults.length > 0 ? (
             <div className="space-y-3">
-              <h4
-                className={`text-xs font-bold uppercase tracking-widest ${iconCls}`}
-              >
-                Résultats
-              </h4>
+              <h4 className={`text-xs font-bold uppercase tracking-widest ${iconCls}`}>Résultats</h4>
               <div className="flex flex-col gap-2">
                 {filteredResults.map((result) => (
                   <Link
@@ -244,40 +211,20 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
                       borderRadius: "12px",
                       boxShadow: "0 1px 4px rgba(112,144,176,0.08)",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.opacity = "0.8")
-                    }
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
                     onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
                   >
                     <div className="flex items-center gap-3">
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0"
-                        style={{
-                          background:
-                            result.type === "MEMBERS"
-                              ? "#006C69"
-                              : result.type === "GROUPS"
-                                ? "#CEAD1E"
-                                : "#12BC7E",
-                        }}
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white shrink-0" 
+                        style={{ background: result.type === 'MEMBERS' ? '#006C69' : result.type === 'GROUPS' ? '#CEAD1E' : '#12BC7E' }}
                       >
-                        {result.type === "MEMBERS" && (
-                          <User className="w-4 h-4" />
-                        )}
-                        {result.type === "GROUPS" && (
-                          <Users className="w-4 h-4" />
-                        )}
-                        {result.type === "GEMS" && (
-                          <Network className="w-4 h-4" />
-                        )}
+                        {result.type === 'MEMBERS' && <User className="w-4 h-4" />}
+                        {result.type === 'GROUPS' && <Users className="w-4 h-4" />}
+                        {result.type === 'GEMS' && <Network className="w-4 h-4" />}
                       </div>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold">
-                          {result.title}
-                        </span>
-                        <span className="text-xs font-semibold text-[#A3AED0]">
-                          {result.subtitle}
-                        </span>
+                        <span className="text-sm font-bold">{result.title}</span>
+                        <span className="text-xs font-semibold text-[#A3AED0]">{result.subtitle}</span>
                       </div>
                     </div>
                     {result.extra && (
@@ -292,9 +239,7 @@ export function GlobalSearch({ isOpen, onClose, isDark }: GlobalSearchProps) {
           ) : !isLoading ? (
             <div className="text-center py-8">
               <Search className="w-8 h-8 text-[#A3AED0] mx-auto mb-3 opacity-50" />
-              <p className="text-sm font-bold text-[#A3AED0]">
-                Aucun résultat trouvé pour "{query}"
-              </p>
+              <p className="text-sm font-bold text-[#A3AED0]">Aucun résultat trouvé pour "{query}"</p>
             </div>
           ) : null}
         </div>

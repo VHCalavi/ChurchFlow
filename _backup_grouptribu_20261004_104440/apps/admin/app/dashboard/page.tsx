@@ -185,7 +185,7 @@ export default async function DashboardHome() {
             iconBg="bg-[#006C69]/10"
           />
           <StatCard
-            title="Groupe / Tribus, Tribus & GEM"
+            title="Groupes & GEM"
             value={fetchError ? "—" : activeGroupsCount}
             change={fetchError ? undefined : `${gemCount} GEM actives`}
             isPositive={true}

@@ -7,15 +7,7 @@ import { MeetingType } from "@churchflow/types";
 import { usePermissions } from "@/lib/permissions";
 
 // ─── Portal Tooltip ───────────────────────────────────────────────────────────
-function TooltipPortal({
-  children,
-  x,
-  y,
-}: {
-  children: React.ReactNode;
-  x: number;
-  y: number;
-}) {
+function TooltipPortal({ children, x, y }: { children: React.ReactNode; x: number; y: number }) {
   if (typeof document === "undefined") return null;
   const style: React.CSSProperties = {
     position: "fixed",
@@ -27,7 +19,7 @@ function TooltipPortal({
   };
   return ReactDOM.createPortal(
     <div style={style}>{children}</div>,
-    document.body,
+    document.body
   );
 }
 
@@ -136,12 +128,10 @@ export function MeetingsAttendanceChart() {
         const groupsData = await groupsRes.json();
 
         if (groupsData.success && Array.isArray(groupsData.data)) {
-          const loadedGroups = groupsData.data.map(
-            (g: { id: string; name: string }) => ({
-              id: g.id,
-              name: g.name,
-            }),
-          );
+          const loadedGroups = groupsData.data.map((g: { id: string; name: string }) => ({
+            id: g.id,
+            name: g.name,
+          }));
           setGroups(loadedGroups);
           if (loadedGroups.length === 1) {
             setSelectedGroup(loadedGroups[0].id);
@@ -332,12 +322,9 @@ export function MeetingsAttendanceChart() {
     let mTotal = 0;
     let mPresent = 0;
 
-    const attendeesToCount =
-      selectedGroup === "all"
-        ? m.attendees
-        : m.attendees.filter((a) =>
-            a.member?.groups?.some((g) => g.groupId === selectedGroup),
-          );
+    const attendeesToCount = selectedGroup === "all"
+      ? m.attendees
+      : m.attendees.filter((a) => a.member?.groups?.some((g) => g.groupId === selectedGroup));
 
     attendeesToCount.forEach((a) => {
       mTotal++;
@@ -402,13 +389,7 @@ export function MeetingsAttendanceChart() {
   });
 
   // Helper to generate SVG arc paths
-  const getArcPath = (
-    cx: number,
-    cy: number,
-    r: number,
-    startAngle: number,
-    endAngle: number,
-  ) => {
+  const getArcPath = (cx: number, cy: number, r: number, startAngle: number, endAngle: number) => {
     // If it's a full 360 circle
     if (endAngle - startAngle >= 359.99) {
       return `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx} ${cy + r} A ${r} ${r} 0 1 1 ${cx} ${cy - r}`;
@@ -460,8 +441,7 @@ export function MeetingsAttendanceChart() {
           Statistiques de Présences
         </h3>
         <p className="text-sm text-muted-foreground">
-          Filtrer par type de rencontre, groupe et tags pour analyser les
-          présences
+          Filtrer par type de rencontre, groupe et tags pour analyser les présences
         </p>
 
         {/* Filtres */}
@@ -502,16 +482,14 @@ export function MeetingsAttendanceChart() {
           {/* Sélecteur de groupe */}
           <div className="space-y-2.5">
             <h4 className="text-sm font-bold text-foreground">
-              Groupe / Tribu
+              Groupe
             </h4>
             <select
               value={selectedGroup}
               onChange={(e) => setSelectedGroup(e.target.value)}
               className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
             >
-              {canFilterAllGroups && (
-                <option value="all">Tous les Groupe / Tribus</option>
-              )}
+              {canFilterAllGroups && <option value="all">Tous les groupes</option>}
               {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}
@@ -679,7 +657,10 @@ export function MeetingsAttendanceChart() {
                 </div>
               ) : (
                 <div className="relative w-44 h-44 flex items-center justify-center my-4">
-                  <svg viewBox="0 0 42 42" className="w-full h-full">
+                  <svg
+                    viewBox="0 0 42 42"
+                    className="w-full h-full"
+                  >
                     <circle
                       cx="21"
                       cy="21"
@@ -691,20 +672,11 @@ export function MeetingsAttendanceChart() {
                     {segments.map((seg, idx) => (
                       <path
                         key={idx}
-                        d={getArcPath(
-                          21,
-                          21,
-                          15.91549430918954,
-                          seg.startAngle,
-                          seg.endAngle,
-                        )}
+                        d={getArcPath(21, 21, 15.91549430918954, seg.startAngle, seg.endAngle)}
                         fill="none"
                         stroke={seg.color}
                         className="transition-all duration-300 ease-in-out cursor-pointer"
-                        style={{
-                          strokeWidth:
-                            donutTooltip?.label === seg.label ? 5.5 : 4.2,
-                        }}
+                        style={{ strokeWidth: donutTooltip?.label === seg.label ? 5.5 : 4.2 }}
                         onMouseMove={(e) =>
                           setDonutTooltip({
                             label: seg.label,
@@ -890,12 +862,7 @@ export function MeetingsAttendanceChart() {
                                 fill="transparent"
                                 className="cursor-pointer"
                                 onMouseMove={(e) =>
-                                  setLineTooltip({
-                                    type: type as MeetingType,
-                                    point,
-                                    mouseX: e.clientX,
-                                    mouseY: e.clientY,
-                                  })
+                                  setLineTooltip({ type: type as MeetingType, point, mouseX: e.clientX, mouseY: e.clientY })
                                 }
                                 onMouseLeave={() => setLineTooltip(null)}
                               />
@@ -936,28 +903,19 @@ export function MeetingsAttendanceChart() {
                       className="w-2.5 h-2.5 rounded-full inline-block mr-1.5 mb-0.5 align-middle"
                       style={{ backgroundColor: TYPE_COLORS[lineTooltip.type] }}
                     />
-                    <span className="font-bold text-sm">
-                      {TYPE_LABELS[lineTooltip.type]}
-                    </span>
+                    <span className="font-bold text-sm">{TYPE_LABELS[lineTooltip.type]}</span>
                     <div className="border-t border-white/20 mt-1.5 pt-1.5 space-y-1">
                       <div className="flex justify-between gap-3">
                         <span className="text-white/70">Date</span>
-                        <span className="font-semibold">
-                          {lineTooltip.point.label}
-                        </span>
+                        <span className="font-semibold">{lineTooltip.point.label}</span>
                       </div>
                       <div className="flex justify-between gap-3">
                         <span className="text-white/70">Présence</span>
-                        <span className="font-bold text-green-400">
-                          {lineTooltip.point.value}%
-                        </span>
+                        <span className="font-bold text-green-400">{lineTooltip.point.value}%</span>
                       </div>
                       <div className="flex justify-between gap-3">
                         <span className="text-white/70">Présents</span>
-                        <span className="font-semibold">
-                          {lineTooltip.point.presentCount} /{" "}
-                          {lineTooltip.point.totalRecorded}
-                        </span>
+                        <span className="font-semibold">{lineTooltip.point.presentCount} / {lineTooltip.point.totalRecorded}</span>
                       </div>
                     </div>
                   </div>
@@ -1018,9 +976,7 @@ export function MeetingsAttendanceChart() {
               </div>
               <div className="flex justify-between gap-4">
                 <span className="text-white/70">Part</span>
-                <span className="font-bold">
-                  {Math.round(donutTooltip.percent)}%
-                </span>
+                <span className="font-bold">{Math.round(donutTooltip.percent)}%</span>
               </div>
             </div>
           </div>

@@ -94,7 +94,7 @@ export function Sidebar({
       requiredPermission: "read:members",
     },
     {
-      title: "Groupe / Tribus",
+      title: "Groupes",
       icon: <Network className="w-5 h-5" />,
       href: "/dashboard/groups",
       requiredPermission: "read:groups",
@@ -171,15 +171,15 @@ export function Sidebar({
 
         // Tolérance scopée : si la perm requise est "action:resource",
         // on accepte aussi "action:resource.all", ".managed" ou ".own".
-        const [action, rest] = item.requiredPermission.split(":");
+        const [action, rest] = item.requiredPermission.split(':');
         if (!rest) return false;
-        const [resource] = rest.split(".");
+        const [resource] = rest.split('.');
         const candidates = [
           `${action}:${resource}.all`,
           `${action}:${resource}.managed`,
           `${action}:${resource}.own`,
         ];
-        return candidates.some((c) => userPermissions.includes(c));
+        return candidates.some(c => userPermissions.includes(c));
       })
     : [];
 
