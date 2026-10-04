@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, LogIn, AlertCircle, Building, Shield } from "lucide-react";
+import { Mail, Lock, LogIn, AlertCircle, Building, Shield, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,6 +17,8 @@ export default function LoginPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [regLoading, setRegLoading] = useState(false);
+  const [showNewPass, setShowNewPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -273,13 +275,22 @@ export default function LoginPage() {
                     <Lock className="w-4 h-4" />
                   </span>
                   <input
-                    type="password"
+                    type={showNewPass ? "text" : "password"}
                     required
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Au moins 6 caractères"
-                    className="w-full pl-12 pr-4 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
+                    className="w-full pl-12 pr-12 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPass((v) => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#1B2559] transition-colors focus:outline-none"
+                    aria-label={showNewPass ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    tabIndex={-1}
+                  >
+                    {showNewPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
@@ -293,13 +304,22 @@ export default function LoginPage() {
                     <Lock className="w-4 h-4" />
                   </span>
                   <input
-                    type="password"
+                    type={showConfirmPass ? "text" : "password"}
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirmer le mot de passe"
-                    className="w-full pl-12 pr-4 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
+                    className="w-full pl-12 pr-12 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPass((v) => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-[#1B2559] transition-colors focus:outline-none"
+                    aria-label={showConfirmPass ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                    tabIndex={-1}
+                  >
+                    {showConfirmPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
 
