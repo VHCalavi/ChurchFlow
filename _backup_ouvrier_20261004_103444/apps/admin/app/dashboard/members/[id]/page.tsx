@@ -8,7 +8,6 @@ import { ArrowLeft, User, Users, Calendar, FileText, File, Network, Circle, X, P
 import { ReactFlow, Background, Controls, Node, Edge, Position, MarkerType, Handle, BaseEdge, EdgeLabelRenderer, getBezierPath, EdgeProps } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
-import { memberStatusLabel } from "../../../lib/labels";
 
 const MemberNode = ({ data }: any) => {
   return (
@@ -820,7 +819,7 @@ export default function MemberDetailPage({ params }: { params: { id: string } })
                   member.status === "RESPONSABLE" ? "bg-[#CEAD1E] text-white" : 
                   member.status === "MEMBRE" ? "bg-[#006C69] text-white" : "bg-[#A3AED0] text-[#1B2559]"
                 }`}>
-                  {memberStatusLabel(member.status)}
+                  {member.status}
                 </span>
                 <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F4F7FE] text-xs font-bold">
                   <Circle className={`w-2 h-2 fill-current ${member.isActive ? "text-[#006C69]" : "text-[#CD3C14]"}`} />

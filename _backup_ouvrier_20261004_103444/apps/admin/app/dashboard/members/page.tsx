@@ -17,7 +17,6 @@ import {
   ShieldAlert,
   UserPlus,
 } from "lucide-react";
-import { memberStatusLabel } from "../../../lib/labels";
 
 interface AssignableRole {
   id: string;
@@ -391,7 +390,7 @@ export default function MembersPage() {
                 className="pl-10 pr-8 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] cursor-pointer transition-all [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
               >
                 <option value="ALL">Tous les Statuts</option>
-                <option value="RESPONSABLE">Ouvriers</option>
+                <option value="RESPONSABLE">Responsables</option>
                 <option value="MEMBRE">Membres</option>
                 <option value="SYMPATHISANT">Sympathisants</option>
               </select>
@@ -508,7 +507,7 @@ export default function MembersPage() {
                                   : "bg-[#A3AED0] text-[#1B2559]"
                             }`}
                           >
-                            {memberStatusLabel(member.status)}
+                            {member.status}
                           </span>
                         </td>
                         <td className="py-4 px-6">
@@ -670,7 +669,7 @@ export default function MembersPage() {
                     Statut Ecclésiastique *
                   </label>
                   <select
-                    value={memberStatusLabel(status)}
+                    value={status}
                     onChange={(e) =>
                       setStatus(
                         e.target.value as
@@ -867,7 +866,7 @@ export default function MembersPage() {
                   >
                     <option value="SYMPATHISANT">Sympathisant</option>
                     <option value="MEMBRE">Membre</option>
-                    <option value="RESPONSABLE">Ouvrier</option>
+                    <option value="RESPONSABLE">Responsable</option>
                   </select>
                 </div>
                 {editStatus === "RESPONSABLE" && (

@@ -22,7 +22,6 @@ import {
   FileText,
   DollarSign,
 } from "lucide-react";
-import { memberStatusLabel } from "../../../lib/labels";
 
 interface ApiMember {
   id: string;
@@ -356,7 +355,7 @@ export default async function DashboardHome() {
                           <span
                             className="inline-flex items-center px-2 py-0.5 rounded text-sm font-bold bg-primary/10 text-primary"
                           >
-                            {memberStatusLabel(member.status)}
+                            {member.status}
                           </span>
                         </td>
                         <td className="py-3.5 pr-4">
