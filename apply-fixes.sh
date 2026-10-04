@@ -1,224 +1,99 @@
 #!/usr/bin/env bash
-# Fix : création de membre qui échoue silencieusement
-#  - Corrige les valeurs d'enum (ASPIRANT, GA_C50, etc.)
-#  - Pré-remplit grade/echelon avec valeurs par défaut
-#  - Affiche la vraie erreur au lieu de mocker
-#  - Renomme "Responsable" → "Ouvrier" partout (labels UI)
+# Ajoute .vercel/ au .gitignore et retire du tracking git
+# (sans supprimer les fichiers locaux)
 
 set -euo pipefail
 
-BACKUP="_backup_fixmember_$(date +%Y%m%d_%H%M%S)"
-
-G='\033[0;32m'; R='\033[0;31m'; B='\033[0;34m'; N='\033[0m'
-log() { echo -e "${B}▶${N} $*"; }
-ok()  { echo -e "${G}✓${N} $*"; }
-die() { echo -e "${R}✗${N} $*" >&2; exit 1; }
+G='\033[0;32m'; R='\033[0;31m'; Y='\033[0;33m'; B='\033[0;34m'; N='\033[0m'
+log()  { echo -e "${B}▶${N} $*"; }
+ok()   { echo -e "${G}✓${N} $*"; }
+warn() { echo -e "${Y}⚠${N} $*"; }
+die()  { echo -e "${R}✗${N} $*" >&2; exit 1; }
 
 [[ -f "package.json" ]] || die "Lance depuis la racine"
 
-F="apps/admin/app/dashboard/members/page.tsx"
-FD="apps/admin/app/dashboard/members/[id]/page.tsx"
-[[ -f "$F" ]] || die "$F introuvable"
+# ═══════════════════════════════════════════════════════════════════
+# 1) Compléter .gitignore
+# ═══════════════════════════════════════════════════════════════════
+log "1/3 — Mise à jour du .gitignore"
 
-mkdir -p "$BACKUP/$(dirname "$F")"
-cp "$F" "$BACKUP/$F"
-[[ -f "$FD" ]] && { mkdir -p "$BACKUP/$(dirname "$FD")"; cp "$FD" "$BACKUP/$FD"; }
+# Créer si absent
+[[ -f .gitignore ]] || touch .gitignore
 
-log "Patch des fichiers membres…"
+# Liste des patterns à garantir
+PATTERNS=(
+  ".vercel/"
+  ".env.local"
+  ".env.production.local"
+  "apps/*/.env"
+  "apps/*/.env.local"
+  "apps/*/.env.production.local"
+  "packages/*/.env"
+  "packages/*/.env.local"
+  "packages/*/.env.production.local"
+)
 
-python3 - <<'PYEOF'
-import pathlib, re
+for pat in "${PATTERNS[@]}"; do
+  if ! grep -qxF "$pat" .gitignore; then
+    echo "$pat" >> .gitignore
+    ok "Ajouté : $pat"
+  else
+    echo "  (déjà présent) $pat"
+  fi
+done
 
 # ═══════════════════════════════════════════════════════════════════
-# Fichier 1 : members/page.tsx
+# 2) Retirer .vercel/ et .env* du tracking git (si présents)
 # ═══════════════════════════════════════════════════════════════════
-f = pathlib.Path("apps/admin/app/dashboard/members/page.tsx")
-src = f.read_text()
-original = src
+log "2/3 — Retrait du tracking git"
 
-# ─── 1) Renommer "Responsable (Directeur...)" → "Ouvrier..." (multi-line safe)
-src = src.replace(
-    "Responsable (Directeur / Berger / Pasteur)",
-    "Ouvrier (Directeur / Berger / Pasteur)"
-)
-src = src.replace(
-    '<option value="RESPONSABLE">Responsables</option>',
-    '<option value="RESPONSABLE">Ouvriers</option>'
-)
-src = src.replace(
-    '<option value="RESPONSABLE">\n            Responsable\n          </option>',
-    '<option value="RESPONSABLE">\n            Ouvrier\n          </option>'
-)
+# Retirer du cache git SANS supprimer les fichiers locaux
+for path in ".vercel" ".env.local" ".env.production.local"; do
+  if git ls-files --error-unmatch "$path" >/dev/null 2>&1 || \
+     git ls-files "$path" 2>/dev/null | grep -q .; then
+    git rm -r --cached "$path" >/dev/null 2>&1 || true
+    ok "Retiré du tracking : $path"
+  else
+    echo "  (pas tracké) $path"
+  fi
+done
 
-# ─── 2) Corriger valeurs enum grade (CREATE modal)
-# ATTENTION : ne toucher QUE les attributs value="..." pour ne pas casser les labels
-src = re.sub(r'value="Aspirant"', 'value="ASPIRANT"', src)
-src = re.sub(r'value="Serviteur"', 'value="SERVITEUR"', src)
-src = re.sub(r"value=\"Gagneur d'âmes\"", 'value="GAGNEUR_AMES"', src)
-src = re.sub(r'value="Assistant Pasteur"', 'value="ASSISTANT_PASTEUR"', src)
-src = re.sub(r'value="Pasteur Assistant"', 'value="PASTEUR_ASSISTANT"', src)
-src = re.sub(r'value="Pasteur titulaire"', 'value="PASTEUR_TITULAIRE"', src)
-src = re.sub(r'value="Pasteur Titulaire"', 'value="PASTEUR_TITULAIRE"', src)
+# Idem pour les sous-dossiers apps/*/ et packages/*/
+for f in $(git ls-files | grep -E '(^|/)\.env(\.|$)' 2>/dev/null || true); do
+  git rm --cached "$f" >/dev/null 2>&1 || true
+  ok "Retiré du tracking : $f"
+done
 
-# ─── 3) Corriger valeurs enum echelon (CREATE modal)
-src = re.sub(r'value="GA C50"', 'value="GA_C50"', src)
-src = re.sub(r'value="GA C100"', 'value="GA_C100"', src)
-
-# ─── 4) Valeurs par défaut pour grade/echelon
-src = re.sub(
-    r'const \[grade, setGrade\] = useState\(""\);',
-    'const [grade, setGrade] = useState("ASPIRANT");',
-    src
-)
-src = re.sub(
-    r'const \[echelon, setEchelon\] = useState\(""\);',
-    'const [echelon, setEchelon] = useState("C2");',
-    src
-)
-
-# ─── 5) Auto-fill lors du changement de status vers RESPONSABLE
-old_change = '''onChange={(e) =>
-                      setStatus(
-                        e.target.value as
-                          | "SYMPATHISANT"
-                          | "MEMBRE"
-                          | "RESPONSABLE",
-                      )
-                    }'''
-new_change = '''onChange={(e) => {
-                      const newStatus = e.target.value as
-                        | "SYMPATHISANT"
-                        | "MEMBRE"
-                        | "RESPONSABLE";
-                      setStatus(newStatus);
-                      if (newStatus === "RESPONSABLE") {
-                        if (!grade) setGrade("ASPIRANT");
-                        if (!echelon) setEchelon("C2");
-                      }
-                    }}'''
-if old_change in src:
-    src = src.replace(old_change, new_change)
-    print("[OK] onChange status patché (create modal)")
-else:
-    print("[--] onChange status non trouvé à l'identique")
-
-# ─── 6) Ne PAS mock sur erreur API (else branch)
-old_else = '''      } else {
-        const mockNewMember: Member = {
-          id: String(Date.now()),
-          firstName,
-          lastName,
-          email: email || null,
-          phone: phone || null,
-          status,
-          grade: status === "RESPONSABLE" ? grade || "Aspirant" : null,
-          echelon: status === "RESPONSABLE" ? echelon || "C2" : null,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-        };
-        setMembers((prev) => [mockNewMember, ...prev]);
-        showNotification("Membre ajouté localement !", "success");
-        setIsModalOpen(false);
-      }'''
-new_else = '''      } else {
-        showNotification(
-          data.error || "Erreur lors de la création du membre",
-          "error",
-        );
-        // Ne PAS fermer la modal → l'utilisateur peut corriger
-      }'''
-if old_else in src:
-    src = src.replace(old_else, new_else)
-    print("[OK] Bloc else create patché (plus de mock silencieux)")
-else:
-    print("[--] Bloc else non trouvé")
-
-# ─── 7) Catch : ne pas mock
-old_catch = '''    } catch (err) {
-      console.error(err);
-      showNotification(
-        "Erreur de connexion. Membre ajouté localement.",
-        "success",
-      );
-      const mockNewMember: Member = {
-        id: String(Date.now()),
-        firstName,
-        lastName,
-        email: email || null,
-        phone: phone || null,
-        status,
-        grade: status === "RESPONSABLE" ? grade || "Aspirant" : null,
-        echelon: status === "RESPONSABLE" ? echelon || "C2" : null,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-      };
-      setMembers((prev) => [mockNewMember, ...prev]);
-      setIsModalOpen(false);
-    } finally {'''
-new_catch = '''    } catch (err) {
-      console.error(err);
-      showNotification(
-        "Erreur de connexion. Vérifiez votre réseau et réessayez.",
-        "error",
-      );
-    } finally {'''
-if old_catch in src:
-    src = src.replace(old_catch, new_catch)
-    print("[OK] Catch create patché")
-else:
-    print("[--] Catch non trouvé")
-
-if src != original:
-    f.write_text(src)
-    print("[OK] members/page.tsx mis à jour")
-else:
-    print("[--] Aucun changement dans members/page.tsx")
+for f in $(git ls-files | grep -E '(^|/)\.vercel/' 2>/dev/null || true); do
+  git rm --cached "$f" >/dev/null 2>&1 || true
+done
 
 # ═══════════════════════════════════════════════════════════════════
-# Fichier 2 : members/[id]/page.tsx
+# 3) Résumé & actions
 # ═══════════════════════════════════════════════════════════════════
-fd = pathlib.Path("apps/admin/app/dashboard/members/[id]/page.tsx")
-if fd.exists():
-    src = fd.read_text()
-    original = src
+log "3/3 — Vérification"
 
-    # Ajouter l'import si absent
-    if "memberStatusLabel" not in src:
-        lines = src.split("\n")
-        last_import = 0
-        for i, line in enumerate(lines[:50]):
-            if line.startswith("import ") or line.startswith("} from "):
-                last_import = i
-        lines.insert(last_import + 1, 'import { memberStatusLabel } from "@/lib/labels";')
-        src = "\n".join(lines)
+echo ""
+echo "Contenu de .gitignore :"
+grep -E "\.vercel|\.env" .gitignore || echo "  (aucun)"
 
-    # Remplacer affichage brut du statut par le label
-    src = re.sub(
-        r'\{member\.status\}',
-        '{memberStatusLabel(member.status)}',
-        src
-    )
-
-    # Renommer dans les selects du profil
-    src = src.replace(
-        '<option value="RESPONSABLE">Responsable</option>',
-        '<option value="RESPONSABLE">Ouvrier</option>'
-    )
-
-    if src != original:
-        fd.write_text(src)
-        print("[OK] members/[id]/page.tsx mis à jour")
-    else:
-        print("[--] Aucun changement dans [id]/page.tsx")
-PYEOF
+echo ""
+echo "Fichiers encore trackés par git (devrait être vide) :"
+git ls-files | grep -E "\.vercel|\.env" || echo "  ✓ Aucun"
 
 echo ""
 echo "═══════════════════════════════════════════════"
-ok "Fix appliqué"
+ok "Terminé"
 echo "═══════════════════════════════════════════════"
 echo ""
-echo "Backup : $BACKUP/"
+echo "▶ Étapes suivantes :"
+echo "   1. git add .gitignore"
+echo "   2. git commit -m 'chore: ignore .vercel and env files'"
+echo "   3. git push"
 echo ""
-echo "▶ Test : pnpm dev"
-echo "▶ Rollback : cp -r $BACKUP/* ."
+warn "⚠  Si tu as déjà commité .vercel/ avec des secrets :"
+echo "   → Change TOUS tes mots de passe/secrets en prod :"
+echo "     • Neon : Reset password de la DB"
+echo "     • Vercel : Régénère NEXTAUTH_SECRET, AUTH_SECRET"
+echo "     • Toute autre clé exposée"
 echo ""

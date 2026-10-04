@@ -34,3 +34,11 @@ Thumbs.db
 # Testing
 coverage
 .nyc_output
+.vercel/
+.env.production.local
+apps/*/.env
+apps/*/.env.local
+apps/*/.env.production.local
+packages/*/.env
+packages/*/.env.local
+packages/*/.env.production.local
