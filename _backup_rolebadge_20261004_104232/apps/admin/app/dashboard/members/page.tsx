@@ -509,54 +509,18 @@ export default function MembersPage() {
                             </div>
                           </div>
                         </td>
-                                                <td className="py-4 px-6">
-                          <div className="flex flex-col items-start gap-1.5">
-                            <span
-                              className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-bold ${
-                                member.status === "RESPONSABLE"
-                                  ? "bg-[#CEAD1E] text-white"
-                                  : member.status === "MEMBRE"
-                                    ? "bg-[#006C69] text-white"
-                                    : "bg-[#A3AED0] text-[#1B2559]"
-                              }`}
-                            >
-                              {memberStatusLabel(member.status)}
-                            </span>
-                            {member.status === "RESPONSABLE" && (() => {
-                              const roles = member.user?.roles?.map(ur => ur.role) ?? [];
-                              if (roles.length === 0 && member.metadata?.systemRole) {
-                                return (
-                                  <span
-                                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#006C69]/10 text-[#006C69] border border-[#006C69]/20"
-                                    title={member.metadata.systemRole}
-                                  >
-                                    {member.metadata.systemRole}
-                                  </span>
-                                );
-                              }
-                              return roles.map((r) => {
-                                const colorClass =
-                                  r.name === "ADMIN"
-                                    ? "bg-[#CD3C14]/10 text-[#CD3C14] border-[#CD3C14]/20"
-                                    : r.name === "PASTEUR"
-                                    ? "bg-[#CEAD1E]/10 text-[#CEAD1E] border-[#CEAD1E]/20"
-                                    : r.name.includes("RESPONSABLE")
-                                    ? "bg-[#006C69]/10 text-[#006C69] border-[#006C69]/20"
-                                    : r.name === "TRESORIER"
-                                    ? "bg-[#0EA7D5]/10 text-[#0EA7D5] border-[#0EA7D5]/20"
-                                    : "bg-[#F4F7FE] text-[#1B2559] border-[#D6D1CE]";
-                                return (
-                                  <span
-                                    key={r.id}
-                                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${colorClass}`}
-                                    title={r.description || r.name}
-                                  >
-                                    {r.name}
-                                  </span>
-                                );
-                              });
-                            })()}
-                          </div>
+                        <td className="py-4 px-6">
+                          <span
+                            className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-sm font-bold ${
+                              member.status === "RESPONSABLE"
+                                ? "bg-[#CEAD1E] text-white"
+                                : member.status === "MEMBRE"
+                                  ? "bg-[#006C69] text-white"
+                                  : "bg-[#A3AED0] text-[#1B2559]"
+                            }`}
+                          >
+                            {memberStatusLabel(member.status)}
+                          </span>
                         </td>
                         <td className="py-4 px-6">
                           {member.status === "RESPONSABLE" && member.grade ? (
@@ -572,6 +536,40 @@ export default function MembersPage() {
                             <span className="text-[#A3AED0] text-sm font-normal">
                               —
                             </span>
+                          )}
+                        </td>
+                        <td className="py-4 px-6">
+                          {member.user?.roles && member.user.roles.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {member.user.roles.map((ur) => {
+                                const roleName = ur.role.name;
+                                const colorClass =
+                                  roleName === "ADMIN"
+                                    ? "bg-[#CD3C14] text-white"
+                                    : roleName === "PASTEUR"
+                                    ? "bg-[#CEAD1E] text-white"
+                                    : roleName.includes("RESPONSABLE")
+                                    ? "bg-[#006C69] text-white"
+                                    : roleName === "TRESORIER"
+                                    ? "bg-[#0EA7D5] text-white"
+                                    : "bg-[#F4F7FE] text-[#1B2559] border border-[#D6D1CE]";
+                                return (
+                                  <span
+                                    key={ur.role.id}
+                                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${colorClass}`}
+                                    title={ur.role.description || roleName}
+                                  >
+                                    {roleName}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          ) : member.metadata?.systemRole ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-[#F4F7FE] text-[#1B2559] border border-[#D6D1CE]">
+                              {member.metadata.systemRole}
+                            </span>
+                          ) : (
+                            <span className="text-[#A3AED0] text-sm font-normal">—</span>
                           )}
                         </td>
                         <td className="py-4 px-6 text-[#6D6E71] text-sm font-bold">

@@ -53,17 +53,6 @@ export async function GET() {
       include: {
         supervisor: {
           select: { id: true, firstName: true, lastName: true }
-        },
-        user: {
-          select: {
-            id: true,
-            email: true,
-            roles: {
-              select: {
-                role: { select: { id: true, name: true, description: true } }
-              }
-            }
-          }
         }
       },
       orderBy: { createdAt: "desc" }
