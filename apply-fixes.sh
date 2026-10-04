@@ -1,69 +1,56 @@
 #!/usr/bin/env bash
-# Marque toutes les routes API comme dynamiques (force-dynamic)
-# Corrige : "Dynamic server usage: Route /api/v1/xxx couldn't be rendered statically"
+# Fix : retirer "use client" de lib/labels.ts
+# (fonction pure sans hook React ni API navigateur → n'a pas besoin d'être client)
 
 set -euo pipefail
-
-BACKUP="_backup_dynroutes_$(date +%Y%m%d_%H%M%S)"
 
 G='\033[0;32m'; R='\033[0;31m'; B='\033[0;34m'; N='\033[0m'
 log() { echo -e "${B}▶${N} $*"; }
 ok()  { echo -e "${G}✓${N} $*"; }
 die() { echo -e "${R}✗${N} $*" >&2; exit 1; }
 
-[[ -d "apps/api/app/api/v1" ]] || die "apps/api/app/api/v1 introuvable"
+F="apps/admin/lib/labels.ts"
+[[ -f "$F" ]] || die "$F introuvable. Lance depuis la racine."
 
-mkdir -p "$BACKUP"
+cp "$F" "$F.bak_$(date +%s)"
+ok "Backup créé"
 
-log "Recherche des fichiers route.ts…"
+# Retirer la ligne '"use client";' en tête de fichier
+sed -i '/^"use client";$/d' "$F"
 
-COUNT=0
-PATCHED=0
+if grep -q '"use client"' "$F"; then
+  die "Encore présent. Édite manuellement."
+fi
 
-while IFS= read -r file; do
-  COUNT=$((COUNT + 1))
-  mkdir -p "$BACKUP/$(dirname "$file")"
-  cp "$file" "$BACKUP/$file"
+ok "'use client' retiré de $F"
 
-  # Skip si déjà présent
-  if grep -q 'export const dynamic' "$file"; then
-    continue
-  fi
-
-  python3 - "$file" <<'PYEOF'
-import sys, pathlib, re
-
+# Aussi, ajouter un export const dynamic = "force-dynamic" sur le dashboard page
+# pour s'assurer que le contenu est bien régénéré à chaque requête
+DASH="apps/admin/app/dashboard/page.tsx"
+if [[ -f "$DASH" ]] && ! grep -q 'export const dynamic' "$DASH"; then
+  # Insère après le dernier import
+  python3 - "$DASH" <<'PYEOF'
+import sys, pathlib
 f = pathlib.Path(sys.argv[1])
-src = f.read_text()
-
-# Chercher la fin du dernier import
-lines = src.split("\n")
-last_import = -1
-for i, line in enumerate(lines):
-    if line.startswith("import ") or line.startswith("} from ") or line.startswith("const ") and "= require" in line:
-        last_import = i
-
-if last_import < 0:
-    # Pas d'imports ? On met en haut après les commentaires
-    lines.insert(0, 'export const dynamic = "force-dynamic";')
-else:
-    lines.insert(last_import + 1, '')
-    lines.insert(last_import + 2, 'export const dynamic = "force-dynamic";')
-
+lines = f.read_text().split("\n")
+last = 0
+for i, line in enumerate(lines[:50]):
+    if line.startswith("import ") or line.startswith("} from "):
+        last = i
+lines.insert(last + 1, '')
+lines.insert(last + 2, 'export const dynamic = "force-dynamic";')
 f.write_text("\n".join(lines))
 PYEOF
-
-  PATCHED=$((PATCHED + 1))
-done < <(find apps/api/app/api/v1 -name "route.ts" -type f)
-
-ok "$PATCHED fichiers patchés sur $COUNT trouvés"
+  ok "force-dynamic ajouté au dashboard page"
+fi
 
 echo ""
 echo "═══════════════════════════════════════════════"
-ok "Routes API marquées comme dynamiques"
+ok "Fix appliqué"
 echo "═══════════════════════════════════════════════"
 echo ""
-echo "Backup : $BACKUP/"
-echo ""
-echo "▶ Relance : pnpm build"
+echo "▶ Étapes suivantes :"
+echo "  1. pnpm build         (vérifier que ça compile)"
+echo "  2. git add -A && git commit -m 'fix: server-safe labels' && git push"
+echo "  3. pnpm run deploy:admin   (redéployer)"
 echo ""
