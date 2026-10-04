@@ -53,25 +53,14 @@ export async function POST(request: Request) {
     const systemRoleName = (metadata.systemRole as string) || "MEMBRE";
 
     // 4. Find the system role in DB
-    //    `name` n'est plus unique seul (→ @@unique([churchId, name]) depuis
-    //    la migration des permissions granulaires). On cherche par findFirst
-    //    en privilégiant un rôle custom de l'église, sinon un rôle global.
-    const roleScope = {
-      OR: [
-        { churchId: member.churchId },
-        { churchId: null },
-      ],
-    } as const;
-
-    let role = await prisma.role.findFirst({
-      where: { name: systemRoleName, ...roleScope },
-      orderBy: { churchId: "desc" },
+    let role = await prisma.role.findUnique({
+      where: { name: systemRoleName }
     });
 
     if (!role) {
-      role = await prisma.role.findFirst({
-        where: { name: "MEMBRE", ...roleScope },
-        orderBy: { churchId: "desc" },
+      // Fallback to MEMBRE role if pre-configured one doesn't exist
+      role = await prisma.role.findUnique({
+        where: { name: "MEMBRE" }
       });
     }
 
