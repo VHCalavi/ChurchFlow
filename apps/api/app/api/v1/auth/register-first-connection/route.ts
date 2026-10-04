@@ -3,6 +3,8 @@ import { prisma } from "@churchflow/database";
 import { hashPassword } from "@churchflow/auth";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const registerSchema = z.object({
   email: z.string().email("Format d'email invalide"),
   password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères")

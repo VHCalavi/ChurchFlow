@@ -5,6 +5,8 @@ import { prisma } from '@churchflow/database';
 import { z } from 'zod';
 import { requireAuth, checkGemPermissions, requireOwnership } from '../../../../../../src/lib/rbac';
 
+export const dynamic = "force-dynamic";
+
 const addMemberSchema = z.object({
   memberId: z.string(),
   role: z.enum(['LEADER', 'MEMBER', 'ASSISTANT']).default('MEMBER'),

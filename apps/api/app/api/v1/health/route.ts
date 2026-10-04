@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     // Check DB connection status (querying count of churches as health check)

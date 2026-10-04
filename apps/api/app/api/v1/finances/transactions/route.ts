@@ -3,6 +3,8 @@ import { prisma } from "@churchflow/database";
 import { z } from "zod";
 import { auth, getAuthUser, unauthorized } from "../../../../../lib/auth";
 
+export const dynamic = "force-dynamic";
+
 const createTransactionSchema = z.object({
   label: z.string().min(1, "Le libellé est requis").max(255),
   amount: z.number().positive("Le montant doit être positif"),

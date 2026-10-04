@@ -3,6 +3,8 @@ import { prisma } from "@churchflow/database";
 import { z } from "zod";
 import { auth, getAuthUser, unauthorized } from "../../../../../../lib/auth";
 
+export const dynamic = "force-dynamic";
+
 const addMemberSchema = z.object({
   memberId: z.string().min(1, "L'identifiant du membre est requis"),
   role: z.string().optional().nullable() // e.g. "Berger", "Co-Berger", "Chantre", "Membre"

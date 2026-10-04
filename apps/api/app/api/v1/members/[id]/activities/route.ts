@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@churchflow/database';
 import { requireAuth } from '../../../../../../src/lib/rbac';
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const user = await requireAuth(request);
   if (!user) return NextResponse.json({ success: false, error: "Non autorisé" }, { status: 401 });

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const createChurchSchema = z.object({
   name: z.string().min(1, "Le nom de l'église est requis"),
   description: z.string().optional().nullable(),

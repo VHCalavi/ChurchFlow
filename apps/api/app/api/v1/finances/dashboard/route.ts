@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { auth, getAuthUser, unauthorized } from "../../../../../lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const session = await auth();
   const user = getAuthUser(session);

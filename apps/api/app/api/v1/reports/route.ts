@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { reportService } from '../../../../src/services/report-service';
 import { requireAuth, hasRole } from '../../../../src/lib/rbac';
 
+export const dynamic = "force-dynamic";
+
 const createReportSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
   content: z.string().min(1, "Le contenu est requis"),

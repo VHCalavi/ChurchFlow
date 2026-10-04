@@ -3,6 +3,8 @@ import { prisma } from '@churchflow/database';
 import { z } from 'zod';
 import { requirePermission } from '../../../../../src/lib/rbac';
 
+export const dynamic = "force-dynamic";
+
 const updateRoleSchema = z.object({
   description: z.string().optional(),
   permissionIds: z.array(z.string()).optional(),

@@ -4,6 +4,8 @@ import { z } from "zod";
 import { auth, getAuthUser, unauthorized, forbidden } from "../../../../../lib/auth";
 import { syncUserRole } from "../../../../../src/lib/sync-user-role";
 
+export const dynamic = "force-dynamic";
+
 const updateMemberSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis").optional(),
   lastName: z.string().min(1, "Le nom est requis").optional(),

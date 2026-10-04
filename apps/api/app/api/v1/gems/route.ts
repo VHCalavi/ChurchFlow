@@ -5,6 +5,8 @@ import { prisma } from '@churchflow/database';
 import { z } from 'zod';
 import { requireAuth, hasPermission, checkGemPermissions } from '../../../../src/lib/rbac';
 
+export const dynamic = "force-dynamic";
+
 const createGemSchema = z.object({
   name: z.string().min(1, "Le nom est requis"),
   description: z.string().optional(),

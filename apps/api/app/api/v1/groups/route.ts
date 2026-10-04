@@ -4,6 +4,8 @@ import { z } from "zod";
 import { auth, getAuthUser, unauthorized, forbidden } from "../../../../lib/auth";
 import { getManagedGroupIds, canCreateOrManageGroups } from "../../../../src/lib/group-permissions";
 
+export const dynamic = "force-dynamic";
+
 const createGroupSchema = z.object({
   name: z.string().min(1, "Le nom du groupe est requis"),
   description: z.string().optional().nullable(),

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { documentService } from '../../../../../../src/services/document-service';
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const documents = await documentService.getByMember(params.id);

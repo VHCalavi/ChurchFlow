@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@churchflow/database';
 
+export const dynamic = "force-dynamic";
+
 // GET single interview detail
 export async function GET(
   request: Request,

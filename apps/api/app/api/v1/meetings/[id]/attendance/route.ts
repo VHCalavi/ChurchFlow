@@ -4,6 +4,8 @@ import { z } from "zod";
 import { auth, getAuthUser, unauthorized } from "../../../../../../lib/auth";
 import { getManagedGroupIds } from "../../../../../../src/lib/group-permissions";
 
+export const dynamic = "force-dynamic";
+
 const bulkAttendanceSchema = z.object({
   // Array of { memberId, isPresent, notes? }
   // isPresent: true = PRESENT, false = ABSENT, null = EXCUSED

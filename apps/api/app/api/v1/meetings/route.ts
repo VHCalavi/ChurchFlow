@@ -4,6 +4,8 @@ import { z } from "zod";
 import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
 import { getManagedGroupIds } from "../../../../src/lib/group-permissions";
 
+export const dynamic = "force-dynamic";
+
 const createMeetingSchema = z.object({
   title: z.string().min(1, "Le titre de la réunion est requis"),
   description: z.string().optional().nullable(),

@@ -4,6 +4,8 @@ import { getAuthUser } from '../../../../lib/auth';
 import { prisma } from '@churchflow/database';
 import { requireAuth } from '../../../../src/lib/rbac';
 
+export const dynamic = "force-dynamic";
+
 export interface GraphNode {
   id: string;
   type: 'member' | 'group' | 'gem';

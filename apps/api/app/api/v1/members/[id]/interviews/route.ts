@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { interviewService } from '../../../../../../src/services/interview-service';
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     const interviews = await interviewService.getByMember(params.id);

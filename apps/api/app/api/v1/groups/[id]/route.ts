@@ -3,6 +3,8 @@ import { prisma } from "@churchflow/database";
 import { z } from "zod";
 import { auth, getAuthUser, unauthorized, forbidden } from "../../../../../lib/auth";
 
+export const dynamic = "force-dynamic";
+
 const updateGroupSchema = z.object({
   name: z.string().min(1, "Le nom du groupe est requis").optional(),
   description: z.string().optional().nullable(),

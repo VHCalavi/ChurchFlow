@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@churchflow/database';
 import { requirePermission } from '../../../../src/lib/rbac';
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   const user = await requirePermission(request, 'manage:roles');
   if (!user) {

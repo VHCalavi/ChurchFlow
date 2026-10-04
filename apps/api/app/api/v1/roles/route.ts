@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { requireAuth, requirePermission } from '../../../../src/lib/rbac';
 import { forbidden } from '../../../../lib/auth';
 
+export const dynamic = "force-dynamic";
+
 const createRoleSchema = z.object({
   name: z.string().min(2).max(50).regex(/^[A-Z0-9_]+$/, 'MAJUSCULES_ET_UNDERSCORES uniquement'),
   description: z.string().optional(),

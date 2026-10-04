@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { familyRelationService } from '../../../../../../src/services/family-relation-service';
 import { prisma } from '@churchflow/database';
 
+export const dynamic = "force-dynamic";
+
 /**
  * Retourne la relation inverse correcte selon le type donné.
  * 

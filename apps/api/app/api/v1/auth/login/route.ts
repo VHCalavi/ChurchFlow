@@ -3,6 +3,8 @@ import { prisma } from "@churchflow/database";
 import { comparePassword } from "@churchflow/auth";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const loginSchema = z.object({
   email: z.string().email("Format d'email invalide"),
   password: z.string().min(1, "Le mot de passe est requis")

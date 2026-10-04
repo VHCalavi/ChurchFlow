@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@churchflow/database';
 
+export const dynamic = "force-dynamic";
+
 // DELETE a family relation (and its inverse automatically)
 export async function DELETE(
   request: Request,

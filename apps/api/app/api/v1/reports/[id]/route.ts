@@ -3,6 +3,8 @@ import { auth, getAuthUser } from '../../../../../lib/auth';
 import { prisma } from '@churchflow/database';
 import { z } from 'zod';
 
+export const dynamic = "force-dynamic";
+
 const updateReportSchema = z.object({
   title: z.string().min(1).optional(),
   content: z.string().min(1).optional(),
