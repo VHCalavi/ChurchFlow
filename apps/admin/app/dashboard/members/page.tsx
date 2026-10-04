@@ -18,6 +18,12 @@ import {
   UserPlus,
 } from "lucide-react";
 
+interface AssignableRole {
+  id: string;
+  name: string;
+  description: string | null;
+}
+
 interface Member {
   id: string;
   firstName: string;
@@ -37,6 +43,7 @@ interface Member {
 export default function MembersPage() {
   const router = useRouter();
   const [members, setMembers] = useState<Member[]>([]);
+  const [assignableRoles, setAssignableRoles] = useState<AssignableRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -99,6 +106,19 @@ export default function MembersPage() {
       }
     }
     loadMembers();
+
+    async function loadRoles() {
+      try {
+        const res = await fetch("/api/v1/roles");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setAssignableRoles(json.data);
+        }
+      } catch (err) {
+        console.error("Erreur chargement rôles:", err);
+      }
+    }
+    loadRoles();
   }, []);
 
   const handleCreateMember = async (e: React.FormEvent) => {
@@ -730,11 +750,15 @@ export default function MembersPage() {
                     onChange={(e) => setSystemRole(e.target.value)}
                     className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                   >
-                    <option value="MEMBRE">Membre (Fidèle)</option>
-                    <option value="RESPONSABLE_GEM">Responsable de GEM</option>
-                    <option value="TRESORIER">Trésorier</option>
-                    <option value="PASTEUR">Pasteur</option>
-                    <option value="ADMIN">Administrateur</option>
+                    {assignableRoles.length === 0 ? (
+                      <option value="MEMBRE">Membre (Fidèle)</option>
+                    ) : (
+                      assignableRoles.map((r) => (
+                        <option key={r.id} value={r.name}>
+                          {r.name}{r.description ? ` — ${r.description}` : ""}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
 
@@ -904,11 +928,15 @@ export default function MembersPage() {
                     onChange={(e) => setEditSystemRole(e.target.value)}
                     className="w-full px-5 py-3 text-sm font-bold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-[#006C69] transition-all cursor-pointer [&>option]:bg-[#F4F7FE] [&>option]:text-[#1B2559]"
                   >
-                    <option value="MEMBRE">Membre (Fidèle)</option>
-                    <option value="RESPONSABLE_GEM">Responsable de GEM</option>
-                    <option value="TRESORIER">Trésorier</option>
-                    <option value="PASTEUR">Pasteur</option>
-                    <option value="ADMIN">Administrateur</option>
+                    {assignableRoles.length === 0 ? (
+                      <option value="MEMBRE">Membre (Fidèle)</option>
+                    ) : (
+                      assignableRoles.map((r) => (
+                        <option key={r.id} value={r.name}>
+                          {r.name}{r.description ? ` — ${r.description}` : ""}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
                 <div className="flex items-center justify-end space-x-3 pt-4 border-t border-border mt-6">

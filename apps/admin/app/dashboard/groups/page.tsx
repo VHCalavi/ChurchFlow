@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { DashboardLayout } from "../../../components/layout/dashboard-layout";
 import {
   Plus,
@@ -25,6 +26,10 @@ interface Group {
 }
 
 export default function GroupsPage() {
+  const { data: session } = useSession();
+  const userRoles = ((session?.user as any)?.roles as string[]) || [];
+  const canCreateGroup = userRoles.some(r => ["ADMIN", "PASTEUR", "PASTEUR_RESIDENT"].includes(r?.toUpperCase?.() || ""));
+
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,13 +137,15 @@ export default function GroupsPage() {
             <h1 className="text-2xl font-bold text-foreground">Gestion des Groupes & Départements</h1>
             <p className="text-sm font-medium text-muted-foreground">Administrer les départements, tribus et maisons d'honneur de l'église</p>
           </div>
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="btn-horizon btn-horizon-primary flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nouveau groupe</span>
-          </button>
+          {canCreateGroup && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="btn-horizon btn-horizon-primary flex items-center space-x-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nouveau groupe</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -220,18 +227,20 @@ export default function GroupsPage() {
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
                       <span className="text-sm font-medium text-muted-foreground">{dept._count?.members || 0} membres rattachés</span>
                       <div className="flex items-center space-x-1.5">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDuplicateGroup(dept);
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-[#12BC7E] transition-colors cursor-pointer"
-                          title="Dupliquer ce département"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
+                        {canCreateGroup && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDuplicateGroup(dept);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-[#12BC7E] transition-colors cursor-pointer"
+                            title="Dupliquer ce département"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <span className="text-sm font-bold tracking-wider px-2.5 py-1 bg-[#12BC7E]/10 text-[#12BC7E] border border-[#12BC7E]/20 rounded-lg">DEPT</span>
                       </div>
                     </div>
@@ -271,18 +280,20 @@ export default function GroupsPage() {
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
                       <span className="text-sm font-medium text-muted-foreground">{tribu._count?.members || 0} membres</span>
                       <div className="flex items-center space-x-1.5">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDuplicateGroup(tribu);
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-[#12BC7E] transition-colors cursor-pointer"
-                          title="Dupliquer cette tribu"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
+                        {canCreateGroup && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDuplicateGroup(tribu);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-[#12BC7E] transition-colors cursor-pointer"
+                            title="Dupliquer cette tribu"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <span className="text-sm font-bold tracking-wider px-2.5 py-1 bg-[#CEAD1E]/10 text-[#CEAD1E] border border-[#CEAD1E]/20 rounded-lg">TRIBU</span>
                       </div>
                     </div>
@@ -322,18 +333,20 @@ export default function GroupsPage() {
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
                       <span className="text-sm font-medium text-muted-foreground">{maison._count?.members || 0} membres</span>
                       <div className="flex items-center space-x-1.5">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDuplicateGroup(maison);
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-[#12BC7E] transition-colors cursor-pointer"
-                          title="Dupliquer cette maison d'honneur"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
+                        {canCreateGroup && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDuplicateGroup(maison);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-[#12BC7E] transition-colors cursor-pointer"
+                            title="Dupliquer cette maison d'honneur"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <span className="text-sm font-bold tracking-wider px-2.5 py-1 bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/20 rounded-lg">MAISON</span>
                       </div>
                     </div>
@@ -373,18 +386,20 @@ export default function GroupsPage() {
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-border">
                       <span className="text-sm font-medium text-muted-foreground">{assembly._count?.members || 0} membres</span>
                       <div className="flex items-center space-x-1.5">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDuplicateGroup(assembly);
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-[#12BC7E] transition-colors cursor-pointer"
-                          title="Dupliquer cette assemblée"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
+                        {canCreateGroup && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleDuplicateGroup(assembly);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-background text-muted-foreground hover:text-[#12BC7E] transition-colors cursor-pointer"
+                            title="Dupliquer cette assemblée"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         <span className="text-sm font-bold tracking-wider px-2.5 py-1 bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20 rounded-lg">ASSEMBLEE</span>
                       </div>
                     </div>

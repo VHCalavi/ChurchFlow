@@ -45,18 +45,27 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update mappings inside a transaction
+    // Update mappings inside a transaction.
+    // ⚠️ On ne supprime QUE les mappings des rôles présents dans le payload
+    //    (évite de tout effacer si le client envoie un sous-ensemble).
     await prisma.$transaction(async (tx) => {
-      // 1. Delete all current role-permission mappings
-      await tx.rolePermission.deleteMany({});
+      const incomingRoleIds = Array.from(
+        new Set(rolePermissions.map((rp: { roleId: string }) => rp.roleId))
+      );
 
-      // 2. Insert new mappings
+      if (incomingRoleIds.length > 0) {
+        await tx.rolePermission.deleteMany({
+          where: { roleId: { in: incomingRoleIds } }
+        });
+      }
+
       if (rolePermissions.length > 0) {
         await tx.rolePermission.createMany({
           data: rolePermissions.map((rp: { roleId: string; permissionId: string }) => ({
             roleId: rp.roleId,
             permissionId: rp.permissionId
-          }))
+          })),
+          skipDuplicates: true,
         });
       }
     });

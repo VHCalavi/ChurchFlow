@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
-import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
+import { auth, getAuthUser, unauthorized, forbidden } from "../../../../lib/auth";
+import { getManagedGroupIds, canCreateOrManageGroups } from "../../../../src/lib/group-permissions";
 
 const createGroupSchema = z.object({
   name: z.string().min(1, "Le nom du groupe est requis"),
@@ -17,8 +18,14 @@ export async function GET() {
   if (!user) return unauthorized();
 
   try {
+    const managedGroupIds = await getManagedGroupIds(user);
+    const whereClause: Record<string, unknown> = { churchId: user.churchId };
+    if (managedGroupIds !== null) {
+      whereClause.id = { in: managedGroupIds };
+    }
+
     const groups = await prisma.group.findMany({
-      where: { churchId: user.churchId },
+      where: whereClause,
       include: {
         parent: {
           select: { id: true, name: true, type: true }
@@ -48,6 +55,10 @@ export async function POST(request: Request) {
   const user = getAuthUser(session);
   if (!user) return unauthorized();
 
+  if (!canCreateOrManageGroups(user)) {
+    return forbidden();
+  }
+
   try {
     const body = await request.json();
     const result = createGroupSchema.safeParse(body);
@@ -59,7 +70,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { type, parentId } = result.data;
+    const { parentId } = result.data;
 
 
 

@@ -120,6 +120,7 @@ model Church {
   formations        Formation[]
   meetings          Meeting[]
   users             User[]
+  roles             Role[]
   materials         Material[]
   providers         Provider[]
   purchases         Purchase[]
@@ -197,27 +198,37 @@ model Session {
 
 model Role {
   id          String   @id @default(cuid())
-  name        String   @unique
+  name        String
   description String?
+  isSystem    Boolean  @default(false)
+  isDefault   Boolean  @default(false)
+
+  churchId String?
+  church   Church? @relation(fields: [churchId], references: [id], onDelete: Cascade)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   permissions RolePermission[]
   users       UserRole[]
 
+  @@unique([churchId, name])
   @@map("roles")
 }
 
 model Permission {
   id          String   @id @default(cuid())
-  action      String // e.g. "create", "read", "update", "delete"
-  resource    String // e.g. "members", "groups", "finances"
+  action      String
+  resource    String
+  scope       String?
+  category    String?
   description String?
+  isSystem    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
   roles RolePermission[]
 
-  @@unique([action, resource])
+  @@unique([action, resource, scope])
   @@map("permissions")
 }
 

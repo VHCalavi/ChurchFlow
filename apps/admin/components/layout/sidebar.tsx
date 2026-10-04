@@ -160,13 +160,26 @@ export function Sidebar({
   const userRoles: string[] = (session?.user as SessionUser)?.roles || [];
   const userPermissions: string[] =
     (session?.user as SessionUser)?.permissions || [];
-  const isAdmin = userRoles.includes("ADMIN");
+  const hasFullAccess =
+    userRoles.includes("ADMIN") || userRoles.includes("SUPER_ADMIN");
 
   const filteredMenuItems = mounted
     ? menuItems.filter((item) => {
-        if (isAdmin) return true;
+        if (hasFullAccess) return true;
         if (!item.requiredPermission) return true;
-        return userPermissions.includes(item.requiredPermission);
+        if (userPermissions.includes(item.requiredPermission)) return true;
+
+        // Tolérance scopée : si la perm requise est "action:resource",
+        // on accepte aussi "action:resource.all", ".managed" ou ".own".
+        const [action, rest] = item.requiredPermission.split(':');
+        if (!rest) return false;
+        const [resource] = rest.split('.');
+        const candidates = [
+          `${action}:${resource}.all`,
+          `${action}:${resource}.managed`,
+          `${action}:${resource}.own`,
+        ];
+        return candidates.some(c => userPermissions.includes(c));
       })
     : [];
 

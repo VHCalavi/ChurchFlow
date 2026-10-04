@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import ReactDOM from "react-dom";
 import { Users, Loader2, AlertCircle, Tag, X, Check } from "lucide-react";
 import { MeetingType } from "@churchflow/types";
+import { usePermissions } from "@/lib/permissions";
 
 // ─── Portal Tooltip ───────────────────────────────────────────────────────────
 function TooltipPortal({ children, x, y }: { children: React.ReactNode; x: number; y: number }) {
@@ -71,6 +72,8 @@ export function MeetingsAttendanceChart() {
     Object.keys(TYPE_COLORS) as MeetingType[],
   );
   const [selectedGroup, setSelectedGroup] = useState<string>("all");
+  const { isAdmin, has } = usePermissions();
+  const canFilterAllGroups = isAdmin || has("filter_all:groups");
   const [filteredTags, setFilteredTags] = useState<string[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [searchTag, setSearchTag] = useState("");
@@ -125,12 +128,14 @@ export function MeetingsAttendanceChart() {
         const groupsData = await groupsRes.json();
 
         if (groupsData.success && Array.isArray(groupsData.data)) {
-          setGroups(
-            groupsData.data.map((g: { id: string; name: string }) => ({
-              id: g.id,
-              name: g.name,
-            })),
-          );
+          const loadedGroups = groupsData.data.map((g: { id: string; name: string }) => ({
+            id: g.id,
+            name: g.name,
+          }));
+          setGroups(loadedGroups);
+          if (loadedGroups.length === 1) {
+            setSelectedGroup(loadedGroups[0].id);
+          }
         }
 
         setAllMeetings(meetingsData.data as RawMeeting[]);
@@ -317,7 +322,11 @@ export function MeetingsAttendanceChart() {
     let mTotal = 0;
     let mPresent = 0;
 
-    m.attendees.forEach((a) => {
+    const attendeesToCount = selectedGroup === "all"
+      ? m.attendees
+      : m.attendees.filter((a) => a.member?.groups?.some((g) => g.groupId === selectedGroup));
+
+    attendeesToCount.forEach((a) => {
       mTotal++;
       if (a.isPresent) mPresent++;
     });
@@ -480,7 +489,7 @@ export function MeetingsAttendanceChart() {
               onChange={(e) => setSelectedGroup(e.target.value)}
               className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 cursor-pointer transition-all"
             >
-              <option value="all">Tous les groupes</option>
+              {canFilterAllGroups && <option value="all">Tous les groupes</option>}
               {groups.map((group) => (
                 <option key={group.id} value={group.id}>
                   {group.name}

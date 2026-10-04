@@ -116,6 +116,10 @@ export default function MeetingsPage() {
         const json = await res.json();
         if (json.success && Array.isArray(json.data)) {
           setGroups(json.data);
+          if (json.data.length === 1) {
+            setFilterGroupIds([json.data[0].id]);
+            setSelectedGroupIds([json.data[0].id]);
+          }
         }
       } catch (err) {
         console.error("Erreur lors du chargement des groupes:", err);
@@ -125,7 +129,7 @@ export default function MeetingsPage() {
     async function loadMeetings() {
       try {
         setLoading(true);
-        const res = await fetch("/api/v1/meetings?churchId=default-church-id");
+        const res = await fetch("/api/v1/meetings");
         const json = await res.json();
 
         if (json.success && json.data && json.data.length > 0) {
@@ -635,7 +639,13 @@ export default function MeetingsPage() {
 
                       <div className="flex items-center space-x-2 pt-2 sm:pt-0 sm:pl-4 border-t sm:border-t-0 sm:border-l border-[#D6D1CE]">
                         <Link
-                          href={`/dashboard/meetings/${meeting.id}/attendance`}
+                          href={`/dashboard/meetings/${meeting.id}/attendance${
+                            filterGroupIds.length === 1
+                              ? `?groupId=${filterGroupIds[0]}`
+                              : groups.length === 1
+                                ? `?groupId=${groups[0].id}`
+                                : ""
+                          }`}
                           className="btn-horizon btn-horizon-primary flex items-center space-x-1.5 rounded-full !py-2 !px-4 text-sm font-medium"
                         >
                           <ClipboardList className="w-3.5 h-3.5" />

@@ -12,169 +12,105 @@ export interface UserWithRoles {
   permissions: string[];
 }
 
-// Vérifier si l'utilisateur a un rôle spécifique
 export function hasRole(user: UserWithRoles, role: string): boolean {
-  return user.roles.includes(role) || user.roles.includes('ADMIN');
+  return user.roles.includes(role) || user.roles.includes('ADMIN') || user.roles.includes('SUPER_ADMIN');
 }
 
-// Vérifier si l'utilisateur a une permission spécifique
+export function isAdminLike(user: UserWithRoles): boolean {
+  return user.roles.includes('ADMIN') || user.roles.includes('SUPER_ADMIN');
+}
+
+/** Vérifie une permission littérale (ex: "manage:roles", "filter_all:groups"). */
 export function hasPermission(user: UserWithRoles, permission: string): boolean {
-  return user.permissions.includes(permission) || user.roles.includes('ADMIN');
+  if (isAdminLike(user)) return true;
+  return user.permissions.includes(permission);
 }
 
-// Vérifier multiple permissions (au moins une)
+/**
+ * Vérifie une permission scopée :
+ *   action:resource.SCOPE  (scope = "all" | "managed" | "own")
+ * Résolution par ordre de permissivité.
+ */
+export function hasScopedPermission(
+  user: UserWithRoles,
+  action: string,
+  resource: string,
+  scope?: 'all' | 'managed' | 'own'
+): boolean {
+  if (isAdminLike(user)) return true;
+  const candidates = [
+    scope ? `${action}:${resource}.${scope}` : null,
+    `${action}:${resource}.all`,
+    `${action}:${resource}.managed`,
+    `${action}:${resource}.own`,
+    `${action}:${resource}`,
+  ].filter(Boolean) as string[];
+  return candidates.some(c => user.permissions.includes(c));
+}
+
 export function hasAnyPermission(user: UserWithRoles, permissions: string[]): boolean {
-  return permissions.some(permission => hasPermission(user, permission));
+  return permissions.some(p => hasPermission(user, p));
 }
 
-// Vérifier toutes les permissions
 export function hasAllPermissions(user: UserWithRoles, permissions: string[]): boolean {
-  return permissions.every(permission => hasPermission(user, permission));
+  return permissions.every(p => hasPermission(user, p));
 }
 
-// Middleware RBAC générique
 export async function requireAuth(request: NextRequest): Promise<UserWithRoles | null> {
   const session = await auth();
-  const user = getAuthUser(session);
-
-  if (!user) {
-    return null;
-  }
-
-  return user;
+  return getAuthUser(session) as UserWithRoles | null;
 }
 
-// Middleware avec vérification de rôle
 export async function requireRole(request: NextRequest, role: string): Promise<UserWithRoles | null> {
   const user = await requireAuth(request);
-  if (!user) {
-    return null;
-  }
-
-  if (!hasRole(user, role)) {
-    return null;
-  }
-
-  return user;
+  if (!user) return null;
+  return hasRole(user, role) ? user : null;
 }
 
-// Middleware avec vérification de permission
 export async function requirePermission(request: NextRequest, permission: string): Promise<UserWithRoles | null> {
   const user = await requireAuth(request);
-  if (!user) {
-    return null;
-  }
-
-  if (!hasPermission(user, permission)) {
-    return null;
-  }
-
-  return user;
+  if (!user) return null;
+  return hasPermission(user, permission) ? user : null;
 }
 
-// Middleware pour les ressources multitenant
-export async function requireOwnership(request: NextRequest, user: UserWithRoles, resourceChurchId: string): Promise<boolean> {
+export async function requireScopedPermission(
+  request: NextRequest,
+  action: string,
+  resource: string,
+  scope?: 'all' | 'managed' | 'own'
+): Promise<UserWithRoles | null> {
+  const user = await requireAuth(request);
+  if (!user) return null;
+  return hasScopedPermission(user, action, resource, scope) ? user : null;
+}
+
+export async function requireOwnership(_request: NextRequest, user: UserWithRoles, resourceChurchId: string): Promise<boolean> {
   if (!user) return false;
-
-  // Les admins peuvent accéder à toutes les églises
-  if (hasRole(user, 'ADMIN')) return true;
-
-  // Les autres utilisateurs ne peuvent accéder qu'à leur propre église
+  if (isAdminLike(user)) return true;
   return user.churchId === resourceChurchId;
 }
 
-// Rôles prédéfinis avec permissions associées
+// ─── Helpers métier (compat existante) ───────────────────────────────────────
+export function checkGemPermissions(user: UserWithRoles, _gemId?: string) {
+  return {
+    canView:           hasScopedPermission(user, 'read', 'gems'),
+    canCreate:         hasPermission(user, 'create:gems'),
+    canManageMembers:  hasScopedPermission(user, 'manage_members', 'gems'),
+    canManageReports:  hasPermission(user, 'create:reports'),
+  };
+}
+
+export function checkReportPermissions(user: UserWithRoles, reportAuthorId?: string) {
+  const own = reportAuthorId === user.id;
+  return {
+    canView:   hasAnyPermission(user, ['view_all:reports', 'view_group:reports', 'view_own:reports']),
+    canCreate: hasPermission(user, 'create:reports'),
+    canEdit:   hasPermission(user, 'view_all:reports') || (own && hasPermission(user, 'view_own:reports')),
+    canDelete: hasPermission(user, 'view_all:reports') || own,
+  };
+}
+
+// Conservé pour compatibilité (à terme : utiliser la table Permission en DB)
 export const ROLE_PERMISSIONS = {
-  ADMIN: [
-    'read:all',
-    'write:all',
-    'manage:all',
-    'read:members',
-    'write:members',
-    'delete:members',
-    'read:groups',
-    'write:groups',
-    'delete:groups',
-    'read:gems',
-    'write:gems',
-    'delete:gems',
-    'manage:gems',
-    'read:reports',
-    'write:reports',
-    'delete:reports',
-    'manage:reports',
-    'manage:roles',
-    'manage:permissions'
-  ],
-  RESPONSABLE_GEM: [
-    'read:gems',
-    'write:gems',
-    'manage:gems',
-    'read:reports',
-    'write:reports',
-    'report:view_own'
-  ],
-  RESPONSABLE_GROUPE: [
-    'read:groups',
-    'write:groups',
-    'read:gems',
-    'read:reports',
-    'write:reports',
-    'report:view_group'
-  ],
-  PASTEUR_RESIDENT: [
-    'read:members',
-    'read:groups',
-    'read:gems',
-    'read:reports',
-    'write:reports',
-    'report:view_all'
-  ],
-  MEMBRE: [
-    'read:own',
-    'write:reports',
-    'report:view_own'
-  ]
+  ADMIN: ['read:all', 'write:all', 'manage:all', 'manage:roles'],
 } as const;
-
-// Vérifier les permissions spécifiques pour les GEMs
-export function checkGemPermissions(user: UserWithRoles, gemId?: string): {
-  canView: boolean;
-  canCreate: boolean;
-  canManageMembers: boolean;
-  canManageReports: boolean;
-} {
-  const isAdmin = hasRole(user, 'ADMIN');
-  const isGemLeader = hasRole(user, 'RESPONSABLE_GEM');
-  const isGroupLeader = hasRole(user, 'RESPONSABLE_GROUPE');
-  const isPastor = hasRole(user, 'PASTEUR_RESIDENT');
-
-  return {
-    canView: isAdmin || isGemLeader || isGroupLeader || isPastor,
-    canCreate: isAdmin || isGroupLeader || isPastor,
-    canManageMembers: isAdmin || isGemLeader || isGroupLeader,
-    canManageReports: isAdmin || isGemLeader || isGroupLeader || isPastor
-  };
-}
-
-// Vérifier les permissions pour les rapports
-export function checkReportPermissions(user: UserWithRoles, reportAuthorId?: string, userChurchId?: string): {
-  canView: boolean;
-  canCreate: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
-} {
-  const isAdmin = hasRole(user, 'ADMIN');
-  const isGemLeader = hasRole(user, 'RESPONSABLE_GEM');
-  const isGroupLeader = hasRole(user, 'RESPONSABLE_GROUPE');
-  const isPastor = hasRole(user, 'PASTEUR_RESIDENT');
-
-  return {
-    canView: isAdmin || isGemLeader || isGroupLeader || isPastor,
-    canCreate: isAdmin || isGemLeader || isGroupLeader || isPastor,
-    canEdit: isAdmin || isGemLeader || isGroupLeader || (isPastor && reportAuthorId === user?.id),
-    canDelete: isAdmin || (isGemLeader && reportAuthorId === user?.id) ||
-               (isGroupLeader && reportAuthorId === user?.id) ||
-               (isPastor && reportAuthorId === user?.id)
-  };
-}

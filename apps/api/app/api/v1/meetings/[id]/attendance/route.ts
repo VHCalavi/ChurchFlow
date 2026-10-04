@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
+import { auth, getAuthUser, unauthorized } from "../../../../../../lib/auth";
+import { getManagedGroupIds } from "../../../../../../src/lib/group-permissions";
 
 const bulkAttendanceSchema = z.object({
   // Array of { memberId, isPresent, notes? }
@@ -15,12 +17,24 @@ const bulkAttendanceSchema = z.object({
 });
 
 // GET /api/v1/meetings/[id]/attendance
-// Returns the attendance sheet for a meeting with all members of the church
+// Returns the attendance sheet for a meeting with members filtered by group
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const session = await auth();
+  const user = getAuthUser(session);
+  if (!user) return unauthorized();
+
   try {
+    const { searchParams } = new URL(request.url);
+    const requestedGroupId = searchParams.get("groupId");
+    const managedGroupIds = await getManagedGroupIds(user);
+
+    const targetGroupIds = requestedGroupId
+      ? (managedGroupIds !== null ? (managedGroupIds.includes(requestedGroupId) ? [requestedGroupId] : []) : [requestedGroupId])
+      : managedGroupIds;
+
     const meeting = await prisma.meeting.findUnique({
       where: { id: params.id },
       include: {
@@ -41,9 +55,43 @@ export async function GET(
       );
     }
 
-    // Fetch all active members of the church to show full list
+    // Fetch members of the church or filtered group
+    const memberWhere: Record<string, unknown> = {
+      churchId: meeting.churchId,
+      isActive: true
+    };
+
+    if (targetGroupIds !== null) {
+      if (targetGroupIds.length === 0) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            meeting: {
+              id: meeting.id,
+              title: meeting.title,
+              date: meeting.date,
+              type: meeting.type,
+              location: meeting.location
+            },
+            sheet: [],
+            stats: {
+              totalMembers: 0,
+              totalRecorded: 0,
+              presentCount: 0,
+              attendanceRate: 0
+            }
+          }
+        });
+      }
+      memberWhere.groups = {
+        some: {
+          groupId: { in: targetGroupIds }
+        }
+      };
+    }
+
     const allMembers = await prisma.member.findMany({
-      where: { churchId: meeting.churchId, isActive: true },
+      where: memberWhere,
       select: { id: true, firstName: true, lastName: true, status: true, grade: true },
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }]
     });
@@ -60,8 +108,10 @@ export async function GET(
       notes: attendanceMap.get(member.id)?.notes ?? null
     }));
 
-    const presentCount = meeting.attendees.filter(a => a.isPresent).length;
-    const totalRecorded = meeting.attendees.length;
+    const relevantMemberIds = new Set(allMembers.map(m => m.id));
+    const relevantAttendees = meeting.attendees.filter(a => relevantMemberIds.has(a.memberId));
+    const presentCount = relevantAttendees.filter(a => a.isPresent).length;
+    const totalRecorded = relevantAttendees.length;
 
     return NextResponse.json({
       success: true,

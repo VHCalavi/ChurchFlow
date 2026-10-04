@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
 import { auth, getAuthUser, unauthorized } from "../../../../lib/auth";
+import { getManagedGroupIds } from "../../../../src/lib/group-permissions";
 
 const createMeetingSchema = z.object({
   title: z.string().min(1, "Le titre de la réunion est requis"),
@@ -15,12 +16,20 @@ const createMeetingSchema = z.object({
   groupIds: z.array(z.string()).optional()
 });
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   const user = getAuthUser(session);
   if (!user) return unauthorized();
 
   try {
+    const { searchParams } = new URL(request.url);
+    const requestedGroupId = searchParams.get("groupId");
+    const managedGroupIds = await getManagedGroupIds(user);
+
+    const targetGroupIds = requestedGroupId
+      ? (managedGroupIds !== null ? (managedGroupIds.includes(requestedGroupId) ? [requestedGroupId] : []) : [requestedGroupId])
+      : managedGroupIds;
+
     const rawMeetings = await prisma.meeting.findMany({
       where: { churchId: user.churchId },
       include: {
@@ -44,24 +53,45 @@ export async function GET() {
       orderBy: { date: "desc" }
     });
 
-    // Shape the response: add presentCount alongside _count.attendees
-    const meetings = rawMeetings.map(m => ({
-      id: m.id,
-      title: m.title,
-      description: m.description,
-      type: m.type,
-      date: m.date,
-      endDate: m.endDate,
-      location: m.location,
-      notes: m.notes,
-      isRecurrent: m.isRecurrent,
-      tags: m.tags,
-      churchId: m.churchId,
-      _count: { attendees: m._count.attendees },
-      presentCount: m.attendees.filter(a => a.isPresent).length,
-      attendees: m.attendees,
-      groupIds: (m.metadata as { groupIds?: string[] })?.groupIds || [],
-    }));
+    let filteredMeetings = rawMeetings;
+    if (targetGroupIds !== null) {
+      if (targetGroupIds.length === 0) {
+        return NextResponse.json({ success: true, data: [] });
+      }
+      filteredMeetings = rawMeetings.filter(m => {
+        const mGroupIds = (m.metadata as { groupIds?: string[] })?.groupIds || [];
+        if (mGroupIds.length > 0) {
+          return mGroupIds.some(gid => targetGroupIds.includes(gid));
+        }
+        return true;
+      });
+    }
+
+    // Shape the response: add presentCount and filter attendees for target group
+    const meetings = filteredMeetings.map(m => {
+      const mGroupIds = (m.metadata as { groupIds?: string[] })?.groupIds || [];
+      const relevantAttendees = targetGroupIds !== null
+        ? m.attendees.filter(a => a.member.groups.some(g => targetGroupIds.includes(g.groupId)))
+        : m.attendees;
+
+      return {
+        id: m.id,
+        title: m.title,
+        description: m.description,
+        type: m.type,
+        date: m.date,
+        endDate: m.endDate,
+        location: m.location,
+        notes: m.notes,
+        isRecurrent: m.isRecurrent,
+        tags: m.tags,
+        churchId: m.churchId,
+        _count: { attendees: relevantAttendees.length },
+        presentCount: relevantAttendees.filter(a => a.isPresent).length,
+        attendees: relevantAttendees,
+        groupIds: mGroupIds,
+      };
+    });
 
     return NextResponse.json({ success: true, data: meetings });
   } catch (error) {

@@ -1,51 +1,58 @@
-import { auth } from "@churchflow/auth";
-import { NextResponse } from "next/server";
+import { auth } from '@churchflow/auth';
+import { NextResponse } from 'next/server';
 
-/**
- * Routes that require specific roles.
- * Key: route prefix, Value: list of roles that are allowed access.
- */
-const ROLE_RESTRICTED_ROUTES: Record<string, string[]> = {
-  "/dashboard/administration": ["ADMIN", "SUPER_ADMIN"],
-  "/dashboard/permissions": ["ADMIN", "SUPER_ADMIN"],
+const PERMISSION_ROUTES: Record<string, string> = {
+  '/dashboard/administration': 'manage:administrations',
+  '/dashboard/permissions':    'manage:roles',
+  '/dashboard/finances':       'read:finances',
+  '/dashboard/graph':          'view_all:reports',
 };
+
+interface SessionUser {
+  roles?: string[];
+  permissions?: string[];
+}
+
+function userCanAccess(user: SessionUser | undefined, requiredPerm: string): boolean {
+  if (!user) return false;
+  const roles = user.roles ?? [];
+  const permissions = user.permissions ?? [];
+  if (roles.includes('ADMIN') || roles.includes('SUPER_ADMIN')) return true;
+
+  const [action, rest] = requiredPerm.split(':');
+  const [resource] = rest.split('.');
+  return (
+    permissions.includes(requiredPerm) ||
+    permissions.includes(`${action}:${resource}.all`) ||
+    permissions.includes(`${action}:${resource}.managed`) ||
+    permissions.includes(`${action}:${resource}.own`) ||
+    permissions.includes(`${action}:${resource}`)
+  );
+}
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
 
-  // 1. Protect /dashboard and all nested paths
-  if (pathname.startsWith("/dashboard")) {
+  if (pathname.startsWith('/dashboard')) {
     if (!session) {
-      const loginUrl = new URL("/login", req.url);
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(new URL('/login', req.url));
     }
-
-    // 2. Role-based access control for sensitive sub-routes
-    const userRoles: string[] = (session.user as any)?.roles ?? [];
-
-    for (const [route, requiredRoles] of Object.entries(ROLE_RESTRICTED_ROUTES)) {
-      if (pathname.startsWith(route)) {
-        const hasAccess = requiredRoles.some((r) => userRoles.includes(r));
-        if (!hasAccess) {
-          const dashboardUrl = new URL("/dashboard?error=unauthorized", req.url);
-          return NextResponse.redirect(dashboardUrl);
-        }
+    const user = session.user as SessionUser;
+    for (const [route, perm] of Object.entries(PERMISSION_ROUTES)) {
+      if (pathname.startsWith(route) && !userCanAccess(user, perm)) {
+        return NextResponse.redirect(new URL('/dashboard?error=unauthorized', req.url));
       }
     }
   }
 
-  // 3. Redirect already-authenticated users away from /login and /
-  if (pathname === "/login" || pathname === "/") {
-    if (session) {
-      const dashboardUrl = new URL("/dashboard", req.url);
-      return NextResponse.redirect(dashboardUrl);
-    }
+  if (pathname === '/login' || pathname === '/') {
+    if (session) return NextResponse.redirect(new URL('/dashboard', req.url));
   }
 
   return NextResponse.next();
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/"],
+  matcher: ['/dashboard/:path*', '/login', '/'],
 };

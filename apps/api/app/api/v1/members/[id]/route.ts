@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@churchflow/database";
 import { z } from "zod";
 import { auth, getAuthUser, unauthorized, forbidden } from "../../../../../lib/auth";
+import { syncUserRole } from "../../../../../src/lib/sync-user-role";
 
 const updateMemberSchema = z.object({
   firstName: z.string().min(1, "Le prénom est requis").optional(),
@@ -114,7 +115,7 @@ export async function PUT(
     }
 
     const currentMember = await prisma.member.findUnique({
-      where: { id: params.id }
+      where: { id: params.id },
     });
 
     if (!currentMember) {
@@ -129,55 +130,103 @@ export async function PUT(
     }
 
     const status = result.data.status ?? currentMember.status;
-    const grade = result.data.grade !== undefined ? result.data.grade : currentMember.grade;
-    const echelon = result.data.echelon !== undefined ? result.data.echelon : currentMember.echelon;
-    const pastorLevel = result.data.pastorLevel !== undefined ? result.data.pastorLevel : currentMember.pastorLevel;
+    const grade =
+      result.data.grade !== undefined ? result.data.grade : currentMember.grade;
+    const echelon =
+      result.data.echelon !== undefined
+        ? result.data.echelon
+        : currentMember.echelon;
+    const pastorLevel =
+      result.data.pastorLevel !== undefined
+        ? result.data.pastorLevel
+        : currentMember.pastorLevel;
 
-    // Validation de la logique hiérarchique
+    // ── Validation hiérarchique (conservée) ──────────────────────────────
     if (status !== "RESPONSABLE" && (grade || echelon || pastorLevel)) {
       return NextResponse.json(
-        { success: false, error: "Les grades, échelons et niveaux pastoraux ne s'appliquent qu'aux responsables" },
+        {
+          success: false,
+          error:
+            "Les grades, échelons et niveaux pastoraux ne s'appliquent qu'aux responsables",
+        },
         { status: 400 }
       );
     }
-
     if (status === "RESPONSABLE" && (!grade || !echelon)) {
       return NextResponse.json(
-        { success: false, error: "Un responsable doit obligatoirement avoir un grade et un échelon" },
+        {
+          success: false,
+          error: "Un responsable doit obligatoirement avoir un grade et un échelon",
+        },
         { status: 400 }
       );
     }
 
-    const updatedMember = await prisma.member.update({
-      where: { id: params.id },
-      data: {
-        firstName: result.data.firstName,
-        lastName: result.data.lastName,
-        gender: result.data.gender,
-        birthDate: result.data.birthDate ? new Date(result.data.birthDate) : undefined,
-        phone: result.data.phone,
-        email: result.data.email,
-        address: result.data.address,
-        photoUrl: result.data.photoUrl,
-        maritalStatus: result.data.maritalStatus,
-        occupation: result.data.occupation,
-        nationalId: result.data.nationalId,
-        nationality: result.data.nationality,
-        status: result.data.status,
-        grade: grade,
-        echelon: echelon,
-        pastorLevel: pastorLevel,
-        supervisorId: result.data.supervisorId,
-        notes: result.data.notes,
-        isActive: result.data.isActive,
-        metadata: result.data.systemRole !== undefined ? {
-          ...((currentMember.metadata || {}) as Record<string, unknown>),
-          systemRole: result.data.systemRole
-        } : undefined
-      }
-    });
+    const newSystemRole =
+      result.data.systemRole !== undefined
+        ? result.data.systemRole
+        : undefined;
 
-    return NextResponse.json({ success: true, data: updatedMember });
+    // ── Transaction : update member + sync RBAC ──────────────────────────
+    const { updatedMember, roleApplied, roleChanged } = await prisma.$transaction(
+      async (tx) => {
+        const currentMeta = (currentMember.metadata || {}) as Record<string, unknown>;
+        const nextMeta =
+          newSystemRole !== undefined
+            ? { ...currentMeta, systemRole: newSystemRole }
+            : currentMeta;
+
+        const updated = await tx.member.update({
+          where: { id: params.id },
+          data: {
+            firstName: result.data.firstName,
+            lastName: result.data.lastName,
+            gender: result.data.gender,
+            birthDate: result.data.birthDate
+              ? new Date(result.data.birthDate)
+              : undefined,
+            phone: result.data.phone,
+            email: result.data.email,
+            address: result.data.address,
+            photoUrl: result.data.photoUrl,
+            maritalStatus: result.data.maritalStatus,
+            occupation: result.data.occupation,
+            nationalId: result.data.nationalId,
+            nationality: result.data.nationality,
+            status: result.data.status,
+            grade,
+            echelon,
+            pastorLevel,
+            supervisorId: result.data.supervisorId,
+            notes: result.data.notes,
+            isActive: result.data.isActive,
+            metadata: nextMeta as any,
+          },
+        });
+
+        let applied = "";
+        let changed = false;
+        if (updated.userId && newSystemRole !== undefined) {
+          const r = await syncUserRole(tx, updated.userId, newSystemRole);
+          applied = r.applied;
+          changed = r.changed;
+        }
+
+        return {
+          updatedMember: updated,
+          roleApplied: applied,
+          roleChanged: changed,
+        };
+      }
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: updatedMember,
+      roleSync: roleApplied
+        ? { applied: roleApplied, changed: roleChanged }
+        : { skipped: "no linked user or no systemRole provided" },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Erreur inconnue";
     return NextResponse.json(

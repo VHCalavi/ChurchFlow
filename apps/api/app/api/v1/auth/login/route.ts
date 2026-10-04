@@ -86,7 +86,13 @@ export async function POST(request: Request) {
       include: { permission: true }
     });
     const permissionNames = Array.from(
-      new Set(rolePermissions.map(rp => `${rp.permission.action}:${rp.permission.resource}`))
+      new Set(
+        rolePermissions.map(rp => {
+          const base = `${rp.permission.action}:${rp.permission.resource}`;
+          // @ts-expect-error scope existe après migration
+          return rp.permission.scope ? `${base}.${rp.permission.scope}` : base;
+        })
+      )
     );
 
     return NextResponse.json({

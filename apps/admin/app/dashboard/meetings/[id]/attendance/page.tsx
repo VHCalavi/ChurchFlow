@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { DashboardLayout } from "../../../../../components/layout/dashboard-layout";
-import { ArrowLeft, CheckCircle, XCircle, Clock, Search, Save, Users } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Clock, Search, Save, Users, Filter } from "lucide-react";
+import { usePermissions } from "@/lib/permissions";
 
 type AttendanceStatus = "PRESENT" | "ABSENT" | "EXCUSED";
 
@@ -25,7 +26,9 @@ interface Stats { totalMembers: number; totalRecorded: number; presentCount: num
 export default function AttendancePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const meetingId = params.id as string;
+  const initialGroupId = searchParams.get("groupId") || "";
 
   const [meeting, setMeeting] = useState<MeetingInfo | null>(null);
   const [rows, setRows] = useState<AttendeeRow[]>([]);
@@ -33,6 +36,10 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [groups, setGroups] = useState<{ id: string; name: string }[]>([]);
+  const [selectedGroupId, setSelectedGroupId] = useState<string>(initialGroupId);
+  const { isAdmin, has } = usePermissions();
+  const canFilterAllGroups = isAdmin || has("filter_all:groups");
   const [notification, setNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
   const notify = (message: string, type: "success" | "error") => {
@@ -40,10 +47,32 @@ export default function AttendancePage() {
     setTimeout(() => setNotification(null), 4000);
   };
 
+  // Load groups
+  useEffect(() => {
+    async function loadGroups() {
+      try {
+        const res = await fetch("/api/v1/groups");
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setGroups(json.data);
+          if (json.data.length === 1 && !selectedGroupId) {
+            setSelectedGroupId(json.data[0].id);
+          }
+        }
+      } catch (err) {
+        console.error("Erreur chargement des groupes:", err);
+      }
+    }
+    loadGroups();
+  }, [selectedGroupId]);
+
   const loadAttendance = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/v1/meetings/${meetingId}/attendance`);
+      const url = selectedGroupId
+        ? `/api/v1/meetings/${meetingId}/attendance?groupId=${selectedGroupId}`
+        : `/api/v1/meetings/${meetingId}/attendance`;
+      const res = await fetch(url);
       const data = await res.json();
       if (data.success) {
         setMeeting(data.data.meeting);
@@ -57,7 +86,7 @@ export default function AttendancePage() {
     } finally {
       setLoading(false);
     }
-  }, [meetingId]);
+  }, [meetingId, selectedGroupId]);
 
   useEffect(() => { loadAttendance(); }, [loadAttendance]);
 
@@ -140,12 +169,33 @@ export default function AttendancePage() {
           </div>
 
           {/* Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 horizon-card p-6">
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Rechercher un membre..." className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-4 horizon-card p-6">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Rechercher un membre..." className="w-full px-5 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] placeholder-[#A3AED0] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all" />
+              </div>
+
+              {/* Group filter selector if more than 1 group exists */}
+              {groups.length > 0 && (
+                <div className="w-full sm:w-64">
+                  <select
+                    value={selectedGroupId}
+                    onChange={(e) => setSelectedGroupId(e.target.value)}
+                    className="w-full px-4 py-3 text-sm font-semibold rounded-full border-none bg-[#F4F7FE] text-[#1B2559] focus:outline-none focus:ring-2 focus:ring-primary/25 transition-all cursor-pointer"
+                  >
+                    {groups.length > 1 && <option value="">Tous les membres de l'église</option>}
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
-            <div className="flex items-center space-x-2">
+
+            <div className="flex items-center space-x-2 w-full lg:w-auto justify-end">
               <button onClick={() => markAll("PRESENT")} className="btn-horizon btn-horizon-secondary">Tout présent</button>
               <button onClick={() => markAll("ABSENT")} className="btn-horizon btn-horizon-danger">Tout absent</button>
               <button onClick={handleSave} disabled={saving} className="btn-horizon btn-horizon-primary">

@@ -10,6 +10,7 @@ declare module "next-auth" {
       churchId?: string | null;
       churchName?: string | null;
       roles?: string[];
+      permissions?: string[];
     };
   }
 
@@ -18,6 +19,7 @@ declare module "next-auth" {
     churchId?: string | null;
     churchName?: string | null;
     roles?: string[];
+    permissions?: string[];
   }
 }
 
@@ -27,5 +29,6 @@ declare module "next-auth/jwt" {
     churchId?: string | null;
     churchName?: string | null;
     roles?: string[];
+    permissions?: string[];
   }
 }

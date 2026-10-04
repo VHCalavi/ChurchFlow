@@ -122,7 +122,7 @@ export async function PUT(
       data: {
         name: result.data.name,
         description: result.data.description,
-        type: result.data.type,
+        type: type,
         parentId: parentId,
         isActive: result.data.isActive
       }
